@@ -3,31 +3,39 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>نظام تسجيل الحضور - IEEE</title>
+  <title>نظام إدارة الكورسات</title>
   <script src="https://unpkg.com/html5-qrcode"></script>
   <style>
-    body { font-family: system-ui, -apple-system, sans-serif; text-align: center; background: #f4f7f6; margin: 0; padding: 20px; }
-    .card { background: white; max-width: 450px; margin: auto; padding: 25px 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-    select { width: 100%; padding: 14px; margin: 10px 0 10px 0; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; font-weight: bold; background-color: #f8f9fa; }
+    body { font-family: system-ui, -apple-system, sans-serif; text-align: center; background: #eef2f5; margin: 0; padding: 15px; }
+    .card { background: white; max-width: 450px; margin: auto; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+    
+    /* تصميم العداد */
+    .dashboard { display: flex; justify-content: space-between; align-items: center; background: #0056b3; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; }
+    .dashboard span { font-size: 1.2em; background: #ffc107; color: #000; padding: 3px 12px; border-radius: 15px; }
+    
+    select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 15px; font-weight: bold; background-color: #f8f9fa; margin-bottom: 15px; }
     
     .btn-primary { background: #0056b3; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-size: 16px; cursor: pointer; margin-bottom: 10px; font-weight: bold;}
     .btn-secondary { background: #28a745; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold;}
     .btn-danger { background: #dc3545; color: white; border: none; padding: 10px; width: 100%; border-radius: 8px; font-size: 14px; cursor: pointer; margin-top: 10px; display: none;}
     
     #reader { width: 100%; border-radius: 8px; overflow: hidden; margin-top: 15px; display: none; border: 2px solid #0056b3;}
-    #message { margin-top: 15px; padding: 15px; border-radius: 8px; font-weight: bold; display: none; font-size: 15px;}
+    #message { margin-top: 15px; padding: 15px; border-radius: 8px; font-weight: bold; display: none; font-size: 15px; transition: 0.3s;}
     
     .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
     .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     .info { background: #e2e3e5; color: #383d41; border: 1px solid #d6d8db; }
     .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
     #qr-input-file { display: none; }
-    p.label { text-align: right; margin: 10px 5px 0 0; font-size: 14px; color: #555; font-weight: bold; }
+    p.label { text-align: right; margin: 0 5px 5px 0; font-size: 14px; color: #555; font-weight: bold; }
   </style>
 </head>
 <body>
   <div class="card">
-    <h2 style="color: #0056b3; margin-top:0;">تسجيل الحضور 🚀</h2>
+    <div class="dashboard">
+      <div>تسجيل الحضور 🚀</div>
+      <div>العدد: <span id="counterDisplay">0</span></div>
+    </div>
     
     <p class="label">اختر المحاضرة:</p>
     <select id="lecture">
@@ -35,16 +43,15 @@
       <option value="2">المحاضرة 2</option>
       <option value="3">المحاضرة 3</option>
     </select>
-
+    
     <p class="label">اختر الكاميرا:</p>
     <select id="cameraSelection">
       <option value="">جاري البحث عن كاميرات...</option>
     </select>
     
-    <button class="btn-primary" id="startLiveBtn" onclick="startLiveCamera()">🎥 مسح بالكاميرا المباشرة</button>
-    
+    <button class="btn-primary" id="startLiveBtn" onclick="startLiveCamera()">🎥 مسح الكود المباشر</button>
     <input type="file" id="qr-input-file" accept="image/*" capture="environment">
-    <button class="btn-secondary" onclick="document.getElementById('qr-input-file').click()">📸 التقاط / اختيار صورة الكود</button>
+    <button class="btn-secondary" onclick="document.getElementById('qr-input-file').click()">📸 التقاط صورة</button>
     
     <div id="reader"></div>
     <button class="btn-danger" id="stopCamBtn" onclick="stopLiveCamera()">إيقاف الكاميرا</button>
@@ -53,31 +60,43 @@
   </div>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbzwlZBC43iBMtAZhj27oqT9-4KUShuTJDMih8NLuWy9fiac9fG9juoSWvJcavydhL8/exec"; 
+    // ⚠️ حط الرابط الجديد بتاع الـ Web App هنا
+    const API_URL = "https://script.google.com/macros/s/AKfycbzwlZBC43iBMtAZhj27oqT9-4KUShuTJDMih8NLuWy9fiac9fG9juoSWvJcavydhL8/execا"; 
 
     let html5QrCode;
     const fileInput = document.getElementById('qr-input-file');
     const cameraSelect = document.getElementById('cameraSelection');
 
-    // جلب قائمة الكاميرات عند فتح الصفحة
+    // دالة الصوت
+    function playBeep(type) {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      if(type === 'success') {
+        osc.type = 'sine'; osc.frequency.value = 800;
+        gain.gain.value = 0.1;
+        osc.start(); osc.stop(ctx.currentTime + 0.15);
+      } else {
+        osc.type = 'sawtooth'; osc.frequency.value = 300;
+        gain.gain.value = 0.1;
+        osc.start(); osc.stop(ctx.currentTime + 0.3);
+      }
+    }
+
     Html5Qrcode.getCameras().then(devices => {
       if (devices && devices.length > 0) {
-        cameraSelect.innerHTML = ""; // مسح خيار التحميل
+        cameraSelect.innerHTML = "";
         devices.forEach((device, index) => {
           const option = document.createElement('option');
           option.value = device.id;
-          option.text = device.label || `Camera ${index + 1}`;
-          // محاولة اختيار الكاميرا الخلفية تلقائياً لو الكلمة موجودة
-          if (option.text.toLowerCase().includes('back') || option.text.toLowerCase().includes('خلفية')) {
-            option.selected = true;
-          }
+          option.text = device.label || `كاميرا ${index + 1}`;
+          if (option.text.toLowerCase().includes('back') || option.text.toLowerCase().includes('خلفية')) option.selected = true;
           cameraSelect.appendChild(option);
         });
-      } else {
-        cameraSelect.innerHTML = '<option value="">لم يتم العثور على كاميرا</option>';
       }
-    }).catch(err => {
-      cameraSelect.innerHTML = '<option value="">خطأ في الصلاحيات</option>';
     });
 
     function showMessage(text, type) {
@@ -88,7 +107,7 @@
     }
 
     function sendDataToAPI(decodedText) {
-      showMessage("⏳ جاري الاتصال بقاعدة البيانات...", "info");
+      showMessage("⏳ جاري تسجيل الحضور...", "info");
       const lec = document.getElementById('lecture').value;
       
       const requestUrl = `${API_URL}?qrCode=${encodeURIComponent(decodedText)}&lectureNum=${encodeURIComponent(lec)}`;
@@ -96,21 +115,27 @@
       fetch(requestUrl)
         .then(response => response.json())
         .then(data => {
-          if (data.status === "success") showMessage(data.message, "success");
-          else if (data.status === "already") showMessage(data.message, "warning");
-          else showMessage(data.message, "error");
+          if (data.status === "success") {
+            showMessage(data.message, "success");
+            playBeep('success');
+          } else {
+            showMessage(data.message, data.status === "already" ? "warning" : "error");
+            playBeep('error');
+          }
+          // تحديث العداد
+          if(data.count !== undefined) {
+            document.getElementById('counterDisplay').innerText = data.count;
+          }
         })
         .catch(error => {
-          showMessage("❌ حدث خطأ في الاتصال. تأكد من صحة الرابط.", "error");
+          showMessage("❌ خطأ في الاتصال بالسيرفر.", "error");
+          playBeep('error');
         });
     }
 
     function startLiveCamera() {
       const cameraId = cameraSelect.value;
-      if (!cameraId) {
-        alert("برجاء اختيار الكاميرا أولاً");
-        return;
-      }
+      if (!cameraId) return alert("برجاء اختيار الكاميرا");
 
       document.getElementById('reader').style.display = 'block';
       document.getElementById('stopCamBtn').style.display = 'block';
@@ -119,16 +144,14 @@
       if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
       
       html5QrCode.start(
-        cameraId,
-        { fps: 10, qrbox: { width: 250, height: 250 } },
+        cameraId, { fps: 10, qrbox: { width: 250, height: 250 } },
         (decodedText) => {
           stopLiveCamera(); 
           sendDataToAPI(decodedText);
         },
         (errorMessage) => { }
       ).catch((err) => {
-        stopLiveCamera();
-        showMessage("❌ تعذر فتح الكاميرا المختارة.", "error");
+        stopLiveCamera(); showMessage("❌ تعذر تشغيل الكاميرا.", "error");
       });
     }
 
@@ -144,21 +167,13 @@
     fileInput.addEventListener('change', e => {
       if (e.target.files.length == 0) return;
       stopLiveCamera(); 
-      
       const imageFile = e.target.files[0];
       showMessage("⏳ جاري قراءة الصورة...", "info");
 
       if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
-      
       html5QrCode.scanFile(imageFile, true)
-        .then(decodedText => {
-          sendDataToAPI(decodedText);
-          fileInput.value = ""; 
-        })
-        .catch(err => {
-          showMessage("❌ لم يتم العثور على QR واضح.", "error");
-          fileInput.value = "";
-        });
+        .then(decodedText => { sendDataToAPI(decodedText); fileInput.value = ""; })
+        .catch(err => { showMessage("❌ لم يتم العثور على QR واضح.", "error"); fileInput.value = ""; });
     });
   </script>
 </body>
