@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>نظام تسجيل الحضور - IEEE</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; text-align: center; background: #f4f7f6; margin: 0; padding: 20px; }
+    .card { background: white; max-width: 450px; margin: auto; padding: 25px 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    select { width: 100%; padding: 14px; margin: 10px 0 20px 0; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; font-weight: bold; background-color: #f8f9fa; }
+    
+    .btn-primary { background: #0056b3; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-size: 16px; cursor: pointer; margin-bottom: 10px; font-weight: bold;}
+    .btn-secondary { background: #28a745; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold;}
+    .btn-danger { background: #dc3545; color: white; border: none; padding: 10px; width: 100%; border-radius: 8px; font-size: 14px; cursor: pointer; margin-top: 10px; display: none;}
+    
+    #reader { width: 100%; border-radius: 8px; overflow: hidden; margin-top: 15px; display: none; border: 2px solid #0056b3;}
+    #message { margin-top: 15px; padding: 15px; border-radius: 8px; font-weight: bold; display: none; font-size: 15px;}
+    
+    .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .info { background: #e2e3e5; color: #383d41; border: 1px solid #d6d8db; }
+    .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+    #qr-input-file { display: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2 style="color: #0056b3; margin-top:0;">تسجيل الحضور 🚀</h2>
+    
+    <select id="lecture">
+      <option value="1">المحاضرة 1</option>
+      <option value="2">المحاضرة 2</option>
+      <option value="3">المحاضرة 3</option>
+    </select>
+    
+    <button class="btn-primary" id="startLiveBtn" onclick="startLiveCamera()">🎥 مسح بالكاميرا المباشرة</button>
+    
+    <input type="file" id="qr-input-file" accept="image/*" capture="environment">
+    <button class="btn-secondary" onclick="document.getElementById('qr-input-file').click()">📸 التقاط / اختيار صورة الكود</button>
+    
+    <div id="reader"></div>
+    <button class="btn-danger" id="stopCamBtn" onclick="stopLiveCamera()">إيقاف الكاميرا</button>
+    
+    <div id="message"></div>
+  </div>
+
+  <script>
+    // ⚠️ ضع رابط الـ Web App الخاص بك هنا (الذي ينتهي بـ /exec)
+    const API_URL = "ضع_الرابط_هنا"; 
+
+    let html5QrCode;
+    const fileInput = document.getElementById('qr-input-file');
+
+    function showMessage(text, type) {
+      const msgDiv = document.getElementById('message');
+      msgDiv.style.display = 'block';
+      msgDiv.className = type;
+      msgDiv.innerText = text;
+    }
+
+    // إرسال البيانات لجوجل شيت عبر الـ API
+    function sendDataToAPI(decodedText) {
+      showMessage("⏳ جاري الاتصال بقاعدة البيانات...", "info");
+      const lec = document.getElementById('lecture').value;
+      
+      const requestUrl = `${API_URL}?qrCode=${encodeURIComponent(decodedText)}&lectureNum=${encodeURIComponent(lec)}`;
+
+      fetch(requestUrl)
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === "success") showMessage(data.message, "success");
+          else if (data.status === "already") showMessage(data.message, "warning");
+          else showMessage(data.message, "error");
+        })
+        .catch(error => {
+          showMessage("❌ حدث خطأ في الاتصال. تأكد من صحة الرابط أو اتصال الإنترنت.", "error");
+        });
+    }
+
+    function startLiveCamera() {
+      document.getElementById('reader').style.display = 'block';
+      document.getElementById('stopCamBtn').style.display = 'block';
+      document.getElementById('message').style.display = 'none';
+
+      if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
+      
+      Html5Qrcode.getCameras().then(devices => {
+        if (devices && devices.length > 0) {
+          let cameraId = devices[0].id; 
+          html5QrCode.start(
+            cameraId,
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            (decodedText) => {
+              stopLiveCamera(); 
+              sendDataToAPI(decodedText);
+            },
+            (errorMessage) => { }
+          ).catch((err) => {
+            stopLiveCamera();
+            showMessage("❌ الكاميرا محظورة أو قيد الاستخدام.", "error");
+          });
+        }
+      });
+    }
+
+    function stopLiveCamera() {
+      if (html5QrCode && html5QrCode.isScanning) {
+        html5QrCode.stop().then(() => {
+          document.getElementById('reader').style.display = 'none';
+          document.getElementById('stopCamBtn').style.display = 'none';
+        });
+      }
+    }
+
+    fileInput.addEventListener('change', e => {
+      if (e.target.files.length == 0) return;
+      stopLiveCamera(); 
+      
+      const imageFile = e.target.files[0];
+      showMessage("⏳ جاري قراءة الصورة...", "info");
+
+      if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
+      
+      html5QrCode.scanFile(imageFile, true)
+        .then(decodedText => {
+          sendDataToAPI(decodedText);
+          fileInput.value = ""; 
+        })
+        .catch(err => {
+          showMessage("❌ لم يتم العثور على QR واضح.", "error");
+          fileInput.value = "";
+        });
+    });
+  </script>
+</body>
+</html>
