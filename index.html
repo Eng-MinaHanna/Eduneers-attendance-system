@@ -42,6 +42,9 @@
     table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
     th, td { padding: 12px 8px; text-align: right; border-bottom: 1px solid #eee; }
     th { background: #f8f9fa; color: var(--primary); }
+    .search-box { margin-bottom: 15px; position: relative; }
+    .search-box input { margin-bottom: 0; padding-right: 35px; }
+    .search-box::before { content: '🔍'; position: absolute; right: 10px; top: 12px; font-size: 16px; }
     
     #reader { width: 100%; border-radius: 8px; overflow: hidden; display: none; border: 2px solid var(--primary); margin-bottom: 10px;}
     #message { margin-top: 10px; padding: 15px; border-radius: 8px; font-weight: bold; display: none; }
@@ -61,7 +64,7 @@
   <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
   <div class="sidebar" id="sidebar">
     <button class="close-btn" onclick="toggleSidebar()">×</button>
-    <a href="#" onclick="switchView('scanner');" id="nav-scanner" class="active">📷 تسجيل الطلاب</a>
+    <a href="#" onclick="switchView('scanner');" id="nav-scanner">📷 تسجيل الطلاب</a>
     <a href="#" onclick="switchView('manual');" id="nav-manual">✍️ تسجيل يدوي</a>
     <a href="#" onclick="switchView('dashboard');" id="nav-dashboard">📊 لوحة الحضور</a>
   </div>
@@ -69,36 +72,33 @@
   <div class="container">
     <div style="background: white; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
       <p style="margin: 0 0 10px 0; font-weight: bold; color: #555;">المحاضرة الحالية:</p>
-      <select id="lecture" onchange="if(currentView === 'dashboard') loadDashboard();">
-     <option value="1">المحاضرة 1</option>
-      <option value="2">المحاضرة 2</option>
-      <option value="3">المحاضرة 3</option>
-      <option value="4">المحاضرة 4</option>
-      <option value="5">المحاضرة 5</option>
-      <option value="6">المحاضرة 6</option>
-      <option value="7">المحاضرة 7</option>
-      <option value="8">المحاضرة 8</option>
-      <option value="9">المحاضرة 9</option>
-      <option value="10">المحاضرة 10</option>
-      <option value="11">المحاضرة 11</option>
-      <option value="12">المحاضرة 12</option>
-      <option value="13">المحاضرة 13</option>
-      <option value="14">المحاضرة 14</option>
-      <option value="15">المحاضرة 15</option>
-      <option value="16">المحاضرة 16</option>
-      <option value="17">المحاضرة 17</option>
-      <option value="18">المحاضرة 18</option>
-      <option value="19">المحاضرة 19</option>
-      <option value="20">المحاضرة 20</option>
-
-      
-      
+      <select id="lecture">
+        <option value="1">المحاضرة 1</option>
+        <option value="2">المحاضرة 2</option>
+        <option value="3">المحاضرة 3</option>
+        <option value="4">المحاضرة 4</option>
+        <option value="5">المحاضرة 5</option>
+        <option value="6">المحاضرة 6</option>
+        <option value="7">المحاضرة 7</option>
+        <option value="8">المحاضرة 8</option>
+        <option value="9">المحاضرة 9</option>
+        <option value="10">المحاضرة 10</option>
+        <option value="11">المحاضرة 11</option>
+        <option value="12">المحاضرة 12</option>
+        <option value="13">المحاضرة 13</option>
+        <option value="14">المحاضرة 14</option>
+        <option value="15">المحاضرة 15</option>
+        <option value="16">المحاضرة 16</option>
+        <option value="17">المحاضرة 17</option>
+        <option value="18">المحاضرة 18</option>
+        <option value="19">المحاضرة 19</option>
+        <option value="20">المحاضرة 20</option>
       </select>
     </div>
 
     <div id="message"></div>
 
-    <div id="view-scanner" class="view-section active">
+    <div id="view-scanner" class="view-section">
       <select id="cameraSelection"><option value="">جاري البحث عن كاميرات...</option></select>
       <button class="btn-primary" onclick="startLiveCamera()">🎥 مسح الكود المباشر</button>
       <input type="file" id="qr-input-file" accept="image/*" capture="environment" style="display:none;">
@@ -119,18 +119,24 @@
         <span style="font-weight: bold;">الطلاب الحاضرين:</span>
         <span class="count-badge" id="dashCount">0</span>
       </div>
+      
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="ابحث بالاسم أو كود الطالب..." onkeyup="filterDashboard()">
+      </div>
+
       <button class="btn-secondary" style="padding: 10px;" onclick="loadDashboard()">🔄 تحديث البيانات</button>
       
       <div style="overflow-x: auto;">
         <table id="attendeesTable">
           <thead>
             <tr>
+              <th>الكود</th>
               <th>الاسم</th>
               <th>الوقت</th>
             </tr>
           </thead>
           <tbody id="attendeesList">
-            <tr><td colspan="2" style="text-align:center;">اضغط تحديث لعرض البيانات</td></tr>
+            <tr><td colspan="3" style="text-align:center;">اضغط تحديث لعرض البيانات</td></tr>
           </tbody>
         </table>
       </div>
@@ -138,13 +144,25 @@
   </div>
 
   <script>
-    // ⚠️ ضع الرابط الجديد للـ Web App هنا
     const API_URL = "https://script.google.com/macros/s/AKfycbz9_PU8P7PLqni3sZlUne25DAYaWN7TBtuIlNsJWL-2ZSlL8oa_uAiUu1p_7hszHQLc5Q/exec"; 
 
     let html5QrCode;
-    let currentView = 'scanner';
+    let allAttendees = []; // متغير لحفظ البيانات عشان البحث
     const fileInput = document.getElementById('qr-input-file');
     const cameraSelect = document.getElementById('cameraSelection');
+
+    // --- حفظ واسترجاع الجلسة (Session) ---
+    let currentView = localStorage.getItem('savedView') || 'scanner';
+    let savedLecture = localStorage.getItem('savedLecture') || '1';
+    
+    // ضبط المحاضرة المحفوظة
+    document.getElementById('lecture').value = savedLecture;
+    
+    // تحديث المحاضرة عند التغيير وحفظها
+    document.getElementById('lecture').addEventListener('change', function() {
+      localStorage.setItem('savedLecture', this.value);
+      if(currentView === 'dashboard') loadDashboard();
+    });
 
     // --- وظائف الواجهة (UI) ---
     function toggleSidebar() {
@@ -153,17 +171,24 @@
     }
 
     function switchView(viewId) {
-      // قفل الكاميرا لو شغالة عند التبديل
-      if(currentView === 'scanner') stopLiveCamera();
+      if(currentView === 'scanner' && viewId !== 'scanner') stopLiveCamera();
       
       document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.sidebar a').forEach(el => el.classList.remove('active'));
       
       document.getElementById(`view-${viewId}`).classList.add('active');
-      document.getElementById(`nav-${viewId}`).classList.add('active');
+      const navItem = document.getElementById(`nav-${viewId}`);
+      if(navItem) navItem.classList.add('active');
+      
       document.getElementById('message').style.display = 'none';
+      
+      // حفظ الصفحة الحالية في الجلسة
       currentView = viewId;
-      toggleSidebar();
+      localStorage.setItem('savedView', viewId);
+
+      // نقفل السايد بار لو كان مفتوح
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('overlay').classList.remove('show');
 
       if(viewId === 'dashboard') loadDashboard();
     }
@@ -173,7 +198,6 @@
       msgDiv.style.display = 'block';
       msgDiv.className = type;
       msgDiv.innerText = text;
-      // إخفاء الرسالة بعد 4 ثواني
       setTimeout(() => { msgDiv.style.display = 'none'; }, 4000);
     }
 
@@ -249,27 +273,53 @@
       const code = document.getElementById('manualCode').value;
       if(code.trim() === "") return alert("برجاء كتابة الكود أولاً!");
       sendDataToAPI(code);
-      document.getElementById('manualCode').value = ""; // تفريغ الخانة بعد الإرسال
+      document.getElementById('manualCode').value = ""; 
     }
 
+    // --- وظائف الداش بورد والبحث ---
     function loadDashboard() {
       const lec = document.getElementById('lecture').value;
       const tbody = document.getElementById('attendeesList');
-      tbody.innerHTML = `<tr><td colspan="2" style="text-align:center;">⏳ جاري تحميل البيانات...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;">⏳ جاري تحميل البيانات...</td></tr>`;
       
       fetch(`${API_URL}?action=getDashboard&lectureNum=${encodeURIComponent(lec)}`)
         .then(res => res.json())
         .then(data => {
           document.getElementById('dashCount').innerText = data.count || 0;
           if (data.status === "success" && data.attendees.length > 0) {
-            tbody.innerHTML = data.attendees.map(a => `<tr><td>${a.name}</td><td>${a.time}</td></tr>`).join('');
+            allAttendees = data.attendees; // حفظ البيانات للبحث
+            renderTable(allAttendees);
           } else {
-            tbody.innerHTML = `<tr><td colspan="2" style="text-align:center;">لا يوجد حضور حتى الآن</td></tr>`;
+            allAttendees = [];
+            tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;">لا يوجد حضور حتى الآن</td></tr>`;
           }
         }).catch(err => {
-          tbody.innerHTML = `<tr><td colspan="2" style="text-align:center;color:red;">❌ خطأ في تحميل البيانات</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:red;">❌ خطأ في تحميل البيانات</td></tr>`;
         });
     }
+
+    function renderTable(dataArray) {
+      const tbody = document.getElementById('attendeesList');
+      if (dataArray.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;">لا توجد نتائج مطابقة</td></tr>`;
+        return;
+      }
+      // إضافة الكود (id) في الجدول
+      tbody.innerHTML = dataArray.map(a => `<tr><td>${a.id}</td><td>${a.name}</td><td>${a.time}</td></tr>`).join('');
+    }
+
+    function filterDashboard() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = allAttendees.filter(a => 
+        a.name.toLowerCase().includes(query) || 
+        a.id.toString().toLowerCase().includes(query)
+      );
+      renderTable(filtered);
+    }
+
+    // تفعيل الصفحة المحفوظة أول ما الموقع يفتح
+    switchView(currentView);
+
   </script>
 </body>
 </html>
