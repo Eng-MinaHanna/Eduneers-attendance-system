@@ -8,7 +8,7 @@
   <style>
     body { font-family: system-ui, -apple-system, sans-serif; text-align: center; background: #f4f7f6; margin: 0; padding: 20px; }
     .card { background: white; max-width: 450px; margin: auto; padding: 25px 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-    select { width: 100%; padding: 14px; margin: 10px 0 20px 0; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; font-weight: bold; background-color: #f8f9fa; }
+    select { width: 100%; padding: 14px; margin: 10px 0 10px 0; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; font-weight: bold; background-color: #f8f9fa; }
     
     .btn-primary { background: #0056b3; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-size: 16px; cursor: pointer; margin-bottom: 10px; font-weight: bold;}
     .btn-secondary { background: #28a745; color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold;}
@@ -22,16 +22,23 @@
     .info { background: #e2e3e5; color: #383d41; border: 1px solid #d6d8db; }
     .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
     #qr-input-file { display: none; }
+    p.label { text-align: right; margin: 10px 5px 0 0; font-size: 14px; color: #555; font-weight: bold; }
   </style>
 </head>
 <body>
   <div class="card">
     <h2 style="color: #0056b3; margin-top:0;">تسجيل الحضور 🚀</h2>
     
+    <p class="label">اختر المحاضرة:</p>
     <select id="lecture">
       <option value="1">المحاضرة 1</option>
       <option value="2">المحاضرة 2</option>
       <option value="3">المحاضرة 3</option>
+    </select>
+
+    <p class="label">اختر الكاميرا:</p>
+    <select id="cameraSelection">
+      <option value="">جاري البحث عن كاميرات...</option>
     </select>
     
     <button class="btn-primary" id="startLiveBtn" onclick="startLiveCamera()">🎥 مسح بالكاميرا المباشرة</button>
@@ -46,11 +53,32 @@
   </div>
 
   <script>
-    // ⚠️ ضع رابط الـ Web App الخاص بك هنا (الذي ينتهي بـ /exec)
     const API_URL = "https://script.google.com/macros/s/AKfycbxjkWd43pzTsHsxF5TDaNVpvXa1Ao4YvAfsWn50m2HfCFl2-WO01DjrBoVVQYEZI-TndQ/exec"; 
 
     let html5QrCode;
     const fileInput = document.getElementById('qr-input-file');
+    const cameraSelect = document.getElementById('cameraSelection');
+
+    // جلب قائمة الكاميرات عند فتح الصفحة
+    Html5Qrcode.getCameras().then(devices => {
+      if (devices && devices.length > 0) {
+        cameraSelect.innerHTML = ""; // مسح خيار التحميل
+        devices.forEach((device, index) => {
+          const option = document.createElement('option');
+          option.value = device.id;
+          option.text = device.label || `Camera ${index + 1}`;
+          // محاولة اختيار الكاميرا الخلفية تلقائياً لو الكلمة موجودة
+          if (option.text.toLowerCase().includes('back') || option.text.toLowerCase().includes('خلفية')) {
+            option.selected = true;
+          }
+          cameraSelect.appendChild(option);
+        });
+      } else {
+        cameraSelect.innerHTML = '<option value="">لم يتم العثور على كاميرا</option>';
+      }
+    }).catch(err => {
+      cameraSelect.innerHTML = '<option value="">خطأ في الصلاحيات</option>';
+    });
 
     function showMessage(text, type) {
       const msgDiv = document.getElementById('message');
@@ -59,7 +87,6 @@
       msgDiv.innerText = text;
     }
 
-    // إرسال البيانات لجوجل شيت عبر الـ API
     function sendDataToAPI(decodedText) {
       showMessage("⏳ جاري الاتصال بقاعدة البيانات...", "info");
       const lec = document.getElementById('lecture').value;
@@ -74,33 +101,34 @@
           else showMessage(data.message, "error");
         })
         .catch(error => {
-          showMessage("❌ حدث خطأ في الاتصال. تأكد من صحة الرابط أو اتصال الإنترنت.", "error");
+          showMessage("❌ حدث خطأ في الاتصال. تأكد من صحة الرابط.", "error");
         });
     }
 
     function startLiveCamera() {
+      const cameraId = cameraSelect.value;
+      if (!cameraId) {
+        alert("برجاء اختيار الكاميرا أولاً");
+        return;
+      }
+
       document.getElementById('reader').style.display = 'block';
       document.getElementById('stopCamBtn').style.display = 'block';
       document.getElementById('message').style.display = 'none';
 
       if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
       
-      Html5Qrcode.getCameras().then(devices => {
-        if (devices && devices.length > 0) {
-          let cameraId = devices[0].id; 
-          html5QrCode.start(
-            cameraId,
-            { fps: 10, qrbox: { width: 250, height: 250 } },
-            (decodedText) => {
-              stopLiveCamera(); 
-              sendDataToAPI(decodedText);
-            },
-            (errorMessage) => { }
-          ).catch((err) => {
-            stopLiveCamera();
-            showMessage("❌ الكاميرا محظورة أو قيد الاستخدام.", "error");
-          });
-        }
+      html5QrCode.start(
+        cameraId,
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        (decodedText) => {
+          stopLiveCamera(); 
+          sendDataToAPI(decodedText);
+        },
+        (errorMessage) => { }
+      ).catch((err) => {
+        stopLiveCamera();
+        showMessage("❌ تعذر فتح الكاميرا المختارة.", "error");
       });
     }
 
