@@ -15,8 +15,10 @@
     
     .sidebar { position: fixed; top: 0; right: -250px; width: 250px; height: 100vh; background: white; box-shadow: -2px 0 10px rgba(0,0,0,0.1); transition: 0.3s; z-index: 1000; padding-top: 60px; }
     .sidebar.open { right: 0; }
-    .sidebar a { display: block; padding: 15px 20px; color: var(--text); text-decoration: none; font-size: 1.1rem; border-bottom: 1px solid #eee; font-weight: bold; }
+    .sidebar a { display: block; padding: 12px 20px; color: var(--text); text-decoration: none; font-size: 1.1rem; border-bottom: 1px solid #eee; font-weight: bold; }
     .sidebar a:hover, .sidebar a.active { background: #f0f8ff; color: var(--primary); }
+    .sidebar-heading { padding: 15px 20px 5px; font-size: 0.85rem; color: #888; font-weight: bold; text-transform: uppercase; background: #fafafa;}
+    
     .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 999; }
     .sidebar-overlay.show { display: block; }
     .close-btn { position: absolute; top: 15px; left: 15px; font-size: 1.5rem; cursor: pointer; color: #888; border: none; background: none;}
@@ -50,8 +52,8 @@
     .warning { background: #fff3cd; color: #856404; }
     .info { background: #e2e3e5; color: #383d41; }
     
-    /* التعديل تم هنا: شلنا كلمة !important عشان الجافاسكربت تقدر تظهرها */
-    .admin-only { display: none; }
+    /* الكلاسات المسؤولة عن إخفاء العناصر بناءً على الصلاحية */
+    .admin-only, .manager-only { display: none; }
   </style>
 </head>
 <body>
@@ -65,10 +67,17 @@
   <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
   <div class="sidebar" id="sidebar">
     <button class="close-btn" onclick="toggleSidebar()">×</button>
+    
+    <div class="sidebar-heading">العمليات الأساسية</div>
     <a href="#" onclick="switchView('scanner');" id="nav-scanner">📷 تسجيل الطلاب</a>
     <a href="#" onclick="switchView('manual');" id="nav-manual">✍️ تسجيل يدوي</a>
-    <a href="#" onclick="switchView('dashboard');" id="nav-dashboard">📊 لوحة الحضور</a>
+    
+    <div class="sidebar-heading manager-only">متابعة الحضور</div>
+    <a href="#" onclick="switchView('dashboard');" id="nav-dashboard" class="manager-only">📊 لوحة الحضور</a>
+    
+    <div class="sidebar-heading admin-only">إدارة النظام</div>
     <a href="#" onclick="switchView('users');" id="nav-users" class="admin-only">👥 إدارة المستخدمين</a>
+    
     <a href="#" onclick="logout();" style="color: #dc3545; margin-top: 20px; border-top: 2px solid #eee;">🚪 تسجيل الخروج</a>
   </div>
 
@@ -123,7 +132,7 @@
         <table id="attendeesTable">
           <thead>
             <tr>
-              <th>الكود</th> <th>الاسم</th> <th>الوقت</th> <th class="admin-only">إجراء</th>
+              <th>الكود</th> <th>الاسم</th> <th>الوقت</th> <th class="manager-only">إجراء</th>
             </tr>
           </thead>
           <tbody id="attendeesList">
@@ -140,8 +149,9 @@
         <input type="email" id="newUserEmail" placeholder="البريد الإلكتروني">
         <input type="password" id="newUserPass" placeholder="كلمة المرور">
         <select id="newUserRole">
-          <option value="User">User (تسجيل فقط)</option>
-          <option value="Admin">Admin (صلاحيات كاملة)</option>
+          <option value="User">مُسجل (User)</option>
+          <option value="Manager">مراقب الحضور (Manager)</option>
+          <option value="Admin">مدير النظام (Admin)</option>
         </select>
         <button class="btn-primary" onclick="addUser()">إضافة مستخدم ➕</button>
       </div>
@@ -186,18 +196,24 @@
         const roleBadge = document.getElementById('roleBadge');
         roleBadge.style.display = 'inline-block';
         roleBadge.innerText = userRole;
-        roleBadge.style.background = userRole === 'Admin' ? '#dc3545' : '#17a2b8';
+        
+        if (userRole === 'Admin') roleBadge.style.background = '#dc3545';
+        else if (userRole === 'Manager') roleBadge.style.background = '#fd7e14';
+        else roleBadge.style.background = '#17a2b8';
         roleBadge.style.color = 'white';
 
-        // تطبيق الصلاحيات على الواجهة
+        // تطبيق الصلاحيات للأدمن (إدارة المستخدمين)
         const adminElements = document.querySelectorAll('.admin-only');
         adminElements.forEach(el => {
-          if(userRole === 'Admin') {
-             // إظهار كعنصر جدول أو بلوك عادي
-             el.style.display = (el.tagName === 'TH' || el.tagName === 'TD') ? 'table-cell' : 'block';
-          } else {
-             el.style.display = 'none';
-          }
+          if(userRole === 'Admin') el.style.display = (el.tagName === 'TH' || el.tagName === 'TD') ? 'table-cell' : 'block';
+          else el.style.display = 'none';
+        });
+
+        // تطبيق الصلاحيات للمراقب والأدمن (لوحة الحضور)
+        const managerElements = document.querySelectorAll('.manager-only');
+        managerElements.forEach(el => {
+          if(userRole === 'Admin' || userRole === 'Manager') el.style.display = (el.tagName === 'TH' || el.tagName === 'TD') ? 'table-cell' : 'block';
+          else el.style.display = 'none';
         });
 
         if (currentView === 'login') currentView = 'scanner'; 
@@ -214,7 +230,7 @@
     function handleLogin() {
       const email = document.getElementById('loginEmail').value;
       const pass = document.getElementById('loginPassword').value;
-      if(!email || !pass) return alert("Please enter both email and password.");
+      if(!email || !pass) return alert("الرجاء إدخال الإيميل وكلمة المرور.");
 
       showMessage("⏳ جاري التحقق...", "info");
       
@@ -341,8 +357,8 @@
     function loadDashboard() {
       const lec = document.getElementById('lecture').value;
       const tbody = document.getElementById('attendeesList');
-      const isAdmin = localStorage.getItem('userRole') === 'Admin';
-      tbody.innerHTML = `<tr><td colspan="${isAdmin? 4 : 3}" style="text-align:center;">⏳ جاري التحميل...</td></tr>`;
+      const isManager = (localStorage.getItem('userRole') === 'Admin' || localStorage.getItem('userRole') === 'Manager');
+      tbody.innerHTML = `<tr><td colspan="${isManager? 4 : 3}" style="text-align:center;">⏳ جاري التحميل...</td></tr>`;
       
       fetch(`${ATTENDANCE_API_URL}?action=getDashboard&lectureNum=${encodeURIComponent(lec)}`)
         .then(res => res.json())
@@ -351,19 +367,19 @@
           if (data.status === "success" && data.attendees.length > 0) {
             allAttendees = data.attendees; renderTable(allAttendees);
           } else {
-            allAttendees = []; tbody.innerHTML = `<tr><td colspan="${isAdmin? 4 : 3}" style="text-align:center;">لا يوجد حضور</td></tr>`;
+            allAttendees = []; tbody.innerHTML = `<tr><td colspan="${isManager? 4 : 3}" style="text-align:center;">لا يوجد حضور</td></tr>`;
           }
-        }).catch(err => { tbody.innerHTML = `<tr><td colspan="${isAdmin? 4 : 3}" style="text-align:center;color:red;">❌ خطأ في التحميل</td></tr>`; });
+        }).catch(err => { tbody.innerHTML = `<tr><td colspan="${isManager? 4 : 3}" style="text-align:center;color:red;">❌ خطأ في التحميل</td></tr>`; });
     }
 
     function renderTable(dataArray) {
       const tbody = document.getElementById('attendeesList');
-      const isAdmin = localStorage.getItem('userRole') === 'Admin';
-      if (dataArray.length === 0) { tbody.innerHTML = `<tr><td colspan="${isAdmin? 4 : 3}" style="text-align:center;">لا توجد نتائج</td></tr>`; return; }
+      const isManager = (localStorage.getItem('userRole') === 'Admin' || localStorage.getItem('userRole') === 'Manager');
+      if (dataArray.length === 0) { tbody.innerHTML = `<tr><td colspan="${isManager? 4 : 3}" style="text-align:center;">لا توجد نتائج</td></tr>`; return; }
       
       tbody.innerHTML = dataArray.map(a => `<tr>
         <td>${a.id}</td> <td>${a.name}</td> <td>${a.time}</td>
-        ${isAdmin ? `<td><button class="btn-danger btn-small" onclick="deleteAttendance('${a.id}')">حذف 🗑️</button></td>` : ''}
+        ${isManager ? `<td><button class="btn-danger btn-small" onclick="deleteAttendance('${a.id}')">حذف 🗑️</button></td>` : ''}
       </tr>`).join('');
     }
 
