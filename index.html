@@ -192,7 +192,10 @@
 
     <div id="view-manual" class="view-section">
       <h3 style="margin-top:0; color:var(--primary); border-bottom: 2px solid #f1f1f1; padding-bottom: 10px;">التسجيل اليدوي</h3>
-      <input type="text" id="manualCode" placeholder="أدخل كود الطالب هنا...">
+      <p style="font-size: 13px; color: #666; margin-bottom: 15px; line-height: 1.5;">
+        يمكنك كتابة <b>الرقم فقط</b> (مثال: 15)، وسيقوم النظام تلقائياً بإضافة الحرف الخاص بمجموعتك قبل الرقم.
+      </p>
+      <input type="text" id="manualCode" placeholder="أدخل رقم الطالب (أو الكود كامل)...">
       <button class="btn-primary" onclick="submitManualCode()">حفظ الحضور 📥</button>
     </div>
 
@@ -233,32 +236,19 @@
             <option value="Admin">مدير (Admin)</option>
           </select>
           <select id="newUserGroup" style="margin-bottom: 0;">
-            <option value="Group A">Group A</option>
-            <option value="Group B">Group B</option>
-            <option value="Group C">Group C</option>
-            <option value="Group D">Group D</option>
-            <option value="Group E">Group E</option>
-            <option value="Group F">Group F</option>
-            <option value="Group G">Group G</option>
-            <option value="Group H">Group H</option>
-            <option value="Group I">Group I</option>
-            <option value="Group J">Group J</option>
-            <option value="Group K">Group K</option>
-            <option value="Group L">Group L</option>
-            <option value="Group M">Group M</option>
-            <option value="Group N">Group N</option>
-            <option value="Group O">Group O</option>
-            <option value="Group P">Group P</option>
-            <option value="Group Q">Group Q</option>
-            <option value="Group R">Group R</option>
-            <option value="Group S">Group S</option>
-            <option value="Group T">Group T</option>
-            <option value="Group U">Group U</option>
-            <option value="Group V">Group V</option>
-            <option value="Group W">Group W</option>
-            <option value="Group X">Group X</option>
-            <option value="Group Y">Group Y</option>
-            <option value="Group Z">Group Z</option>
+            <option value="Group A">Group A</option><option value="Group B">Group B</option>
+            <option value="Group C">Group C</option><option value="Group D">Group D</option>
+            <option value="Group E">Group E</option><option value="Group F">Group F</option>
+            <option value="Group G">Group G</option><option value="Group H">Group H</option>
+            <option value="Group I">Group I</option><option value="Group J">Group J</option>
+            <option value="Group K">Group K</option><option value="Group L">Group L</option>
+            <option value="Group M">Group M</option><option value="Group N">Group N</option>
+            <option value="Group O">Group O</option><option value="Group P">Group P</option>
+            <option value="Group Q">Group Q</option><option value="Group R">Group R</option>
+            <option value="Group S">Group S</option><option value="Group T">Group T</option>
+            <option value="Group U">Group U</option><option value="Group V">Group V</option>
+            <option value="Group W">Group W</option><option value="Group X">Group X</option>
+            <option value="Group Y">Group Y</option><option value="Group Z">Group Z</option>
           </select>
         </div>
         <button class="btn-primary" onclick="addUser()">إضافة مستخدم ➕</button>
@@ -276,7 +266,6 @@
   </div>
 
   <script>
-    // ⚠️⚠️ ضع الروابط الجديدة للـ APIs هنا ⚠️⚠️
     const ATTENDANCE_API_URL = "https://script.google.com/macros/s/AKfycbygwcEIIUmZSUMDdFA_KFREgp3PadLOrfYaMhw6bta5cxD4aYoYxzoWl9uvEb_autnMTg/exec"; 
     const LOGIN_API_URL = "https://script.google.com/macros/s/AKfycbzzGwwHLI9FpTRacV9oTq0jOC--81OMngpZxokVmepWnZdCQLFE8yuZJRghdiadUOy16w/exec";
 
@@ -537,10 +526,22 @@
       }).catch(err => { showMessage("❌ خطأ في الاتصال.", "error"); playBeep('error'); });
     }
 
+    // 🌟 التعديل الجديد: تسجيل الحضور اليدوي الذكي
     function submitManualCode() {
-      const code = document.getElementById('manualCode').value;
-      if(code.trim() === "") return alert("برجاء كتابة الكود!");
-      sendDataToAPI(code); document.getElementById('manualCode').value = ""; 
+      let code = document.getElementById('manualCode').value.trim();
+      if(code === "") return alert("برجاء كتابة الكود أو الرقم!");
+      
+      // إذا كان المدخل أرقام فقط، قم بإضافة حرف المجموعة قبله تلقائياً
+      if (/^\d+$/.test(code)) {
+        const userGroup = localStorage.getItem('userGroup') || "Group A";
+        const groupLetter = userGroup.replace("Group ", "").trim(); // استخراج الحرف (مثال: K)
+        code = groupLetter + code; // تكوين الكود (مثال: K15)
+      } else {
+        code = code.toUpperCase(); // لو كتب الحرف، نخليه Capital تحسباً لأي خطأ
+      }
+
+      sendDataToAPI(code); 
+      document.getElementById('manualCode').value = ""; 
     }
 
     function loadDashboard() {
@@ -648,7 +649,7 @@
     function addUser() {
       const name = document.getElementById('newUserName').value;
       const email = document.getElementById('newUserEmail').value;
-      const pass = document.getElementById('newUserPass').value; // استرجاع الباسورد
+      const pass = document.getElementById('newUserPass').value; 
       const role = document.getElementById('newUserRole').value;
       const group = document.getElementById('newUserGroup').value;
       
