@@ -96,7 +96,6 @@
     /* 👑 تنسيق الصلاحيات الجديد (CSS Roles) */
     .admin-only, .manager-only, .owner-only, .cross-group-only { display: none !important; }
 
-    /* الإظهار حسب الصلاحية بدون تدمير نظام التابات */
     body.role-owner :not(.view-section).owner-only, 
     body.role-owner :not(.view-section).admin-only, 
     body.role-owner :not(.view-section).manager-only,
@@ -112,7 +111,6 @@
 
     body.role-owner div.owner-only.flex-container { display: flex !important; }
     
-    /* 🛡️ التعديل: إظهار قائمة اختيار الجروب للمالك والأدمن معاً */
     body.role-owner div.cross-group-only, body.role-admin div.cross-group-only { display: flex !important; }
 
     body.role-owner .view-section.active.owner-only,
@@ -294,9 +292,9 @@
         <input type="password" id="newUserPass" placeholder="كلمة المرور (للدخول اليدوي)">
         <div style="display: flex; gap: 10px; margin-bottom: 15px;">
           <select id="newUserRole" style="margin-bottom: 0;">
-            <option value="User">مُسجل (User)</option>
-            <option value="Manager">مراقب (Manager)</option>
-            <option value="Admin">مدير (Admin)</option>
+            <option value="Cadre">مُسجل (Cadre)</option>
+            <option value="Coordinator">مراقب (Coordinator)</option>
+            <option value="Team Manager">مدير (Team Manager)</option>
           </select>
           <select id="newUserGroup" style="margin-bottom: 0;">
             </select>
@@ -458,13 +456,12 @@
             const currentSavedRole = localStorage.getItem('userRole');
             const currentSavedGroup = localStorage.getItem('userGroup');
             
-            // 🛡️ المالك والأدمن لا يتم إجبارهم على تغيير الجروب من قاعدة البيانات
-            if (currentSavedRole !== data.role || (currentSavedGroup !== data.group && data.role !== 'Owner' && data.role !== 'Admin')) {
+            if (currentSavedRole !== data.role || (currentSavedGroup !== data.group && data.role !== 'Owner' && data.role !== 'Team Manager' && data.role !== 'Admin')) {
               localStorage.setItem('userRole', data.role);
-              if (data.role !== 'Owner' && data.role !== 'Admin') localStorage.setItem('userGroup', data.group);
+              if (data.role !== 'Owner' && data.role !== 'Team Manager' && data.role !== 'Admin') localStorage.setItem('userGroup', data.group);
               showMessage("🔄 تم تحديث بيانات حسابك من الإدارة", "info");
               applyRolesToUI(); 
-              if (currentView === 'users' && data.role !== 'Admin' && data.role !== 'Owner') switchView('scanner');
+              if (currentView === 'users' && data.role !== 'Team Manager' && data.role !== 'Admin' && data.role !== 'Owner') switchView('scanner');
             }
           }
         }).catch(err => console.log("Sync error"));
@@ -486,7 +483,11 @@
       const roleBadge = document.getElementById('roleBadge');
       const groupBadge = document.getElementById('groupBadge');
       
-      roleBadge.innerText = (userRole === 'Owner') ? 'المالك 👑' : userRole;
+      // 💡 التعديل: إظهار الألقاب الجديدة في البادج
+      roleBadge.innerText = (userRole === 'Owner') ? 'المالك 👑' : 
+                            (userRole === 'Team Manager' || userRole === 'Admin') ? 'Team Manager' : 
+                            (userRole === 'Coordinator' || userRole === 'Manager') ? 'Coordinator' : 'Cadre';
+                            
       groupBadge.innerText = userGroup;
       groupBadge.style.display = 'inline-block';
       
@@ -494,10 +495,10 @@
       if (userRole === 'Owner') {
           document.body.classList.add('role-owner');
           roleBadge.style.color = '#8e44ad';
-      } else if (userRole === 'Admin') {
+      } else if (userRole === 'Team Manager' || userRole === 'Admin') {
           document.body.classList.add('role-admin');
           roleBadge.style.color = '#e74c3c';
-      } else if (userRole === 'Manager') {
+      } else if (userRole === 'Coordinator' || userRole === 'Manager') {
           document.body.classList.add('role-manager');
           roleBadge.style.color = '#e67e22';
       } else {
@@ -515,7 +516,6 @@
       
       if (isLoggedIn) {
         document.getElementById('menuBtn').style.display = 'block';
-        document.getElementById('lectureContainer').style.display = 'block';
         document.getElementById('welcomeName').innerText = `| ${userName}`;
         document.getElementById('roleBadge').style.display = 'inline-block';
         
@@ -562,6 +562,14 @@
 
       document.getElementById('sidebar').classList.remove('open');
       document.getElementById('overlay').classList.remove('show');
+
+      // 💡 التعديل: إخفاء شريط المحاضرات في شاشة المستخدمين فقط وإظهاره في الباقي
+      const lecContainer = document.getElementById('lectureContainer');
+      if (viewId === 'users' || viewId === 'login') {
+          lecContainer.style.display = 'none';
+      } else {
+          lecContainer.style.display = 'block';
+      }
 
       if(viewId === 'dashboard') loadDashboard();
       if(viewId === 'users') loadUsers(); 
@@ -617,8 +625,7 @@
       studentCode = studentCode.toUpperCase();
 
       const role = localStorage.getItem('userRole');
-      // 🛡️ التعديل: الاستشعار الذكي يشتغل للمالك والأدمن معاً
-      if (role === 'Owner' || role === 'Admin') {
+      if (role === 'Owner' || role === 'Team Manager' || role === 'Admin') {
           const match = studentCode.match(/^[A-Z]+/);
           if (match) {
               const detectedGroup = "Group " + match[0];
@@ -646,8 +653,7 @@
       
       if (/^\d+$/.test(code)) {
         const userRole = localStorage.getItem('userRole');
-        // 🛡️ التعديل: المالك والأدمن لازم يكتبوا الحرف لو هيكتبوا أرقام بس
-        if ((userRole === 'Owner' || userRole === 'Admin') && !document.getElementById('globalGroupSelect').value) {
+        if ((userRole === 'Owner' || userRole === 'Team Manager' || userRole === 'Admin') && !document.getElementById('globalGroupSelect').value) {
             return alert("أنت مسجل كمدير/مالك، يرجى كتابة حرف الجروب قبل الرقم (مثال: K15)");
         }
         const userGroup = localStorage.getItem('userGroup') || "Group A";
@@ -681,7 +687,7 @@
 
     function renderTable(dataArray) {
       const tbody = document.getElementById('attendeesList');
-      const isManager = (localStorage.getItem('userRole') !== 'User');
+      const isManager = (localStorage.getItem('userRole') !== 'Cadre' && localStorage.getItem('userRole') !== 'User');
       if (dataArray.length === 0) { tbody.innerHTML = `<tr><td colspan="${isManager? 4 : 3}" style="text-align:center; padding: 20px;">لا توجد نتائج</td></tr>`; return; }
       
       tbody.innerHTML = dataArray.map(a => `<tr>
@@ -789,7 +795,6 @@
       fetch(`${LOGIN_API_URL}?token=${API_TOKEN}&action=getUsers`).then(res => res.json()).then(data => {
         if (data.status === "success" && data.users.length > 0) {
           
-          // 🛡️ إخفاء المالك من جدول المستخدمين تماماً
           const visibleUsers = data.users.filter(u => u.role !== 'Owner');
           
           if (visibleUsers.length === 0) {
@@ -797,13 +802,14 @@
              return;
           }
 
+          // 💡 التعديل: ربط الجداول بالمسميات الجديدة للصلاحيات
           tbody.innerHTML = visibleUsers.map(u => `<tr>
             <td style="font-size:13px; line-height: 1.4;"><b>${u.name}</b><br><span style="color:#7f8c8d">${u.email}</span></td> 
             <td>
               <select class="role-select" onchange="changeUserRole('${u.email}', this.value)">
-                <option value="User" ${u.role === 'User' ? 'selected' : ''}>User</option>
-                <option value="Manager" ${u.role === 'Manager' ? 'selected' : ''}>Manager</option>
-                <option value="Admin" ${u.role === 'Admin' ? 'selected' : ''}>Admin</option>
+                <option value="Cadre" ${u.role === 'Cadre' || u.role === 'User' ? 'selected' : ''}>Cadre</option>
+                <option value="Coordinator" ${u.role === 'Coordinator' || u.role === 'Manager' ? 'selected' : ''}>Coordinator</option>
+                <option value="Team Manager" ${u.role === 'Team Manager' || u.role === 'Admin' ? 'selected' : ''}>Team Manager</option>
               </select>
             </td>
             <td>
