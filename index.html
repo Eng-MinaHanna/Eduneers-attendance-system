@@ -93,12 +93,18 @@
     .warning { background: #fff8e1; color: #f57f17; border: 1px solid #ffecb3; }
     .info { background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
     
-    /* 👑 تنسيق الصلاحيات الجديد (CSS Roles) */
+/* 👑 تنسيق الصلاحيات الجديد (CSS Roles) - تم الإصلاح */
     .admin-only, .manager-only, .owner-only { display: none !important; }
 
-    body.role-owner .owner-only, body.role-owner .admin-only, body.role-owner .manager-only,
-    body.role-admin .admin-only, body.role-admin .manager-only,
-    body.role-manager .manager-only { display: block !important; }
+    /* إظهار العناصر العادية حسب الصلاحية بشرط ألا تكون (تابة رئيسية) */
+    body.role-owner :not(.view-section).owner-only, 
+    body.role-owner :not(.view-section).admin-only, 
+    body.role-owner :not(.view-section).manager-only,
+    body.role-admin :not(.view-section).admin-only, 
+    body.role-admin :not(.view-section).manager-only,
+    body.role-manager :not(.view-section).manager-only { 
+      display: block !important; 
+    }
 
     body.role-owner table .owner-only, body.role-owner table .admin-only, body.role-owner table .manager-only,
     body.role-admin table .admin-only, body.role-admin table .manager-only,
@@ -106,11 +112,15 @@
 
     body.role-owner div.owner-only.flex-container { display: flex !important; }
 
-    .google-btn-container { display: flex; justify-content: center; margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px dashed #ccc;}
-    .divider { text-align: center; margin: 25px 0; position: relative; }
-    .divider hr { border: none; border-top: 1px solid #ddd; }
-    .divider span { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--card-bg); padding: 0 15px; color: #888; font-size: 14px; font-weight: bold; }
-    .chart-container { position: relative; height: 300px; width: 100%; background: #f9fbfc; border-radius: 12px; border: 1px solid #e1e8ed; padding: 10px; box-sizing: border-box; margin-bottom: 20px;}
+    /* التابات الرئيسية تظهر فقط إذا قمنا بالضغط عليها (active) */
+    body.role-owner .view-section.active.owner-only,
+    body.role-owner .view-section.active.admin-only,
+    body.role-owner .view-section.active.manager-only,
+    body.role-admin .view-section.active.admin-only,
+    body.role-admin .view-section.active.manager-only,
+    body.role-manager .view-section.active.manager-only { 
+      display: block !important; 
+    }
   </style>
 </head>
 <body>
@@ -300,8 +310,8 @@
 
   <script>
     // ⚠️ غير الروابط للروابط الجديدة بتاعتك ⚠️
-    const ATTENDANCE_API_URL = "https://script.google.com/macros/s/AKfycbzepJFZUOutPX5qiXSJnGt5fajhAgvu1EGseNRLeNh2v5RIiTcGf3QaJM3gb6D6Y9aBGA/exec"; 
-    const LOGIN_API_URL = "https://script.google.com/macros/s/AKfycbzYLd_Fe8TronXvQplFlU4OpKVM3V7ezaFWRSbd451oDkGuTwBNHW4OOG-nD_vG4VpK/exec";
+    const ATTENDANCE_API_URL = "https://script.google.com/macros/s/AKfycbxES_Iu9hEtVBe2zA3MIuwQ96oW_DcfR_txI1DAsZQhQgNVFLdZnzdlSLlYMT5_AlyAVQ/exec"; 
+    const LOGIN_API_URL = "https://script.google.com/macros/s/AKfycbytmjOF7nf-s39iXRn8TTbC_S59ZBmw7o-lgwvJ157YD5OogVqjQV-y1870KXyZAIvunA/exec";
     
     const API_TOKEN = "Eduneers_SecR3t_2026";
 
