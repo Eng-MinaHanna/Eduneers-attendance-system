@@ -84,7 +84,7 @@
     .search-box::before { content: '🔍'; position: absolute; right: 15px; top: 14px; font-size: 16px; opacity: 0.6;}
     
     #reader { width: 100%; border-radius: 12px; overflow: hidden; display: none; border: 3px dashed var(--accent); margin-bottom: 15px; background: #fafbfc;}
-    #message { margin-top: 15px; padding: 16px; border-radius: 10px; font-weight: bold; display: none; transition: 0.3s; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05);}
+    #message { margin-top: 15px; padding: 16px; border-radius: 10px; font-weight: bold; display: none; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05);}
     .success { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
     .error { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
     .warning { background: #fff8e1; color: #f57f17; border: 1px solid #ffecb3; }
@@ -93,7 +93,6 @@
     .admin-only, .manager-only { display: none; }
     .google-btn-container { display: flex; justify-content: center; margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px dashed #ccc;}
     
-    /* تنسيق فاصل الدخول */
     .divider { text-align: center; margin: 25px 0; position: relative; }
     .divider hr { border: none; border-top: 1px solid #ddd; }
     .divider span { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--card-bg); padding: 0 15px; color: #888; font-size: 14px; font-weight: bold; }
@@ -136,7 +135,7 @@
       <div style="text-align: center; margin-bottom: 25px;">
         <h2 style="color:var(--primary); margin-top:0; font-size: 24px;">تسجيل الدخول</h2>
         <p style="color: #c62828; font-size: 14px; font-weight: bold; background: #ffebee; padding: 12px; border-radius: 8px; border: 1px solid #ffcdd2;">
-          مرحباً بك في اديونيرز
+          مرحباً بك في نظام إدارة الكورسات
         </p>
       </div>
       
@@ -266,8 +265,14 @@
   </div>
 
   <script>
-    const ATTENDANCE_API_URL = "https://script.google.com/macros/s/AKfycbznsQmW8atBjyHDuOvolv6XI4UTSQwNuMBXcWizvEhRf0ZWn9cjuo7ERgrGLzJ8nxTGOg/exec"; 
-    const LOGIN_API_URL = "https://script.google.com/macros/s/AKfycbzzGwwHLI9FpTRacV9oTq0jOC--81OMngpZxokVmepWnZdCQLFE8yuZJRghdiadUOy16w/exec";
+    // ⚠️ تم تحديث الروابط وكلمة السر هنا ⚠️
+    const ATTENDANCE_API_URL = "https://script.google.com/macros/s/AKfycbyEgvhjFFDm84C0iY1NwefX3-4TOIx_3cijPKsrMSJGt8o5V2coNXW0eMntxExNI9U_jg/exec"; 
+    const LOGIN_API_URL = "https://script.google.com/macros/s/AKfycbyrHH-WIvekmsyoUauAEQ9abEFo3O5YHXQnF5OwwT1y7zjp2Xqw0GGo7v007WAzllemTQ/exec
+
+";
+    
+    // 🛡️ كلمة السر للـ API
+    const API_TOKEN = "Eduneers_SecR3t_2026";
 
     let html5QrCode;
     let allAttendees = []; 
@@ -281,7 +286,6 @@
       if(currentView === 'dashboard') loadDashboard();
     });
 
-    // --- الدخول اليدوي ---
     function handleManualLogin() {
       const email = document.getElementById('loginEmail').value;
       const pass = document.getElementById('loginPassword').value;
@@ -289,7 +293,8 @@
 
       showMessage("⏳ جاري التحقق...", "info");
       
-      fetch(`${LOGIN_API_URL}?action=login&email=${encodeURIComponent(email)}&password=${encodeURIComponent(pass)}`)
+      // إضافة التوكن للرابط
+      fetch(`${LOGIN_API_URL}?token=${API_TOKEN}&action=login&email=${encodeURIComponent(email)}&password=${encodeURIComponent(pass)}`)
         .then(res => res.json())
         .then(data => {
           if (data.status === "success") {
@@ -307,7 +312,6 @@
         }).catch(err => { showMessage("❌ خطأ في الاتصال بالخادم.", "error"); });
     }
 
-    // --- الدخول بجوجل ---
     function parseJwt(token) {
       var base64Url = token.split('.')[1];
       var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -324,7 +328,8 @@
 
       showMessage("⏳ جاري التحقق من الصلاحيات...", "info");
       
-      fetch(`${LOGIN_API_URL}?action=googleLogin&email=${encodeURIComponent(email)}`)
+      // إضافة التوكن للرابط
+      fetch(`${LOGIN_API_URL}?token=${API_TOKEN}&action=googleLogin&email=${encodeURIComponent(email)}`)
         .then(res => res.json())
         .then(data => {
           if (data.status === "success") {
@@ -347,7 +352,8 @@
       const email = localStorage.getItem('userEmail');
       if (!email || localStorage.getItem('isLoggedIn') !== 'true') return;
 
-      fetch(`${LOGIN_API_URL}?action=checkMyRole&email=${encodeURIComponent(email)}`)
+      // إضافة التوكن للرابط
+      fetch(`${LOGIN_API_URL}?token=${API_TOKEN}&action=checkMyRole&email=${encodeURIComponent(email)}`)
         .then(res => res.json())
         .then(data => {
           if (data.status === "deleted") {
@@ -461,10 +467,18 @@
       syncRole(); 
     }
 
+    // 🌟 تم زيادة وقت الرسالة إلى 7 ثواني 🌟
     function showMessage(text, type) {
       const msgDiv = document.getElementById('message');
-      msgDiv.style.display = 'block'; msgDiv.className = type; msgDiv.innerText = text;
-      setTimeout(() => { msgDiv.style.display = 'none'; }, 10000);
+      msgDiv.style.display = 'block'; 
+      msgDiv.className = type; 
+      msgDiv.innerText = text;
+      
+      if(window.messageTimer) clearTimeout(window.messageTimer);
+      
+      window.messageTimer = setTimeout(() => { 
+          msgDiv.style.display = 'none'; 
+      }, 7000); 
     }
 
     function playBeep(type) {
@@ -519,25 +533,25 @@
       showMessage("⏳ جاري تسجيل الحضور...", "info");
       const lec = document.getElementById('lecture').value;
       const group = localStorage.getItem('userGroup') || "Group A";
-      fetch(`${ATTENDANCE_API_URL}?action=scan&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}`)
+      
+      // إضافة التوكن للرابط
+      fetch(`${ATTENDANCE_API_URL}?token=${API_TOKEN}&action=scan&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}`)
       .then(res => res.json()).then(data => {
           if (data.status === "success") { showMessage(data.message, "success"); playBeep('success'); } 
           else { showMessage(data.message, data.status === "already" ? "warning" : "error"); playBeep('error'); }
       }).catch(err => { showMessage("❌ خطأ في الاتصال.", "error"); playBeep('error'); });
     }
 
-    // 🌟 التعديل الجديد: تسجيل الحضور اليدوي الذكي
     function submitManualCode() {
       let code = document.getElementById('manualCode').value.trim();
       if(code === "") return alert("برجاء كتابة الكود أو الرقم!");
       
-      // إذا كان المدخل أرقام فقط، قم بإضافة حرف المجموعة قبله تلقائياً
       if (/^\d+$/.test(code)) {
         const userGroup = localStorage.getItem('userGroup') || "Group A";
-        const groupLetter = userGroup.replace("Group ", "").trim(); // استخراج الحرف (مثال: K)
-        code = groupLetter + code; // تكوين الكود (مثال: K15)
+        const groupLetter = userGroup.replace("Group ", "").trim(); 
+        code = groupLetter + code; 
       } else {
-        code = code.toUpperCase(); // لو كتب الحرف، نخليه Capital تحسباً لأي خطأ
+        code = code.toUpperCase(); 
       }
 
       sendDataToAPI(code); 
@@ -551,7 +565,8 @@
       const isManager = (localStorage.getItem('userRole') === 'Admin' || localStorage.getItem('userRole') === 'Manager');
       tbody.innerHTML = `<tr><td colspan="${isManager? 4 : 3}" style="text-align:center; padding: 20px;">⏳ جاري التحميل...</td></tr>`;
       
-      fetch(`${ATTENDANCE_API_URL}?action=getDashboard&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}`)
+      // إضافة التوكن للرابط
+      fetch(`${ATTENDANCE_API_URL}?token=${API_TOKEN}&action=getDashboard&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}`)
         .then(res => res.json())
         .then(data => {
           document.getElementById('dashCount').innerText = data.count || 0;
@@ -586,7 +601,9 @@
       const lec = document.getElementById('lecture').value;
       const group = localStorage.getItem('userGroup') || "Group A";
       showMessage("⏳ جاري الحذف...", "info");
-      fetch(`${ATTENDANCE_API_URL}?action=deleteAttendance&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}`)
+      
+      // إضافة التوكن للرابط
+      fetch(`${ATTENDANCE_API_URL}?token=${API_TOKEN}&action=deleteAttendance&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}`)
       .then(res => res.json()).then(data => {
          if(data.status === 'success') { showMessage(data.message, "success"); loadDashboard(); }
          else showMessage(data.message, "error");
@@ -606,7 +623,9 @@
     function loadUsers() {
       const tbody = document.getElementById('usersList');
       tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px;">⏳ جاري التحميل...</td></tr>`;
-      fetch(`${LOGIN_API_URL}?action=getUsers`).then(res => res.json()).then(data => {
+      
+      // إضافة التوكن للرابط
+      fetch(`${LOGIN_API_URL}?token=${API_TOKEN}&action=getUsers`).then(res => res.json()).then(data => {
         if (data.status === "success" && data.users.length > 0) {
           tbody.innerHTML = data.users.map(u => `<tr>
             <td style="font-size:13px; line-height: 1.4;"><b>${u.name}</b><br><span style="color:#7f8c8d">${u.email}</span></td> 
@@ -630,7 +649,9 @@
 
     function changeUserRole(email, newRole) {
       showMessage("⏳ تحديث الصلاحية...", "info");
-      fetch(`${LOGIN_API_URL}?action=updateRole&email=${encodeURIComponent(email)}&role=${encodeURIComponent(newRole)}`)
+      
+      // إضافة التوكن للرابط
+      fetch(`${LOGIN_API_URL}?token=${API_TOKEN}&action=updateRole&email=${encodeURIComponent(email)}&role=${encodeURIComponent(newRole)}`)
       .then(res => res.json()).then(data => {
          if(data.status === 'success') { showMessage(data.message, "success"); } 
          else { showMessage(data.message, "error"); loadUsers(); }
@@ -639,7 +660,9 @@
 
     function changeUserGroup(email, newGroup) {
       showMessage("⏳ تحديث الجروب...", "info");
-      fetch(`${LOGIN_API_URL}?action=updateGroup&email=${encodeURIComponent(email)}&group=${encodeURIComponent(newGroup)}`)
+      
+      // إضافة التوكن للرابط
+      fetch(`${LOGIN_API_URL}?token=${API_TOKEN}&action=updateGroup&email=${encodeURIComponent(email)}&group=${encodeURIComponent(newGroup)}`)
       .then(res => res.json()).then(data => {
          if(data.status === 'success') { showMessage(data.message, "success"); } 
          else { showMessage(data.message, "error"); loadUsers(); }
@@ -656,7 +679,8 @@
       if(!name || !email || !pass) return alert("أكمل البيانات (الاسم، الإيميل، وكلمة المرور)");
       showMessage("⏳ جاري الإضافة...", "info");
       
-      fetch(`${LOGIN_API_URL}?action=addUser&name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&pass=${encodeURIComponent(pass)}&role=${encodeURIComponent(role)}&group=${encodeURIComponent(group)}`)
+      // إضافة التوكن للرابط
+      fetch(`${LOGIN_API_URL}?token=${API_TOKEN}&action=addUser&name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&pass=${encodeURIComponent(pass)}&role=${encodeURIComponent(role)}&group=${encodeURIComponent(group)}`)
       .then(res => res.json()).then(data => {
         if(data.status === 'success') { 
           showMessage(data.message, "success"); 
@@ -671,7 +695,9 @@
     function deleteUser(email) {
       if(!confirm("هل أنت متأكد من حذف هذا المستخدم؟")) return;
       showMessage("⏳ جاري الحذف...", "info");
-      fetch(`${LOGIN_API_URL}?action=deleteUser&email=${encodeURIComponent(email)}`)
+      
+      // إضافة التوكن للرابط
+      fetch(`${LOGIN_API_URL}?token=${API_TOKEN}&action=deleteUser&email=${encodeURIComponent(email)}`)
       .then(res => res.json()).then(data => {
          if(data.status === 'success') { showMessage(data.message, "success"); loadUsers(); }
       });
