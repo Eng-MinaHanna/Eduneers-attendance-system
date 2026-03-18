@@ -969,7 +969,7 @@
       const lec = document.getElementById('lecture').value; const group = localStorage.getItem('userGroup') || "Group A";
       const tbody = document.getElementById('attendeesList'); tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 30px; font-weight:700;">⏳ جاري المزامنة مع السيرفر...</td></tr>`;
       
-      showProgress("جاري سحب بيانات الحضور وتحديث المؤشرات 📊...");
+      showProgress("جاري التحميل 📊...");
       
       fetch(`${ATTENDANCE_API_URL}?action=getDashboard&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}${getAuthParams()}`)
         .then(res => res.json()).then(data => {
