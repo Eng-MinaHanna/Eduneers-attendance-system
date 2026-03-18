@@ -87,7 +87,7 @@
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
     ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
-/* 💎 High-Tech Navbar */
+    /* 💎 High-Tech Navbar - FIXED */
     .navbar { 
       background: rgba(15, 23, 42, 0.85); 
       backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
@@ -104,26 +104,41 @@
     }
     
     .nav-content {
-      max-width: 1000px; margin: 0 auto; padding: 0 20px;
+      max-width: 1000px; margin: 0 auto; padding: 0 15px;
       display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box;
     }
 
-    .nav-brand h2 { margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; background: linear-gradient(to left, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
-    body.dark-mode .nav-brand h2 { background: linear-gradient(to left, #fff, var(--electric-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
-    .nav-brand span { font-size: 13px; font-weight: 600; opacity: 0.8; -webkit-text-fill-color: #cbd5e1; }
+    .nav-brand { display: flex; align-items: center; }
+    
+    .nav-brand h2 { 
+      margin: 0; font-size: 1.4rem; font-weight: 800; letter-spacing: 0.5px; 
+      display: flex; align-items: center; gap: 6px; color: #fff;
+    }
+    
+    /* إصلاح التدرج اللوني على الكلمة فقط بدون الإيموجي */
+    .nav-brand h2 .brand-text { 
+      background: linear-gradient(to left, #fff, var(--accent)); 
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+    }
+    body.dark-mode .nav-brand h2 .brand-text { 
+      background: linear-gradient(to left, #fff, var(--electric-blue)); 
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    
+    .nav-brand span#welcomeName { font-size: 12px; font-weight: 600; opacity: 0.8; color: #cbd5e1; }
 
-    .nav-actions { display: flex; gap: 12px; align-items: center; }
+    .nav-actions { display: flex; gap: 10px; align-items: center; }
 
-    .hamburger { cursor: pointer; font-size: 1.8rem; background: none; border: none; color: white; padding: 0; transition: all 0.3s ease;}
+    .hamburger { cursor: pointer; font-size: 1.6rem; background: none; border: none; color: white; padding: 0; transition: all 0.3s ease;}
     .hamburger:hover { transform: scale(1.1); color: var(--accent); text-shadow: 0 0 15px var(--accent-glow);}
     body.dark-mode .hamburger:hover { color: var(--electric-blue); text-shadow: 0 0 15px var(--electric-glow);}
     
-    .theme-toggle { background: none; border: none; font-size: 1.4rem; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; width: 35px; height: 35px; border-radius: 50%; transition: 0.3s; }
+    .theme-toggle { background: none; border: none; font-size: 1.3rem; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; width: 35px; height: 35px; border-radius: 50%; transition: 0.3s; }
     .theme-toggle:hover { background: rgba(255,255,255,0.1); text-shadow: 0 0 10px var(--electric-blue);}
 
     /* 🏷️ High-Tech Badges */
     .nav-badge {
-      font-size: 12px; font-weight: 800; padding: 6px 12px; border-radius: 8px; 
+      font-size: 11px; font-weight: 800; padding: 5px 10px; border-radius: 8px; 
       letter-spacing: 0.5px; text-transform: uppercase; font-family: monospace;
       display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);
     }
@@ -145,6 +160,16 @@
     body.dark-mode.role-co-founder .role-badge { box-shadow: 0 0 10px rgba(192, 132, 252, 0.2); }
     body.dark-mode.role-admin .role-badge { box-shadow: 0 0 10px rgba(248, 113, 113, 0.2); }
     body.dark-mode.role-manager .role-badge { box-shadow: 0 0 10px rgba(251, 146, 60, 0.2); }
+
+    /* 📱 إصلاح الموبايل (Mobile Responsive Fixes) */
+    @media (max-width: 650px) {
+      .nav-brand h2 { font-size: 1.1rem; gap: 4px; }
+      .nav-brand span#welcomeName { display: none; } /* إخفاء اسم المستخدم في الشاشات الصغيرة لتوفير المساحة */
+      .nav-badge { padding: 4px 6px; font-size: 10px; letter-spacing: 0px; }
+      .nav-actions { gap: 6px; }
+      .theme-toggle { font-size: 1.1rem; width: 30px; height: 30px; }
+      #roleBadge { display: none !important; } /* إخفاء بادج الصلاحية وترك الجروب فقط في الموبايل */
+    }
     
     /* 💎 Floating Modern Sidebar */
     .sidebar { 
@@ -358,10 +383,8 @@
 </head>
 <body>
 
-  <!-- Animated Circuit Background -->
   <div class="circuit-bg"></div>
 
-  <!-- ⚡ Global High-Tech Loader (Linear) ⚡ -->
   <div id="electricLoader">
     <div class="loader-text" id="loaderMessage">جاري نقل البيانات...</div>
     <div class="progress-bar-container">
@@ -373,7 +396,7 @@
 <div class="navbar">
     <div class="nav-content">
       <div class="nav-brand">
-        <h2>⚡ Eduneers <span id="welcomeName"></span></h2>
+        <h2>⚡ <span class="brand-text">Eduneers</span> <span id="welcomeName"></span></h2>
       </div>
       <div class="nav-actions">
         <span id="groupBadge" class="nav-badge group-badge" style="display: none;"></span>
@@ -406,16 +429,13 @@
 
   <div class="container">
     
-    <!-- 📶 زر وضع عدم الاتصال (Offline Sync Button) -->
     <div id="offlineBadge" onclick="syncOfflineData()">📶 لديك بيانات غير مزامنة (<span id="offlineCount">0</span>). اضغط للرفع!</div>
 
     <div id="message"></div>
 
-    <!-- Login View -->
     <div id="view-login" class="view-section">
       <div class="form-wrapper">
         <div style="text-align: center; margin-bottom: 30px;">
-          <!-- High-Tech Atom Animation -->
           <div class="atom-logo">
             <div class="atom-ring"></div><div class="atom-ring"></div><div class="atom-ring"></div>
             <div class="atom-core"></div>
@@ -437,7 +457,6 @@
       </div>
     </div>
 
-    <!-- Lecture Selection Header -->
     <div id="lectureContainer" style="display:none; background: var(--card-bg); padding: 25px; border-radius: var(--border-radius); margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
       <div style="display: flex; gap: 15px; max-width: 600px; margin: auto;">
         <div style="flex: 1;">
@@ -459,7 +478,6 @@
       </div>
     </div>
 
-    <!-- Scanner View -->
     <div id="view-scanner" class="view-section">
       <div class="form-wrapper">
         <select id="cameraSelection" style="border-radius:20px;"><option value="">جاري البحث عن كاميرات...</option></select>
@@ -473,7 +491,6 @@
       </div>
     </div>
 
-    <!-- Manual View -->
     <div id="view-manual" class="view-section">
       <div class="form-wrapper">
         <h3 style="margin-top:0; color:var(--primary); font-weight:800; font-size:22px; margin-bottom: 5px; text-align:center;">التسجيل اليدوي</h3>
@@ -485,7 +502,6 @@
       </div>
     </div>
 
-    <!-- Dashboard View -->
     <div id="view-dashboard" class="view-section">
       <div class="dashboard-header">
         <span style="font-weight: 800; color: var(--primary); font-size:16px;">مؤشر الحضور الحي:</span>
@@ -512,7 +528,6 @@
       </div>
     </div>
 
-    <!-- Analytics View -->
     <div id="view-analytics" class="view-section manager-only">
       <h3 style="margin-top:0; color:var(--primary); font-weight:800; font-size:22px; margin-bottom: 20px;">📊 الرؤى التحليلية</h3>
       
@@ -531,7 +546,6 @@
       </div>
     </div>
 
-    <!-- Users Management View -->
     <div id="view-users" class="view-section admin-only">
       <h3 style="margin-top:0; color:var(--primary); font-weight:800; font-size:22px; margin-bottom: 20px; text-align:center;">إدارة المنظومة 👥</h3>
       
@@ -574,10 +588,8 @@
     let attendanceChartInstance = null;
     let lastSyncTime = 0; const SYNC_COOLDOWN = 60000;
     
-    // 📶 طابور وضع عدم الاتصال
     let offlineQueue = JSON.parse(localStorage.getItem('offlineQueue')) || [];
 
-    // ⚡ High-Tech Progress Bar Logic (Linear) ⚡
     let loaderInterval;
     function showProgress(message) {
       document.getElementById('electricLoader').style.display = 'flex';
@@ -588,8 +600,8 @@
       document.getElementById('progressBarFill').style.width = p + '%';
       clearInterval(loaderInterval);
       loaderInterval = setInterval(() => {
-        p += Math.floor(Math.random() * 8) + 1; // Increase fast randomly
-        if(p > 90) p = 90; // Hold at 90% until the API responds
+        p += Math.floor(Math.random() * 8) + 1; 
+        if(p > 90) p = 90; 
         document.getElementById('loaderPercent').innerText = p + '%';
         document.getElementById('progressBarFill').style.width = p + '%';
       }, 100);
@@ -603,7 +615,7 @@
         document.getElementById('electricLoader').style.opacity = '0';
         setTimeout(() => { 
             document.getElementById('electricLoader').style.display = 'none'; 
-            document.getElementById('progressBarFill').style.width = '0%'; // Reset for next time
+            document.getElementById('progressBarFill').style.width = '0%'; 
         }, 300);
       }, 400);
     }
@@ -622,28 +634,25 @@
       if(ggs && ggs.options.length === 0) { ggs.innerHTML = options; ggs.value = localStorage.getItem('userGroup') || 'Group A'; }
     }
 
-    // 🌙 دوال الوضع المظلم
     function toggleDarkMode() {
       const body = document.body;
       body.classList.toggle('dark-mode');
       const isDark = body.classList.contains('dark-mode');
       localStorage.setItem('darkMode', isDark);
       document.getElementById('themeToggle').innerText = isDark ? '🌙' : '☀️';
-      // تحديث ألوان الرسم البياني فوراً إذا كنا في صفحة التحليلات
       if(currentView === 'analytics' && attendanceChartInstance) {
           loadAnalytics('group'); 
       }
     }
 
-    // 📶 دوال حالة الإنترنت والمزامنة
     function updateOfflineBadge() {
       const badge = document.getElementById('offlineBadge');
       const countSpan = document.getElementById('offlineCount');
       if (offlineQueue.length > 0) {
         badge.style.display = 'block';
         countSpan.innerText = offlineQueue.length;
-        if (navigator.onLine) badge.style.backgroundColor = '#f39c12'; // برتقالي: الإنترنت عاد، يمكنك الرفع
-        else badge.style.backgroundColor = '#ef4444'; // أحمر: لا يوجد إنترنت
+        if (navigator.onLine) badge.style.backgroundColor = '#f39c12'; 
+        else badge.style.backgroundColor = '#ef4444'; 
       } else {
         badge.style.display = 'none';
       }
@@ -653,10 +662,9 @@
       if (!navigator.onLine) return alert("الإنترنت ما زال مقطوعاً. تأكد من الاتصال أولاً.");
       if (offlineQueue.length === 0) return;
       
-      showProgress("جاري توليد حزم البيانات ورفعها للسيرفر المركزي...");
+      showProgress("جاري رفع البيانات المتأخرة للسيرفر...");
       let successCount = 0;
       
-      // نرفع السجلات واحداً تلو الآخر لتجنب الضغط على السيرفر
       function uploadNext(index) {
         if (index >= offlineQueue.length) {
            offlineQueue = [];
@@ -686,13 +694,11 @@
 
     window.onload = function() {
       try {
-        // 🌙 تفعيل الوضع المظلم إذا كان محفوظاً
         if (localStorage.getItem('darkMode') === 'true') {
           document.body.classList.add('dark-mode');
           document.getElementById('themeToggle').innerText = '🌙';
         }
         
-        // 📶 مراقبة حالة الإنترنت
         updateOfflineBadge();
         window.addEventListener('online', updateOfflineBadge);
         window.addEventListener('offline', updateOfflineBadge);
@@ -824,10 +830,8 @@
       groupBadge.innerText = userGroup; groupBadge.style.display = 'flex';
       roleBadge.style.display = 'flex';
       
-      // تنظيف الكلاسات القديمة
       document.body.className = document.body.classList.contains('dark-mode') ? 'dark-mode ' : ''; 
       
-      // إضافة كلاس الرتبة ليقوم الـ CSS بتلوين الشارات بناءً عليه
       if (userRole === 'Owner') { document.body.classList.add('role-owner'); } 
       else if (userRole === 'CO-Founder') { document.body.classList.add('role-co-founder'); } 
       else if (userRole === 'Team Manager' || userRole === 'Admin') { document.body.classList.add('role-admin'); } 
@@ -876,7 +880,6 @@
       if(window.messageTimer) clearTimeout(window.messageTimer); window.messageTimer = setTimeout(() => { msgDiv.style.display = 'none'; }, 7000); 
     }
 
-    // 📳 دالة الصوت والاهتزاز الذكية
     function playBeep(type) {
       if (navigator.vibrate) {
         if (type === 'success') navigator.vibrate(150); 
@@ -901,7 +904,6 @@
 
     document.getElementById('qr-input-file').addEventListener('change', e => {
       if (e.target.files.length == 0) return; stopLiveCamera(); 
-      // تم إزالة Loader الثقيل واستبداله بإشعار عائم لتسريع العمل
       showMessage("⏳ جاري تحليل الصورة...", "info");
       
       if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
@@ -912,7 +914,6 @@
       });
     });
 
-    // 📶 دالة إرسال البيانات (تدعم الأوفلاين - بدون مقاطعة الشاشة)
     function sendDataToAPI(studentCode) {
       if(!studentCode) return; studentCode = studentCode.toUpperCase();
       const role = localStorage.getItem('userRole');
@@ -935,7 +936,6 @@
         return; 
       }
 
-      // إشعار عائم فقط حتى لا يتعطل المساعد عن تصوير الطالب التالي
       showMessage("⏳ جاري التوثيق في قاعدة البيانات الرئيسية 📡...", "info");
       
       fetch(`${ATTENDANCE_API_URL}?action=scan&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}${getAuthParams()}`)
