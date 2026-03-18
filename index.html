@@ -165,7 +165,12 @@
     @media (max-width: 650px) {
       .nav-brand h2 { font-size: 1.1rem; gap: 4px; }
       .nav-brand span#welcomeName { display: none; } /* إخفاء اسم المستخدم في الشاشات الصغيرة لتوفير المساحة */
-      .nav-badge { padding: 4px 6px; font-size: 10px; letter-spacing: 0px; }
+    .nav-badge {
+      font-size: 11px; font-weight: 800; padding: 5px 10px; border-radius: 8px; 
+      letter-spacing: 0.5px; text-transform: uppercase; font-family: monospace;
+      display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px);
+      white-space: nowrap; /* 👈 السطر اللي هيمنع الكلمة تتقسم */
+    }
       .nav-actions { gap: 6px; }
       .theme-toggle { font-size: 1.1rem; width: 30px; height: 30px; }
       #roleBadge { display: none !important; } /* إخفاء بادج الصلاحية وترك الجروب فقط في الموبايل */
