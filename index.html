@@ -366,14 +366,23 @@
 
   </div>
 
-  <script>
-    const ATTENDANCE_API_URL = "https://script.google.com/macros/s/AKfycbxES_Iu9hEtVBe2zA3MIuwQ96oW_DcfR_txI1DAsZQhQgNVFLdZnzdlSLlYMT5_AlyAVQ/exec"; 
-    const LOGIN_API_URL = "https://script.google.com/macros/s/AKfycbytmjOF7nf-s39iXRn8TTbC_S59ZBmw7o-lgwvJ157YD5OogVqjQV-y1870KXyZAIvunA/exec";
-    const API_TOKEN = "Eduneers_SecR3t_2026";
+<script>
+    const ATTENDANCE_API_URL = "https://script.google.com/macros/s/AKfycbwTAZxu1Nj_UNd5wgC4KNq48CVUnz8257PVZ8j-WJ0n0nTVn-naU4OuP2-II374smJDag/exec"; 
+    const LOGIN_API_URL = "https://script.google.com/macros/s/AKfycbyIgyY8ImeS98-3DvXNWpxAWCG2lXpoZ5biViMvFE8OGhtkimDJTl_UzyjIlFAYX2e--A/exec";
+    
+    // تم إزالة API_TOKEN للأمان
 
     let html5QrCode; let allAttendees = []; 
     let currentView = localStorage.getItem('savedView') || 'login';
     let attendanceChartInstance = null;
+    let lastSyncTime = 0; const SYNC_COOLDOWN = 60000; // 60 ثانية بين كل فحص صلاحية
+
+    // دالة لاستخراج بيانات الجلسة (تُرسل مع كل طلب)
+    function getAuthParams() {
+      const email = localStorage.getItem('userEmail') || "";
+      const sessionToken = localStorage.getItem('sessionToken') || "";
+      return `&email=${encodeURIComponent(email)}&token=${encodeURIComponent(sessionToken)}`;
+    }
 
     function fillGroupSelects() {
       let options = ''; const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -409,7 +418,7 @@
             }
           }).catch(err => console.log("Cam warning:", err));
         }
-        if (localStorage.getItem('isLoggedIn') === 'true' && !localStorage.getItem('userEmail')) { logout(); } 
+        if (localStorage.getItem('isLoggedIn') === 'true' && !localStorage.getItem('sessionToken')) { logout(); } 
         else { checkAuth(); }
       } catch (error) {
         console.error("System Error: ", error);
@@ -424,14 +433,14 @@
       const email = document.getElementById('loginEmail').value;
       const pass = document.getElementById('loginPassword').value;
       if(!email || !pass) return alert("الرجاء إدخال الإيميل وكلمة المرور.");
-      showMessage("⏳ يتم الآن تشفير البيانات والتحقق...", "info");
+      showMessage("⏳ يتم الآن التحقق وفتح جلسة آمنة...", "info");
       
-      fetch(`${LOGIN_API_URL}?token=${API_TOKEN}&action=login&email=${encodeURIComponent(email)}&password=${encodeURIComponent(pass)}`)
+      fetch(`${LOGIN_API_URL}?action=login&email=${encodeURIComponent(email)}&password=${encodeURIComponent(pass)}`)
         .then(res => res.json()).then(data => {
           if (data.status === "success") {
             localStorage.setItem('isLoggedIn', 'true'); localStorage.setItem('userName', data.userName);
             localStorage.setItem('userRole', data.role); localStorage.setItem('userGroup', data.group);
-            localStorage.setItem('userEmail', email); 
+            localStorage.setItem('userEmail', email); localStorage.setItem('sessionToken', data.sessionToken);
             showMessage(`✅ أهلاً بك في منصة Eduneers، ${data.userName}`, "success");
             setTimeout(checkAuth, 1000); 
           } else { showMessage(data.message, "error"); }
@@ -449,25 +458,31 @@
       const email = responsePayload.email; const googleName = responsePayload.name; 
       showMessage("⏳ جاري المصادقة مع سيرفرات Google...", "info");
       
-      fetch(`${LOGIN_API_URL}?token=${API_TOKEN}&action=googleLogin&email=${encodeURIComponent(email)}`)
+      fetch(`${LOGIN_API_URL}?action=googleLogin&email=${encodeURIComponent(email)}`)
         .then(res => res.json()).then(data => {
           if (data.status === "success") {
             localStorage.setItem('isLoggedIn', 'true');
             const finalName = data.userName || googleName;
             localStorage.setItem('userName', finalName); localStorage.setItem('userRole', data.role); 
             localStorage.setItem('userGroup', data.group); localStorage.setItem('userEmail', email); 
+            localStorage.setItem('sessionToken', data.sessionToken);
             showMessage(`✅ أهلاً بك في منصة Eduneers، ${finalName}`, "success");
             setTimeout(checkAuth, 1000); 
           } else { showMessage(data.message, "error"); }
         }).catch(err => { showMessage("❌ خطأ في الاتصال.", "error"); });
     }
 
-    function syncRole() {
-      const email = localStorage.getItem('userEmail');
-      if (!email || localStorage.getItem('isLoggedIn') !== 'true') return;
-      fetch(`${LOGIN_API_URL}?token=${API_TOKEN}&action=checkMyRole&email=${encodeURIComponent(email)}`)
+    function syncRole(force = false) {
+      const now = Date.now();
+      if (!force && now - lastSyncTime < SYNC_COOLDOWN) return; 
+      if (localStorage.getItem('isLoggedIn') !== 'true') return;
+      
+      lastSyncTime = now;
+      fetch(`${LOGIN_API_URL}?action=checkMyRole${getAuthParams()}`)
         .then(res => res.json()).then(data => {
-          if (data.status === "deleted") { alert("تم إلغاء صلاحيات حسابك من قبل الإدارة."); logout(); } 
+          if (data.status === "unauthorized" || data.status === "deleted") { 
+            alert("انتهت صلاحية الجلسة أو تم إلغاء حسابك. يرجى تسجيل الدخول مجدداً."); logout(); 
+          } 
           else if (data.status === "success") {
             const currentSavedRole = localStorage.getItem('userRole'); const currentSavedGroup = localStorage.getItem('userGroup');
             if (currentSavedRole !== data.role || (currentSavedGroup !== data.group && data.role !== 'Owner' && data.role !== 'CO-Founder' && data.role !== 'Team Manager' && data.role !== 'Admin')) {
@@ -479,7 +494,13 @@
           }
         }).catch(err => console.log("Sync error"));
     }
-    setInterval(syncRole, 15000);
+
+    // التحديث عند العودة لصفحة المتصفح فقط (يوفر الموارد)
+    document.addEventListener("visibilitychange", function() {
+      if (document.visibilityState === 'visible' && localStorage.getItem('isLoggedIn') === 'true') {
+          syncRole(); if (currentView === 'dashboard') loadDashboard(); 
+      }
+    });
 
     function changeGlobalGroup(newGroup) {
       localStorage.setItem('userGroup', newGroup); document.getElementById('groupBadge').innerText = newGroup;
@@ -511,7 +532,7 @@
         document.getElementById('menuBtn').style.display = 'block'; document.getElementById('welcomeName').innerText = `| ${userName}`;
         document.getElementById('roleBadge').style.display = 'inline-block'; applyRolesToUI();
         if (currentView === 'login') currentView = 'scanner'; 
-        switchView(currentView); syncRole(); 
+        switchView(currentView); syncRole(true); 
       } else {
         document.getElementById('menuBtn').style.display = 'none'; document.getElementById('lectureContainer').style.display = 'none';
         document.getElementById('welcomeName').innerText = ""; document.getElementById('roleBadge').style.display = 'none';
@@ -535,7 +556,7 @@
       const lecContainer = document.getElementById('lectureContainer');
       if (viewId === 'users' || viewId === 'login') { lecContainer.style.display = 'none'; } else { lecContainer.style.display = 'block'; }
       if(viewId === 'dashboard') loadDashboard(); if(viewId === 'users') loadUsers(); if(viewId === 'analytics') loadAnalytics('group'); 
-      syncRole(); 
+      if (viewId !== 'login') syncRole(); 
     }
 
     function showMessage(text, type) {
@@ -578,7 +599,7 @@
       }
       showMessage("⏳ جاري التوثيق في قاعدة البيانات...", "info");
       const lec = document.getElementById('lecture').value; const group = localStorage.getItem('userGroup') || "Group A";
-      fetch(`${ATTENDANCE_API_URL}?token=${API_TOKEN}&action=scan&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}`)
+      fetch(`${ATTENDANCE_API_URL}?action=scan&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}${getAuthParams()}`)
       .then(res => res.json()).then(data => {
           if (data.status === "success") { showMessage(data.message, "success"); playBeep('success'); } else { showMessage(data.message, data.status === "already" ? "warning" : "error"); playBeep('error'); }
       }).catch(err => { showMessage("❌ فشل الاتصال بالسيرفر.", "error"); playBeep('error'); });
@@ -599,7 +620,7 @@
     function loadDashboard() {
       const lec = document.getElementById('lecture').value; const group = localStorage.getItem('userGroup') || "Group A";
       const tbody = document.getElementById('attendeesList'); tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 30px; font-weight:700;">⏳ جاري جلب السجلات...</td></tr>`;
-      fetch(`${ATTENDANCE_API_URL}?token=${API_TOKEN}&action=getDashboard&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}`)
+      fetch(`${ATTENDANCE_API_URL}?action=getDashboard&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}${getAuthParams()}`)
         .then(res => res.json()).then(data => {
           document.getElementById('dashCount').innerText = data.count || 0;
           if (data.status === "success" && data.attendees.length > 0) { allAttendees = data.attendees; renderTable(allAttendees); } 
@@ -626,7 +647,7 @@
     function deleteAttendance(studentCode) {
       if(!confirm("هل أنت متأكد من مسح هذا السجل؟ لا يمكن التراجع.")) return;
       const lec = document.getElementById('lecture').value; const group = localStorage.getItem('userGroup') || "Group A"; showMessage("⏳ جاري معالجة الطلب...", "info");
-      fetch(`${ATTENDANCE_API_URL}?token=${API_TOKEN}&action=deleteAttendance&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}`)
+      fetch(`${ATTENDANCE_API_URL}?action=deleteAttendance&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}${getAuthParams()}`)
       .then(res => res.json()).then(data => { if(data.status === 'success') { showMessage(data.message, "success"); loadDashboard(); } else showMessage(data.message, "error"); });
     }
 
@@ -645,10 +666,10 @@
       const group = localStorage.getItem('userGroup') || "Group A"; const lec = document.getElementById('lecture').value; const role = localStorage.getItem('userRole');
       let url = ""; let chartTitle = "";
       if (type === 'all' && (role === 'Owner' || role === 'CO-Founder')) {
-         url = `${ATTENDANCE_API_URL}?token=${API_TOKEN}&action=getOwnerAnalytics&lectureNum=${encodeURIComponent(lec)}`;
+         url = `${ATTENDANCE_API_URL}?action=getOwnerAnalytics&lectureNum=${encodeURIComponent(lec)}${getAuthParams()}`;
          document.getElementById('analyticsDesc').innerText = `📊 مقارنة حية لحضور كافة الجروبات - محاضرة ${lec}`; chartTitle = 'حضور الجروبات';
       } else {
-         url = `${ATTENDANCE_API_URL}?token=${API_TOKEN}&action=getAnalytics&group=${encodeURIComponent(group)}`;
+         url = `${ATTENDANCE_API_URL}?action=getAnalytics&group=${encodeURIComponent(group)}${getAuthParams()}`;
          document.getElementById('analyticsDesc').innerText = `📈 تتبع كفاءة الحضور لـ ${group} على مدار الكورس`; chartTitle = 'كثافة الحضور';
       }
       fetch(url).then(res => res.json()).then(data => {
@@ -675,7 +696,7 @@
 
     function loadUsers() {
       const tbody = document.getElementById('usersList'); tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 30px; font-weight:700;">⏳ جاري فك التشفير...</td></tr>`;
-      fetch(`${LOGIN_API_URL}?token=${API_TOKEN}&action=getUsers`).then(res => res.json()).then(data => {
+      fetch(`${LOGIN_API_URL}?action=getUsers${getAuthParams()}`).then(res => res.json()).then(data => {
         if (data.status === "success" && data.users.length > 0) {
           const visibleUsers = data.users.filter(u => u.role !== 'Owner'); const currentUserRole = localStorage.getItem('userRole');
           if (visibleUsers.length === 0) { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 30px; font-weight:700; color:var(--text-muted);">لا توجد صلاحيات مسجلة</td></tr>`; return; }
@@ -696,18 +717,18 @@
             </tr>`;
           }).join('');
         } else { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 30px; font-weight:700; color:var(--text-muted);">الخادم خالي من المستخدمين</td></tr>`; }
-      });
+      }).catch(err => { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#ef4444; padding: 30px;">❌ حدث خطأ</td></tr>`; logout(); });
     }
 
     function changeUserRole(email, newRole) {
       showMessage("⏳ جاري ترقية الصلاحيات...", "info");
-      fetch(`${LOGIN_API_URL}?token=${API_TOKEN}&action=updateRole&email=${encodeURIComponent(email)}&role=${encodeURIComponent(newRole)}`)
+      fetch(`${LOGIN_API_URL}?action=updateRole&targetEmail=${encodeURIComponent(email)}&role=${encodeURIComponent(newRole)}${getAuthParams()}`)
       .then(res => res.json()).then(data => { if(data.status === 'success') { showMessage("✅ تمت الترقية بنجاح", "success"); } else { showMessage(data.message, "error"); loadUsers(); } }).catch(err => { showMessage("❌ خطأ.", "error"); loadUsers(); });
     }
 
     function changeUserGroup(email, newGroup) {
       showMessage("⏳ جاري نقل المستخدم...", "info");
-      fetch(`${LOGIN_API_URL}?token=${API_TOKEN}&action=updateGroup&email=${encodeURIComponent(email)}&group=${encodeURIComponent(newGroup)}`)
+      fetch(`${LOGIN_API_URL}?action=updateGroup&targetEmail=${encodeURIComponent(email)}&group=${encodeURIComponent(newGroup)}${getAuthParams()}`)
       .then(res => res.json()).then(data => { if(data.status === 'success') { showMessage("✅ تم النقل بنجاح", "success"); } else { showMessage(data.message, "error"); loadUsers(); } }).catch(err => { showMessage("❌ خطأ.", "error"); loadUsers(); });
     }
 
@@ -716,15 +737,16 @@
       const pass = document.getElementById('newUserPass').value; const role = document.getElementById('newUserRole').value;
       const group = document.getElementById('newUserGroup').value;
       if(!name || !email || !pass) return alert("البيانات غير مكتملة للتشفير."); showMessage("⏳ جاري إنشاء حساب مشفر...", "info");
-      fetch(`${LOGIN_API_URL}?token=${API_TOKEN}&action=addUser&name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}&pass=${encodeURIComponent(pass)}&role=${encodeURIComponent(role)}&group=${encodeURIComponent(group)}`)
+      fetch(`${LOGIN_API_URL}?action=addUser&name=${encodeURIComponent(name)}&targetEmail=${encodeURIComponent(email)}&pass=${encodeURIComponent(pass)}&role=${encodeURIComponent(role)}&group=${encodeURIComponent(group)}${getAuthParams()}`)
       .then(res => res.json()).then(data => {
         if(data.status === 'success') { showMessage("✅ تم توثيق المستخدم", "success"); document.getElementById('newUserName').value = ''; document.getElementById('newUserEmail').value = ''; document.getElementById('newUserPass').value = ''; loadUsers(); }
+        else { showMessage(data.message, "error"); }
       });
     }
 
     function deleteUser(email) {
       if(!confirm("تحذير: سيتم سحب كافة الصلاحيات بشكل نهائي. تأكيد؟")) return; showMessage("⏳ جاري العزل...", "info");
-      fetch(`${LOGIN_API_URL}?token=${API_TOKEN}&action=deleteUser&email=${encodeURIComponent(email)}`).then(res => res.json()).then(data => { if(data.status === 'success') { showMessage("✅ تم العزل", "success"); loadUsers(); } });
+      fetch(`${LOGIN_API_URL}?action=deleteUser&targetEmail=${encodeURIComponent(email)}${getAuthParams()}`).then(res => res.json()).then(data => { if(data.status === 'success') { showMessage("✅ تم العزل", "success"); loadUsers(); } else { showMessage(data.message, "error"); } });
     }
   </script>
 </body>
