@@ -93,13 +93,23 @@
     .warning { background: #fff8e1; color: #f57f17; border: 1px solid #ffecb3; }
     .info { background: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
     
-    .admin-only, .manager-only { display: none; }
+    /* 👑 تنسيق الصلاحيات الجديد (CSS Roles) */
+    .admin-only, .manager-only, .owner-only { display: none !important; }
+
+    body.role-owner .owner-only, body.role-owner .admin-only, body.role-owner .manager-only,
+    body.role-admin .admin-only, body.role-admin .manager-only,
+    body.role-manager .manager-only { display: block !important; }
+
+    body.role-owner table .owner-only, body.role-owner table .admin-only, body.role-owner table .manager-only,
+    body.role-admin table .admin-only, body.role-admin table .manager-only,
+    body.role-manager table .manager-only { display: table-cell !important; }
+
+    body.role-owner div.owner-only.flex-container { display: flex !important; }
+
     .google-btn-container { display: flex; justify-content: center; margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 12px; border: 1px dashed #ccc;}
     .divider { text-align: center; margin: 25px 0; position: relative; }
     .divider hr { border: none; border-top: 1px solid #ddd; }
     .divider span { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--card-bg); padding: 0 15px; color: #888; font-size: 14px; font-weight: bold; }
-    
-    /* ستايل الكونتينر بتاع الرسم البياني */
     .chart-container { position: relative; height: 300px; width: 100%; background: #f9fbfc; border-radius: 12px; border: 1px solid #e1e8ed; padding: 10px; box-sizing: border-box; margin-bottom: 20px;}
   </style>
 </head>
@@ -124,7 +134,7 @@
     
     <div class="sidebar-heading manager-only">متابعة الحضور</div>
     <a href="#" onclick="switchView('dashboard');" id="nav-dashboard" class="manager-only">📊 لوحة الحضور</a>
-    <a href="#" onclick="switchView('analytics');" id="nav-analytics" class="manager-only">📈 إحصائيات الجروب</a>
+    <a href="#" onclick="switchView('analytics');" id="nav-analytics" class="manager-only">📈 إحصائيات الجروبات</a>
     
     <div class="sidebar-heading admin-only">إدارة النظام</div>
     <a href="#" onclick="switchView('users');" id="nav-users" class="admin-only">👥 إدارة المستخدمين</a>
@@ -174,16 +184,25 @@
     </div>
 
     <div id="lectureContainer" style="display:none; background: var(--card-bg); padding: 20px; border-radius: var(--border-radius); margin-bottom: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.04);">
-      <p style="margin: 0 0 12px 0; font-weight: bold; color: var(--primary); font-size: 15px;">المحاضرة الحالية:</p>
-      <select id="lecture" style="margin-bottom: 0;">
-        <option value="1">المحاضرة 1</option> <option value="2">المحاضرة 2</option> <option value="3">المحاضرة 3</option>
-        <option value="4">المحاضرة 4</option> <option value="5">المحاضرة 5</option> <option value="6">المحاضرة 6</option>
-        <option value="7">المحاضرة 7</option> <option value="8">المحاضرة 8</option> <option value="9">المحاضرة 9</option>
-        <option value="10">المحاضرة 10</option> <option value="11">المحاضرة 11</option> <option value="12">المحاضرة 12</option>
-        <option value="13">المحاضرة 13</option> <option value="14">المحاضرة 14</option> <option value="15">المحاضرة 15</option>
-        <option value="16">المحاضرة 16</option> <option value="17">المحاضرة 17</option> <option value="18">المحاضرة 18</option>
-        <option value="19">المحاضرة 19</option> <option value="20">المحاضرة 20</option>
-      </select>
+      <div style="display: flex; gap: 10px;">
+        <div style="flex: 1;">
+          <p style="margin: 0 0 12px 0; font-weight: bold; color: var(--primary); font-size: 15px;">المحاضرة:</p>
+          <select id="lecture" style="margin-bottom: 0;">
+            <option value="1">المحاضرة 1</option> <option value="2">المحاضرة 2</option> <option value="3">المحاضرة 3</option>
+            <option value="4">المحاضرة 4</option> <option value="5">المحاضرة 5</option> <option value="6">المحاضرة 6</option>
+            <option value="7">المحاضرة 7</option> <option value="8">المحاضرة 8</option> <option value="9">المحاضرة 9</option>
+            <option value="10">المحاضرة 10</option> <option value="11">المحاضرة 11</option> <option value="12">المحاضرة 12</option>
+            <option value="13">المحاضرة 13</option> <option value="14">المحاضرة 14</option> <option value="15">المحاضرة 15</option>
+            <option value="16">المحاضرة 16</option> <option value="17">المحاضرة 17</option> <option value="18">المحاضرة 18</option>
+            <option value="19">المحاضرة 19</option> <option value="20">المحاضرة 20</option>
+          </select>
+        </div>
+        <div class="owner-only flex-container" style="flex: 1; flex-direction: column;">
+          <p style="margin: 0 0 12px 0; font-weight: bold; color: #8e44ad; font-size: 15px;">تحديد الجروب:</p>
+          <select id="globalGroupSelect" style="margin-bottom: 0; border-color: #8e44ad;" onchange="changeGlobalGroup(this.value)">
+            </select>
+        </div>
+      </div>
     </div>
 
     <div id="view-scanner" class="view-section">
@@ -198,7 +217,7 @@
     <div id="view-manual" class="view-section">
       <h3 style="margin-top:0; color:var(--primary); border-bottom: 2px solid #f1f1f1; padding-bottom: 10px;">التسجيل اليدوي</h3>
       <p style="font-size: 13px; color: #666; margin-bottom: 15px; line-height: 1.5;">
-        يمكنك كتابة <b>الرقم فقط</b> (مثال: 15)، وسيقوم النظام تلقائياً بتكملة الكود الخاص بمجموعتك.
+        يمكنك كتابة <b>الرقم فقط</b> وسيقوم النظام بتكملته بناءً على مجموعتك.
       </p>
       <input type="text" id="manualCode" placeholder="أدخل رقم الطالب (أو الكود كامل)...">
       <button class="btn-primary" onclick="submitManualCode()">حفظ الحضور 📥</button>
@@ -234,7 +253,13 @@
 
     <div id="view-analytics" class="view-section manager-only">
       <h3 style="margin-top:0; color:var(--primary); border-bottom: 2px solid #f1f1f1; padding-bottom: 10px;">📊 إحصائيات الحضور</h3>
-      <p style="font-size: 13px; color: #666; margin-bottom: 15px;">مقارنة حضور الطلاب في جميع المحاضرات للجروب الخاص بك.</p>
+      
+      <div class="owner-only flex-container" style="gap: 10px; margin-bottom: 15px; background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px solid #ddd;">
+        <button class="btn-primary btn-small" style="flex:1;" onclick="loadAnalytics('all')">مقارنة شاملة للمحاضرة</button>
+        <button class="btn-secondary btn-small" style="flex:1;" onclick="loadAnalytics('group')">غياب الجروب الحالي</button>
+      </div>
+
+      <p id="analyticsDesc" style="font-size: 13px; color: #666; margin-bottom: 15px; font-weight: bold;">مقارنة حضور الطلاب في جميع المحاضرات.</p>
       
       <div class="chart-container">
         <canvas id="attendanceChart"></canvas>
@@ -254,22 +279,10 @@
             <option value="User">مُسجل (User)</option>
             <option value="Manager">مراقب (Manager)</option>
             <option value="Admin">مدير (Admin)</option>
+            <option value="Owner">مالك (Owner) 👑</option>
           </select>
           <select id="newUserGroup" style="margin-bottom: 0;">
-            <option value="Group A">Group A</option><option value="Group B">Group B</option>
-            <option value="Group C">Group C</option><option value="Group D">Group D</option>
-            <option value="Group E">Group E</option><option value="Group F">Group F</option>
-            <option value="Group G">Group G</option><option value="Group H">Group H</option>
-            <option value="Group I">Group I</option><option value="Group J">Group J</option>
-            <option value="Group K">Group K</option><option value="Group L">Group L</option>
-            <option value="Group M">Group M</option><option value="Group N">Group N</option>
-            <option value="Group O">Group O</option><option value="Group P">Group P</option>
-            <option value="Group Q">Group Q</option><option value="Group R">Group R</option>
-            <option value="Group S">Group S</option><option value="Group T">Group T</option>
-            <option value="Group U">Group U</option><option value="Group V">Group V</option>
-            <option value="Group W">Group W</option><option value="Group X">Group X</option>
-            <option value="Group Y">Group Y</option><option value="Group Z">Group Z</option>
-          </select>
+            </select>
         </div>
         <button class="btn-primary" onclick="addUser()">إضافة مستخدم ➕</button>
       </div>
@@ -288,17 +301,35 @@
   <script>
     // ⚠️ غير الروابط للروابط الجديدة بتاعتك ⚠️
     const ATTENDANCE_API_URL = "https://script.google.com/macros/s/AKfycbzepJFZUOutPX5qiXSJnGt5fajhAgvu1EGseNRLeNh2v5RIiTcGf3QaJM3gb6D6Y9aBGA/exec"; 
-    const LOGIN_API_URL = "https://script.google.com/macros/s/AKfycbyrHH-WIvekmsyoUauAEQ9abEFo3O5YHXQnF5OwwT1y7zjp2Xqw0GGo7v007WAzllemTQ/exec";
+    const LOGIN_API_URL = "https://script.google.com/macros/s/AKfycbzYLd_Fe8TronXvQplFlU4OpKVM3V7ezaFWRSbd451oDkGuTwBNHW4OOG-nD_vG4VpK/exec";
     
     const API_TOKEN = "Eduneers_SecR3t_2026";
 
     let html5QrCode;
     let allAttendees = []; 
     let currentView = localStorage.getItem('savedView') || 'login';
-    let attendanceChartInstance = null; // متغير لحفظ الرسم البياني
+    let attendanceChartInstance = null;
+
+    // تعبئة قوائم الجروبات
+    function fillGroupSelects() {
+      let options = '';
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      for(let i=0; i<letters.length; i++) {
+         let g = 'Group ' + letters[i];
+         options += `<option value="${g}">${g}</option>`;
+      }
+      const newUg = document.getElementById('newUserGroup');
+      const ggs = document.getElementById('globalGroupSelect');
+      if(newUg && newUg.options.length === 0) newUg.innerHTML = options;
+      if(ggs && ggs.options.length === 0) {
+          ggs.innerHTML = options;
+          ggs.value = localStorage.getItem('userGroup') || 'Group A';
+      }
+    }
 
     window.onload = function() {
       try {
+        fillGroupSelects();
         let savedLecture = localStorage.getItem('savedLecture') || '1';
         let lectureElement = document.getElementById('lecture');
         if(lectureElement) {
@@ -413,12 +444,13 @@
             const currentSavedRole = localStorage.getItem('userRole');
             const currentSavedGroup = localStorage.getItem('userGroup');
             
-            if (currentSavedRole !== data.role || currentSavedGroup !== data.group) {
+            // 👑 المالك لا يتم إجباره على تغيير جروبه إلا برغبته
+            if (currentSavedRole !== data.role || (currentSavedGroup !== data.group && data.role !== 'Owner')) {
               localStorage.setItem('userRole', data.role);
-              localStorage.setItem('userGroup', data.group);
+              if (data.role !== 'Owner') localStorage.setItem('userGroup', data.group);
               showMessage("🔄 تم تحديث بيانات حسابك من الإدارة", "info");
               applyRolesToUI(); 
-              if (currentView === 'users' && data.role !== 'Admin') switchView('scanner');
+              if (currentView === 'users' && data.role !== 'Admin' && data.role !== 'Owner') switchView('scanner');
             }
           }
         }).catch(err => console.log("Sync error"));
@@ -426,6 +458,15 @@
 
     setInterval(syncRole, 15000);
 
+    // 👑 تغيير الجروب للمالك يدوياً
+    function changeGlobalGroup(newGroup) {
+      localStorage.setItem('userGroup', newGroup);
+      document.getElementById('groupBadge').innerText = newGroup;
+      if(currentView === 'dashboard') loadDashboard();
+      if(currentView === 'analytics') loadAnalytics('group');
+    }
+
+    // تطبيق الصلاحيات الجديدة (Owner CSS System)
     function applyRolesToUI() {
       const userRole = localStorage.getItem('userRole');
       const userGroup = localStorage.getItem('userGroup');
@@ -433,29 +474,27 @@
       const roleBadge = document.getElementById('roleBadge');
       const groupBadge = document.getElementById('groupBadge');
       
-      roleBadge.innerText = userRole;
+      roleBadge.innerText = (userRole === 'Owner') ? 'المالك 👑' : userRole;
       groupBadge.innerText = userGroup;
       groupBadge.style.display = 'inline-block';
       
-      if (userRole === 'Admin') roleBadge.style.color = '#e74c3c';
-      else if (userRole === 'Manager') roleBadge.style.color = '#e67e22';
-      else roleBadge.style.color = '#3498db';
-
-      const adminElements = document.querySelectorAll('.admin-only');
-      adminElements.forEach(el => {
-        if(userRole === 'Admin') {
-           if(el.classList.contains('view-section')) el.style.display = ''; 
-           else el.style.display = (el.tagName === 'TH' || el.tagName === 'TD') ? 'table-cell' : 'block';
-        } else { el.style.display = 'none'; }
-      });
-
-      const managerElements = document.querySelectorAll('.manager-only');
-      managerElements.forEach(el => {
-        if(userRole === 'Admin' || userRole === 'Manager') {
-           if(el.classList.contains('view-section')) el.style.display = ''; 
-           else el.style.display = (el.tagName === 'TH' || el.tagName === 'TD') ? 'table-cell' : 'block';
-        } else { el.style.display = 'none'; }
-      });
+      document.body.className = ''; // Reset
+      if (userRole === 'Owner') {
+          document.body.classList.add('role-owner');
+          roleBadge.style.color = '#8e44ad';
+      } else if (userRole === 'Admin') {
+          document.body.classList.add('role-admin');
+          roleBadge.style.color = '#e74c3c';
+      } else if (userRole === 'Manager') {
+          document.body.classList.add('role-manager');
+          roleBadge.style.color = '#e67e22';
+      } else {
+          document.body.classList.add('role-user');
+          roleBadge.style.color = '#3498db';
+      }
+      
+      const ggs = document.getElementById('globalGroupSelect');
+      if(ggs) ggs.value = userGroup;
     }
 
     function checkAuth() {
@@ -514,7 +553,7 @@
 
       if(viewId === 'dashboard') loadDashboard();
       if(viewId === 'users') loadUsers(); 
-      if(viewId === 'analytics') loadAnalytics(); // 📈 تحميل الداش بورد
+      if(viewId === 'analytics') loadAnalytics('group'); 
       syncRole(); 
     }
 
@@ -523,12 +562,8 @@
       msgDiv.style.display = 'block'; 
       msgDiv.className = type; 
       msgDiv.innerText = text;
-      
       if(window.messageTimer) clearTimeout(window.messageTimer);
-      
-      window.messageTimer = setTimeout(() => { 
-          msgDiv.style.display = 'none'; 
-      }, 7000); 
+      window.messageTimer = setTimeout(() => { msgDiv.style.display = 'none'; }, 7000); 
     }
 
     function playBeep(type) {
@@ -567,6 +602,20 @@
 
     function sendDataToAPI(studentCode) {
       if(!studentCode) return;
+      studentCode = studentCode.toUpperCase();
+
+      // 👑 الاستشعار الذكي للمالك (عشان يسجل في الجروب الصح لوحده)
+      if (localStorage.getItem('userRole') === 'Owner') {
+          const match = studentCode.match(/^[A-Z]+/);
+          if (match) {
+              const detectedGroup = "Group " + match[0];
+              localStorage.setItem('userGroup', detectedGroup);
+              document.getElementById('groupBadge').innerText = detectedGroup;
+              const ggs = document.getElementById('globalGroupSelect');
+              if(ggs) ggs.value = detectedGroup;
+          }
+      }
+
       showMessage("⏳ جاري تسجيل الحضور...", "info");
       const lec = document.getElementById('lecture').value;
       const group = localStorage.getItem('userGroup') || "Group A";
@@ -583,6 +632,11 @@
       if(code === "") return alert("برجاء كتابة الكود أو الرقم!");
       
       if (/^\d+$/.test(code)) {
+        const userRole = localStorage.getItem('userRole');
+        // المالك لو كتب أرقام بس لازم يكون محدد الجروب من القائمة اللي فوق
+        if (userRole === 'Owner' && !document.getElementById('globalGroupSelect').value) {
+            return alert("أنت مسجل كمالك، يرجى كتابة حرف الجروب قبل الرقم (مثال: K15)");
+        }
         const userGroup = localStorage.getItem('userGroup') || "Group A";
         const groupLetter = userGroup.replace("Group ", "").trim(); 
         code = groupLetter + code; 
@@ -598,8 +652,7 @@
       const lec = document.getElementById('lecture').value;
       const group = localStorage.getItem('userGroup') || "Group A";
       const tbody = document.getElementById('attendeesList');
-      const isManager = (localStorage.getItem('userRole') === 'Admin' || localStorage.getItem('userRole') === 'Manager');
-      tbody.innerHTML = `<tr><td colspan="${isManager? 4 : 3}" style="text-align:center; padding: 20px;">⏳ جاري التحميل...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px;">⏳ جاري التحميل...</td></tr>`;
       
       fetch(`${ATTENDANCE_API_URL}?token=${API_TOKEN}&action=getDashboard&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}`)
         .then(res => res.json())
@@ -608,14 +661,14 @@
           if (data.status === "success" && data.attendees.length > 0) {
             allAttendees = data.attendees; renderTable(allAttendees);
           } else {
-            allAttendees = []; tbody.innerHTML = `<tr><td colspan="${isManager? 4 : 3}" style="text-align:center; padding: 20px;">لا يوجد حضور في هذا الجروب</td></tr>`;
+            allAttendees = []; tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px;">لا يوجد حضور في هذا الجروب</td></tr>`;
           }
-        }).catch(err => { tbody.innerHTML = `<tr><td colspan="${isManager? 4 : 3}" style="text-align:center;color:red; padding: 20px;">❌ خطأ في التحميل</td></tr>`; });
+        }).catch(err => { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:red; padding: 20px;">❌ خطأ في التحميل</td></tr>`; });
     }
 
     function renderTable(dataArray) {
       const tbody = document.getElementById('attendeesList');
-      const isManager = (localStorage.getItem('userRole') === 'Admin' || localStorage.getItem('userRole') === 'Manager');
+      const isManager = (localStorage.getItem('userRole') !== 'User');
       if (dataArray.length === 0) { tbody.innerHTML = `<tr><td colspan="${isManager? 4 : 3}" style="text-align:center; padding: 20px;">لا توجد نتائج</td></tr>`; return; }
       
       tbody.innerHTML = dataArray.map(a => `<tr>
@@ -645,85 +698,66 @@
     }
 
     function exportToExcel() {
-      if (allAttendees.length === 0) {
-        return alert("لا توجد بيانات حضور لتصديرها.");
-      }
-
+      if (allAttendees.length === 0) { return alert("لا توجد بيانات حضور لتصديرها."); }
       const lec = document.getElementById('lecture').value;
       const group = localStorage.getItem('userGroup') || "Group A";
-      
-      let csvContent = "\uFEFF"; 
-      csvContent += "كود الطالب,اسم الطالب,وقت الحضور\n";
-
+      let csvContent = "\uFEFFكود الطالب,اسم الطالب,وقت الحضور\n";
       allAttendees.forEach(student => {
         let safeName = student.name.replace(/,/g, " ");
         csvContent += `${student.id},${safeName},${student.time}\n`;
       });
-
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
-      link.setAttribute("href", url);
-      link.setAttribute("download", `كشف_حضور_${group}_المحاضرة_${lec}.csv`);
-      document.body.appendChild(link);
+      link.href = URL.createObjectURL(blob);
+      link.download = `كشف_حضور_${group}_المحاضرة_${lec}.csv`;
       link.click();
-      document.body.removeChild(link);
-      
       showMessage("✅ تم تصدير الملف بنجاح", "success");
     }
 
-    // 📈 دالة تحميل ورسم الإحصائيات (Chart.js)
-    function loadAnalytics() {
+    // 📈 إحصائيات المالك والمدير
+    function loadAnalytics(type = 'group') {
       showMessage("⏳ جاري جلب الإحصائيات...", "info");
       const group = localStorage.getItem('userGroup') || "Group A";
+      const lec = document.getElementById('lecture').value;
+      const role = localStorage.getItem('userRole');
       
-      fetch(`${ATTENDANCE_API_URL}?token=${API_TOKEN}&action=getAnalytics&group=${encodeURIComponent(group)}`)
-        .then(res => res.json())
-        .then(data => {
+      let url = "";
+      let chartTitle = "";
+
+      // لو طلب يشوف إحصائيات كل الجروبات وهو Owner
+      if (type === 'all' && role === 'Owner') {
+         url = `${ATTENDANCE_API_URL}?token=${API_TOKEN}&action=getOwnerAnalytics&lectureNum=${encodeURIComponent(lec)}`;
+         document.getElementById('analyticsDesc').innerText = `مقارنة حضور كل الجروبات في المحاضرة رقم ${lec}`;
+         chartTitle = 'حضور كل الجروبات (للمحاضرة)';
+      } else {
+         url = `${ATTENDANCE_API_URL}?token=${API_TOKEN}&action=getAnalytics&group=${encodeURIComponent(group)}`;
+         document.getElementById('analyticsDesc').innerText = `إحصائيات حضور جميع المحاضرات لـ ${group}`;
+         chartTitle = 'نسبة الحضور لكل محاضرة';
+      }
+      
+      fetch(url).then(res => res.json()).then(data => {
           if (data.status === "success") {
             document.getElementById('message').style.display = 'none';
-            renderChart(data.labels, data.data);
-          } else {
-            showMessage(data.message, "error");
-          }
+            renderChart(data.labels, data.data, chartTitle);
+          } else { showMessage(data.message, "error"); }
         }).catch(err => { showMessage("❌ خطأ في تحميل الرسم البياني.", "error"); });
     }
 
-    function renderChart(labelsArray, dataArray) {
+    function renderChart(labelsArray, dataArray, labelTitle) {
       const ctx = document.getElementById('attendanceChart').getContext('2d');
-      
-      // مسح الرسم القديم لو موجود عشان ميعملش خطأ
-      if (attendanceChartInstance) {
-        attendanceChartInstance.destroy();
-      }
-
+      if (attendanceChartInstance) attendanceChartInstance.destroy();
       attendanceChartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: labelsArray,
           datasets: [{
-            label: 'عدد الحاضرين',
+            label: labelTitle,
             data: dataArray,
-            backgroundColor: '#002147', // لون Eduneers الكحلي
-            borderColor: '#f5b041',     // لون ذهبي للحدود
-            borderWidth: 2,
-            borderRadius: 8,            // أطراف دائرية شيك
-            hoverBackgroundColor: '#f5b041'
+            backgroundColor: '#8e44ad', // لون بنفسجي مميز للمالك
+            borderColor: '#f5b041', borderWidth: 2, borderRadius: 8, hoverBackgroundColor: '#f5b041'
           }]
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: { stepSize: 5 }
-            }
-          },
-          plugins: {
-            legend: { display: false } // إخفاء المربع اللي فوق لأننا عارفين ده إيه
-          }
-        }
+        options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 5 } } }, plugins: { legend: { display: false } } }
       });
     }
 
@@ -750,6 +784,7 @@
                 <option value="User" ${u.role === 'User' ? 'selected' : ''}>User</option>
                 <option value="Manager" ${u.role === 'Manager' ? 'selected' : ''}>Manager</option>
                 <option value="Admin" ${u.role === 'Admin' ? 'selected' : ''}>Admin</option>
+                <option value="Owner" ${u.role === 'Owner' ? 'selected' : ''}>Owner</option>
               </select>
             </td>
             <td>
@@ -765,7 +800,6 @@
 
     function changeUserRole(email, newRole) {
       showMessage("⏳ تحديث الصلاحية...", "info");
-      
       fetch(`${LOGIN_API_URL}?token=${API_TOKEN}&action=updateRole&email=${encodeURIComponent(email)}&role=${encodeURIComponent(newRole)}`)
       .then(res => res.json()).then(data => {
          if(data.status === 'success') { showMessage(data.message, "success"); } 
@@ -775,7 +809,6 @@
 
     function changeUserGroup(email, newGroup) {
       showMessage("⏳ تحديث الجروب...", "info");
-      
       fetch(`${LOGIN_API_URL}?token=${API_TOKEN}&action=updateGroup&email=${encodeURIComponent(email)}&group=${encodeURIComponent(newGroup)}`)
       .then(res => res.json()).then(data => {
          if(data.status === 'success') { showMessage(data.message, "success"); } 
@@ -808,7 +841,6 @@
     function deleteUser(email) {
       if(!confirm("هل أنت متأكد من حذف هذا المستخدم؟")) return;
       showMessage("⏳ جاري الحذف...", "info");
-      
       fetch(`${LOGIN_API_URL}?token=${API_TOKEN}&action=deleteUser&email=${encodeURIComponent(email)}`)
       .then(res => res.json()).then(data => {
          if(data.status === 'success') { showMessage(data.message, "success"); loadUsers(); }
