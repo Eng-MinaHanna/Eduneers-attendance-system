@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>نظام التقييم المتكامل | Eduneers</title>
+  <title>نظام التقييم الشامل | Eduneers</title>
   <script src="https://unpkg.com/html5-qrcode"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -43,10 +43,10 @@
     .btn-submit { width: 100%; padding: 15px; border-radius: 12px; border: none; background: var(--primary); color: white; font-size: 1rem; font-weight: 800; cursor: pointer; transition: 0.3s; }
     body.dark-mode .btn-submit { background: var(--electric-blue); color: #0f172a; }
 
-    /* 📝 Feedback Toggle Styling */
-    .feedback-box { background: rgba(0,0,0,0.02); padding: 10px; border-radius: 12px; border: 1px dashed var(--border); text-align: center; margin-bottom: 15px; }
-    .done-btn { background: #e2e8f0; color: #64748b; padding: 10px; border-radius: 10px; font-weight: 800; cursor: pointer; border: 2px solid transparent; transition: 0.3s; display: block; width: 100%; }
-    .done-btn.active { background: #059669; color: white; border-color: #059669; box-shadow: 0 0 10px rgba(5,150,105,0.3); }
+    /* 🟢 Toggles Styling */
+    .toggle-btn { background: #e2e8f0; color: #64748b; padding: 12px; border-radius: 12px; font-weight: 800; cursor: pointer; border: 2px solid transparent; transition: 0.3s; text-align: center; user-select: none; }
+    .toggle-btn.active-att { background: #2563eb; color: white; border-color: #1d4ed8; }
+    .toggle-btn.active-feed { background: #059669; color: white; border-color: #047857; }
 
     /* 🏆 Top 5 Specifics */
     .range-box { background: rgba(0,0,0,0.02); padding: 12px; border-radius: 12px; margin-bottom: 12px; border: 1px solid var(--border); }
@@ -62,7 +62,7 @@
 <body class="dark-mode">
 
   <div id="loader">
-    <div id="loaderMsg" style="font-weight: 800;">جاري معالجة البيانات...</div>
+    <div id="loaderMsg" style="font-weight: 800;">جاري إرسال البيانات...</div>
     <div class="bar-bg"><div class="bar-fill" id="barFill"></div></div>
     <div id="percent" style="font-weight: 800; font-size: 1.5rem;">0%</div>
   </div>
@@ -76,7 +76,7 @@
   </div>
 
   <div class="tabs-container">
-    <div class="tab-item active" onclick="switchTab('grading', this)"><span>📝</span><span>رصد</span></div>
+    <div class="tab-item active" onclick="switchTab('grading', this)"><span>📝</span><span>الرصد</span></div>
     <div id="tab-top" class="tab-item" style="display:none;" onclick="switchTab('top', this)"><span>🏆</span><span>توب 5</span></div>
     <div id="tab-settings" class="tab-item" style="display:none;" onclick="switchTab('settings', this)"><span>⚙️</span><span>إعدادات</span></div>
   </div>
@@ -84,40 +84,44 @@
   <div class="container">
     <div id="toast"></div>
 
-    <!-- 1️⃣ تبويب رصد الدرجات -->
+    <!-- 1️⃣ تبويب الرصد الشامل -->
     <div id="grading" class="view-content active">
       <div class="card">
-        <h3>رصد التقييمات</h3>
+        <h3>الرصد السريع</h3>
         
-        <label>كود الطالب (اكتب الرقم فقط)</label>
+        <label>كود الطالب (الرقم فقط)</label>
         <div style="display:flex; gap:8px;">
-          <input type="text" id="studentCode" placeholder="مثال: 10" style="margin-bottom:0; font-size: 1.2rem; letter-spacing: 2px;">
+          <input type="text" id="studentCode" placeholder="مثال: 5" style="margin-bottom:0; font-size: 1.3rem;">
           <button onclick="document.getElementById('qr-input').click()" style="width:50px; background:var(--accent); border:none; border-radius:12px; color:white; cursor:pointer;">📷</button>
           <input type="file" id="qr-input" accept="image/*" capture="environment" style="display:none;" onchange="handleQR(this)">
         </div>
 
-        <div class="grid-2" style="margin-top:15px;">
+        <div style="margin: 15px 0;">
+            <label>رقم المحاضرة الحالية (للحضور والفيدباك)</label>
+            <select id="currentLecNum"><script>for(let i=1;i<=20;i++) document.write(`<option value="${i}">المحاضرة ${i}</option>`);</script></select>
+        </div>
+
+        <div class="grid-2">
+            <div class="toggle-btn" id="attBtn" onclick="this.classList.toggle('active-att')">👤 حضور (5د)</div>
+            <div class="toggle-btn" id="feedBtn" onclick="this.classList.toggle('active-feed')">💬 فيدباك (5د)</div>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
+
+        <div class="grid-2">
           <div>
-            <label>التاسك (Task)</label>
+            <label>رقم التاسك</label>
             <select id="taskNum"><script>for(let i=1;i<=20;i++) document.write(`<option value="${i}">Task ${i}</option>`);</script></select>
-            <input type="number" id="valTask" placeholder="الدرجة">
+            <input type="number" id="valTask" placeholder="درجة (70)">
           </div>
           <div>
-            <label>الكويز (Quiz)</label>
+            <label>رقم الكويز</label>
             <select id="quizNum" onchange="updateMaxLabel()"><script>for(let i=1;i<=40;i++) document.write(`<option value="${i}">Quiz ${i}</option>`);</script></select>
-            <input type="number" id="valQuiz" placeholder="أقصى درجته">
+            <input type="number" id="valQuiz" placeholder="درجة">
           </div>
         </div>
 
-        <div class="feedback-box">
-            <label>فيدباك المحاضرة</label>
-            <div class="grid-2">
-                <select id="feedNum" style="margin-bottom:0;"><script>for(let i=1;i<=20;i++) document.write(`<option value="${i}">محاضرة ${i}</option>`);</script></select>
-                <div class="done-btn" id="feedBtn" onclick="this.classList.toggle('active')">✅ تم الفيدباك</div>
-            </div>
-        </div>
-
-        <button class="btn-submit" onclick="submitData()">حفظ وإرسال السجل 📡</button>
+        <button class="btn-submit" onclick="submitData()">حفظ التقييم الشامل 💾</button>
       </div>
     </div>
 
@@ -144,7 +148,7 @@
         <h3>⚙️ إعدادات النهايات العظمى</h3>
         <label>رقم الكويز</label>
         <select id="setQNum" onchange="loadSettingMax()"><script>for(let i=1;i<=40;i++) document.write(`<option value="${i}">Quiz ${i}</option>`);</script></select>
-        <label>الدرجة النهائية لهذا الكويز</label>
+        <label>الدرجة النهائية</label>
         <input type="number" id="setQMax" placeholder="مثلاً: 15">
         <button class="btn-submit" onclick="saveMaxConfig()">حفظ الإعداد 🔒</button>
       </div>
@@ -152,6 +156,7 @@
   </div>
 
   <script>
+    // ⚠️ روابط الـ APIs
     const GRADES_API = "https://script.google.com/macros/s/AKfycbzJkCGpIcc6uzgITufJcDnv8yC2RvF-DTlX1rw-9ZojdHmQyj2GSHsPFFAKCOiWV4Q/exec"; 
     const QUIZ_API = "https://script.google.com/macros/s/AKfycbzL9jhUwFFZbPOFSoAtnOIR8qsvdXNzzSJ7kRMNaxb3f2CV_G95HUOdwxDqmJ5i-jHUEQ/exec"; 
     const ATTEND_API = "https://script.google.com/macros/s/AKfycbyKdM1HWykrFkeI_n_DVQhJ1t8xxk8Zg8zL5eXSc3zsFwdYfXTBUW9C77EabSO4zRgL7g/exec"; 
@@ -162,15 +167,12 @@
     window.onload = () => {
       if (localStorage.getItem('isLoggedIn') !== 'true') window.location.href = 'index.html';
       if (localStorage.getItem('darkMode') === 'false') document.body.classList.remove('dark-mode');
-      
       const role = localStorage.getItem('userRole');
       const group = localStorage.getItem('userGroup') || "Group A";
       document.getElementById('userRole').innerText = `| ${role}`;
       document.getElementById('groupLabel').innerText = group;
-      
       if(['Owner','CO-Founder','Team Manager','Admin','Coordinator'].includes(role)) document.getElementById('tab-top').style.display = 'flex';
       if(['Owner','CO-Founder','Team Manager','Admin'].includes(role)) document.getElementById('tab-settings').style.display = 'flex';
-
       updateMaxLabel();
     };
 
@@ -195,7 +197,7 @@
     function updateMaxLabel() {
         const q = document.getElementById('quizNum').value;
         const saved = localStorage.getItem(`maxQ_${q}`) || 15;
-        document.getElementById('valQuiz').placeholder = `درجة الكويز (max ${saved})`;
+        document.getElementById('valQuiz').placeholder = `Max ${saved}`;
     }
 
     function loadSettingMax() {
@@ -207,7 +209,7 @@
       const q = document.getElementById('setQNum').value;
       const v = document.getElementById('setQMax').value;
       localStorage.setItem(`maxQ_${q}`, v);
-      showMsg("✅ تم تثبيت الدرجة", "#059669");
+      showMsg("✅ تم الحفظ", "#059669");
       updateMaxLabel();
     }
 
@@ -216,26 +218,31 @@
       const reader = new Html5Qrcode("grading");
       showMsg("⏳ جاري تحليل الكود...", "#2563eb");
       reader.scanFile(input.files[0], true).then(res => {
-          document.getElementById('studentCode').value = res.toUpperCase();
-          showMsg("✅ تم قراءة الكود", "#059669");
+          let code = res.toUpperCase();
+          if(/^\d+$/.test(code)) code = code; // Handle if raw number in QR
+          document.getElementById('studentCode').value = code;
+          showMsg("✅ تم التعرف على الكود", "#059669");
       }).catch(e => showMsg("❌ كود غير واضح", "#dc2626"));
     }
 
     async function submitData() {
-      let code = document.getElementById('studentCode').value.trim();
-      if(!code) return alert("ادخل كود الطالب");
+      let rawCode = document.getElementById('studentCode').value.trim();
+      if(!rawCode) return alert("ادخل كود الطالب");
 
-      // 🧠 الاختصار الذكي: لو كتب رقم فقط
-      if(/^\d+$/.test(code)) {
+      // 🧠 تحويل الكود الذكي (مثلاً 5 إلى K5EDUR9)
+      let finalCode = rawCode;
+      if(/^\d+$/.test(rawCode)) {
          const groupLetter = localStorage.getItem('userGroup').replace("Group ", "").trim();
-         code = groupLetter + code + "EDUR9";
+         finalCode = groupLetter + rawCode + "EDUR9";
       } else {
-         code = code.toUpperCase();
+         finalCode = rawCode.toUpperCase();
       }
 
       const tVal = document.getElementById('valTask').value;
       const qVal = document.getElementById('valQuiz').value;
-      const isFeed = document.getElementById('feedBtn').classList.contains('active');
+      const isAtt = document.getElementById('attBtn').classList.contains('active-att');
+      const isFeed = document.getElementById('feedBtn').classList.contains('active-feed');
+      const lecNum = document.getElementById('currentLecNum').value;
       
       const auth = `&email=${encodeURIComponent(localStorage.getItem('userEmail'))}&token=${encodeURIComponent(localStorage.getItem('sessionToken'))}&group=${localStorage.getItem('userGroup')}`;
       
@@ -244,19 +251,23 @@
 
       try {
         let promises = [];
-        if(tVal !== "") promises.push(fetch(`${GRADES_API}?action=saveGrade&qrCode=${code}&taskNum=${document.getElementById('taskNum').value}&val=${tVal}${auth}`));
-        if(qVal !== "") promises.push(fetch(`${QUIZ_API}?action=saveQuiz&qrCode=${code}&quizNum=${document.getElementById('quizNum').value}&val=${qVal}${auth}`));
-        if(isFeed) promises.push(fetch(`${FEED_API}?action=scan&qrCode=${code}&lectureNum=${document.getElementById('feedNum').value}${auth}`));
+        if(tVal !== "") promises.push(fetch(`${GRADES_API}?action=saveGrade&qrCode=${finalCode}&taskNum=${document.getElementById('taskNum').value}&val=${tVal}${auth}`));
+        if(qVal !== "") promises.push(fetch(`${QUIZ_API}?action=saveQuiz&qrCode=${finalCode}&quizNum=${document.getElementById('quizNum').value}&val=${qVal}${auth}`));
+        if(isAtt) promises.push(fetch(`${ATTEND_API}?action=scan&qrCode=${finalCode}&lectureNum=${lecNum}${auth}`));
+        if(isFeed) promises.push(fetch(`${FEED_API}?action=scan&qrCode=${finalCode}&lectureNum=${lecNum}${auth}`));
 
         await Promise.all(promises);
         
         updateProgress(100);
-        showMsg("✅ تم حفظ السجل بنجاح", "#059669");
+        showMsg("✅ تم الرصد بنجاح لـ " + finalCode.replace("EDUR9", ""), "#059669");
+        
+        // تفريغ الخانات بعد النجاح
         document.getElementById('studentCode').value = "";
         document.getElementById('valTask').value = "";
         document.getElementById('valQuiz').value = "";
-        document.getElementById('feedBtn').classList.remove('active');
-      } catch(e) { showMsg("❌ فشل الإرسال", "#dc2626"); }
+        document.getElementById('attBtn').classList.remove('active-att');
+        document.getElementById('feedBtn').classList.remove('active-feed');
+      } catch(e) { showMsg("❌ فشل الاتصال", "#dc2626"); }
       
       setTimeout(() => { document.getElementById('loader').style.display = 'none'; updateProgress(0); }, 500);
     }
@@ -287,9 +298,12 @@
         else { renderChart(final.map(s => s.n.split(" ")[0] + " " + (s.n.split(" ")[1]||"")), final.map(s => s.t)); }
 
       } catch(e) { showMsg("❌ خطأ في البيانات", "#dc2626"); }
-      
-      updateProgress(100);
-      setTimeout(() => { document.getElementById('loader').style.display = 'none'; updateProgress(0); }, 500);
+      completeProgress();
+    }
+
+    function completeProgress() {
+        updateProgress(100);
+        setTimeout(() => { document.getElementById('loader').style.display = 'none'; updateProgress(0); }, 500);
     }
 
     function renderChart(labels, data) {
