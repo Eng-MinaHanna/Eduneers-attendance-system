@@ -7,6 +7,7 @@
   <script src="https://unpkg.com/html5-qrcode"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    /* هنا نفس كود الـ CSS الموجود مسبقاً في grades.html الخاص بك */
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
     :root { 
       --primary: #0f172a; --primary-light: #1e293b; --accent: #f5b041; --accent-glow: rgba(245, 176, 65, 0.6);
@@ -45,14 +46,21 @@
     .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(147, 51, 234, 0.4); }
     .btn-secondary { background: linear-gradient(135deg, var(--accent), #f39c12); color: #fff; }
     .btn-secondary:hover { transform: translateY(-3px); box-shadow: 0 15px 30px var(--accent-glow); }
+    .btn-small { padding: 8px 16px; font-size: 13px; margin: 0; width: auto; border-radius: 10px; box-shadow: none; font-weight: 700;}
     
     .grades-grid { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; justify-content: center;}
     .grade-box { flex: 1; min-width: 140px; text-align: center; background: rgba(0,0,0,0.02); padding: 15px; border-radius: 16px; border: 1px solid rgba(0,0,0,0.05); transition: 0.3s;}
     body.dark-mode .grade-box { background: #1e293b; border-color: #334155; }
-    .grade-box label { font-size: 13px; font-weight: 800; color: var(--text-muted); display: block; margin-bottom: 8px; text-transform: uppercase;}
+    .grade-box label { font-size: 14px; font-weight: 800; color: var(--text-muted); display: block; margin-bottom: 8px; text-transform: uppercase;}
     .grade-box input, .grade-box select { margin-bottom: 0; background: #fff;}
     body.dark-mode .grade-box input, body.dark-mode .grade-box select { background: #0f172a;}
     
+    .table-container { overflow-x: auto; border-radius: 16px; border: 1px solid #e2e8f0; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+    body.dark-mode .table-container { background: rgba(15, 23, 42, 0.9); border-color: #334155; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: center; }
+    th, td { padding: 14px 10px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+    th { background: #f8fafc; color: var(--text-muted); font-weight: 800; }
+    body.dark-mode th { background: #0f172a; color: var(--electric-blue); border-bottom: 2px solid #334155;}
     #message { margin-top: 15px; padding: 18px; border-radius: 16px; font-weight: 800; display: none; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-bottom: 20px;}
     .success { background: rgba(16, 185, 129, 0.1); color: #059669; border: 1px solid #a7f3d0; }
     .error { background: rgba(239, 68, 68, 0.1); color: #dc2626; border: 1px solid #fecaca; }
