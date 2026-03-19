@@ -41,7 +41,7 @@
 
     .nav-actions { display: flex; gap: 10px; align-items: center; }
 
-    .hamburger { cursor: pointer; font-size: 1.6rem; background: none; border: none; color: white; padding: 0; transition: all 0.3s ease;}
+    .hamburger { cursor: pointer; font-size: 1.6rem; background: none; border: none; color: white; padding: 0; transition: all 0.3s ease; display: block;}
     .hamburger:hover { transform: scale(1.1); color: var(--accent); text-shadow: 0 0 15px var(--accent-glow);}
     body.dark-mode .hamburger:hover { color: var(--electric-blue); text-shadow: 0 0 15px var(--electric-glow);}
 
@@ -87,8 +87,17 @@
     .container { padding: 40px 20px; max-width: 1000px; margin: auto; position: relative; z-index: 1; }
     .form-wrapper { max-width: 600px; width: 100%; margin: 0 auto; }
     
-    .view-section { display: none; background: var(--card-bg); padding: 35px 25px; border-radius: var(--border-radius); box-shadow: 0 20px 40px rgba(0,0,0,0.05); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.2); animation: slideUp 0.5s ease; margin-bottom: 25px; transition: 0.5s;}
-    .view-section.active { display: block; }
+    /* 🔴 إصلاح التداخل: الأقسام يجب أن تكون مخفية تماماً إلا القسم النشط */
+    .view-section { display: none !important; background: var(--card-bg); padding: 35px 25px; border-radius: var(--border-radius); box-shadow: 0 20px 40px rgba(0,0,0,0.05); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.2); animation: slideUp 0.5s ease; margin-bottom: 25px; transition: 0.5s;}
+    .view-section.active { display: block !important; }
+    
+    /* منع الـ roles من فرض الظهور الخاطئ للأقسام المخفية */
+    body.role-owner .view-section.active.owner-only, body.role-owner .view-section.active.admin-only, body.role-owner .view-section.active.manager-only,
+    body.role-co-founder .view-section.active.owner-only, body.role-co-founder .view-section.active.admin-only, body.role-co-founder .view-section.active.manager-only,
+    body.role-admin .view-section.active.admin-only, body.role-admin .view-section.active.manager-only,
+    body.role-manager .view-section.active.manager-only { display: block !important; }
+    
+    @media (min-width: 768px) { .view-section { padding: 45px; } }
     @keyframes slideUp { from { opacity: 0; transform: translateY(30px) } to { opacity: 1; transform: translateY(0) } }
     
     select, input[type="text"], input[type="number"] { width: 100%; padding: 14px 20px; border-radius: 16px; border: 2px solid transparent; background-color: #f8fafc; color: var(--text-main); font-size: 15px; font-weight: 800; margin-bottom: 15px; box-sizing: border-box; font-family: 'Cairo', sans-serif; text-align: center; transition: 0.3s;}
@@ -102,7 +111,6 @@
     .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(147, 51, 234, 0.4); }
     .btn-secondary { background: linear-gradient(135deg, var(--accent), #f39c12); color: #fff; }
     .btn-secondary:hover { transform: translateY(-3px); box-shadow: 0 15px 30px var(--accent-glow); }
-    .btn-small { padding: 8px 16px; font-size: 13px; margin: 0; width: auto; border-radius: 10px; box-shadow: none; font-weight: 700;}
     
     .grades-grid { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; justify-content: center;}
     .grade-box { flex: 1; min-width: 140px; text-align: center; background: rgba(0,0,0,0.02); padding: 15px; border-radius: 16px; border: 1px solid rgba(0,0,0,0.05); transition: 0.3s;}
@@ -119,15 +127,13 @@
     body.dark-mode .error { color: #f87171; border-color: #dc2626; background: rgba(248, 113, 113, 0.15);}
 
     .admin-only, .manager-only, .cross-group-only { display: none !important; }
-    body.role-owner .admin-only, body.role-co-founder .admin-only, body.role-admin .admin-only { display: block !important; }
-    body.role-owner .manager-only, body.role-co-founder .manager-only, body.role-admin .manager-only, body.role-manager .manager-only { display: block !important; }
     body.role-owner div.cross-group-only, body.role-co-founder div.cross-group-only, body.role-admin div.cross-group-only { display: flex !important; }
     
+    /* Loader */
     #electricLoader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 9999; color: var(--text-main); transition: opacity 0.3s;}
     body.dark-mode #electricLoader { color: var(--electric-blue); }
     .loader-text { margin-bottom: 20px; font-size: 18px; font-weight: 700; text-shadow: 0 0 10px currentColor;}
     .progress-bar-container { width: 80%; max-width: 400px; height: 6px; background: rgba(255,255,255,0.2); border-radius: 10px; overflow: hidden; box-shadow: inset 0 0 5px rgba(0,0,0,0.5);}
-    body.dark-mode .progress-bar-container { background: rgba(0,0,0,0.4); }
     .progress-bar-fill { height: 100%; width: 0%; background: #9333ea; box-shadow: 0 0 15px #9333ea; border-radius: 10px; transition: width 0.1s linear;}
     body.dark-mode .progress-bar-fill { background: var(--electric-blue); box-shadow: 0 0 15px var(--electric-glow); }
     .loader-percent { margin-top: 15px; font-size: 24px; font-weight: 800; font-family: monospace; text-shadow: 0 0 10px currentColor; color: #9333ea;}
@@ -139,17 +145,14 @@
 </head>
 <body>
 
-  <!-- Animated Circuit Background -->
   <div class="circuit-bg"></div>
 
-  <!-- ⚡ Global High-Tech Loader (Linear) ⚡ -->
   <div id="electricLoader">
     <div class="loader-text" id="loaderMessage">جاري نقل البيانات...</div>
     <div class="progress-bar-container"><div class="progress-bar-fill" id="progressBarFill"></div></div>
     <div class="loader-percent" id="loaderPercent">0%</div>
   </div>
 
-  <!-- 💎 Navbar الموحد -->
   <div class="navbar">
     <div class="nav-content">
       <div class="nav-brand">
@@ -159,27 +162,31 @@
         <span id="groupBadge" class="nav-badge group-badge" style="display: none;"></span>
         <span id="roleBadge" class="nav-badge role-badge" style="display: none;"></span>
         <button class="theme-toggle" id="themeToggle" onclick="toggleDarkMode()">☀️</button>
-        <!-- زر العودة لنظام الحضور -->
-        <button class="theme-toggle" onclick="window.location.href='index.html'" title="الانتقال لنظام الحضور">🏠</button>
-        <!-- زر القائمة الجانبية -->
         <button class="hamburger" id="menuBtn" onclick="toggleSidebar()">☰</button>
       </div>
     </div>
   </div>
 
-  <!-- 🗂️ القائمة الجانبية (Sidebar) -->
+  <!-- 🗂️ القائمة الجانبية (Sidebar) المخصصة للدرجات -->
   <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
   <div class="sidebar" id="sidebar">
     <button class="close-btn" onclick="toggleSidebar()">×</button>
     
     <div class="sidebar-heading">نظام التقييم (Grades)</div>
-    <a href="#" onclick="switchView('grading'); toggleSidebar();" id="nav-grading" class="active">📝 رصد الدرجات</a>
-    <a href="#" onclick="switchView('top'); toggleSidebar();" id="nav-top" class="manager-only">🏆 لوحة الشرف</a>
-    <a href="#" onclick="switchView('settings'); toggleSidebar();" id="nav-settings" class="admin-only">⚙️ إعدادات الكويزات</a>
+    <a href="#" onclick="switchView('grading'); toggleSidebar();" id="nav-grading" class="active">📝 إدخال الدرجات</a>
+    
+    <!-- هذه الأقسام تظهر فقط للمديرين -->
+    <div class="manager-only">
+      <a href="#" onclick="switchView('top'); toggleSidebar();" id="nav-top">🏆 لوحة الشرف Top 5</a>
+    </div>
+    
+    <!-- هذه الأقسام تظهر فقط للإدارة العليا -->
+    <div class="admin-only">
+      <a href="#" onclick="switchView('settings'); toggleSidebar();" id="nav-settings">⚙️ إعدادات الكويزات</a>
+    </div>
     
     <div class="sidebar-heading" style="margin-top: 15px;">نظام الحضور (Attendance)</div>
-    <!-- رابط للعودة لنظام الحضور -->
-    <a href="index.html" style="color: var(--accent);">🏠 نظام تسجيل الطلاب</a>
+    <a href="index.html" style="color: var(--accent);">🏠 الانتقال لتسجيل الطلاب</a>
     
     <div style="margin-top: 40px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
       <a href="#" onclick="logout();" style="color: #ef4444;">🚪 تسجيل الخروج</a>
@@ -196,17 +203,10 @@
       </div>
     </div>
 
-    <!-- Toggle Buttons -->
-    <div style="display: flex; gap: 10px; margin-bottom: 20px;" class="form-wrapper">
-      <button class="btn-primary" onclick="switchView('grading')" style="flex:1; padding: 10px;">📝 الرصد</button>
-      <button class="btn-secondary manager-only" onclick="switchView('top')" style="flex:1; padding: 10px; background: linear-gradient(135deg, #10b981, #059669);">🏆 لوحة الشرف</button>
-      <button class="btn-secondary admin-only" onclick="switchView('settings')" style="flex:1; padding: 10px; background: #94a3b8; color:#fff;">⚙️ إعدادات</button>
-    </div>
-
     <!-- 📝 قسم رصد الدرجات -->
     <div id="view-grading" class="view-section active">
       <div class="form-wrapper">
-        <h3 style="text-align: center; color: var(--primary); margin-top:0;">رصد الدرجات</h3>
+        <h3 style="text-align: center; color: var(--primary); margin-top:0;">إدخال الدرجات</h3>
         <p style="text-align:center; color:var(--text-muted); font-size:13px; font-weight:700; margin-bottom:20px;">الجروب الحالي: <span id="lblCurrentGroup" style="color:var(--electric-blue);">Group A</span></p>
 
         <div style="display:flex; gap:10px; margin-bottom: 20px;">
@@ -236,7 +236,7 @@
           </div>
         </div>
 
-        <button class="btn-primary" onclick="submitGrades()">حفظ السجل 💾</button>
+        <button class="btn-primary" onclick="submitGrades()">حفظ الدرجات 💾</button>
       </div>
     </div>
 
@@ -248,7 +248,7 @@
 
         <div class="grades-grid" style="margin-top: 20px;">
           <div class="grade-box" style="flex-basis: 100%;">
-            <label>الحضور والفيدباك (بالأسابيع/المحاضرات)</label>
+            <label>نطاق الحضور والفيدباك (من المحاضرة إلى)</label>
             <div style="display:flex; gap:5px; align-items:center; justify-content:center;">
               من <input type="number" id="fromLec" value="1" min="1" max="20" style="padding:8px;"> 
               إلى <input type="number" id="toLec" value="5" min="1" max="20" style="padding:8px;">
@@ -299,7 +299,7 @@
   </div>
 
   <script>
-    // ⚠️ استبدل هذه الروابط بروابط الـ Apps Script الخاصة بك
+    // ⚠️ استبدل هذه الروابط بروابط الـ Apps Script الأربعة الخاصة بك
     const GRADES_API_URL = "https://script.google.com/macros/s/AKfycbzJkCGpIcc6uzgITufJcDnv8yC2RvF-DTlX1rw-9ZojdHmQyj2GSHsPFFAKCOiWV4Q/exec"; 
     const QUIZZES_API_URL = "https://script.google.com/macros/s/AKfycbzL9jhUwFFZbPOFSoAtnOIR8qsvdXNzzSJ7kRMNaxb3f2CV_G95HUOdwxDqmJ5i-jHUEQ/exec"; 
     const ATTENDANCE_API_URL = "https://script.google.com/macros/s/AKfycbyKdM1HWykrFkeI_n_DVQhJ1t8xxk8Zg8zL5eXSc3zsFwdYfXTBUW9C77EabSO4zRgL7g/exec"; 
@@ -428,7 +428,11 @@
 
     function switchView(viewId) {
       document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.sidebar a').forEach(el => el.classList.remove('active'));
+      
       document.getElementById(`view-${viewId}`).classList.add('active');
+      const navItem = document.getElementById(`nav-${viewId}`);
+      if(navItem) navItem.classList.add('active');
     }
 
     function changeGlobalGroup(newGroup) {
@@ -600,12 +604,5 @@
       });
     }
   </script>
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').catch(err => console.log('PWA Error', err));
-    });
-  }
-</script>
 </body>
 </html>
