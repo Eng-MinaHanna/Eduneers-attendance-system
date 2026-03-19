@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title> Eduneers | نظام لوحة الشرف والتقييم </title>
+  <title> Eduneers | Grades System </title>
   <link rel="manifest" href="manifest.json">
-  <script src="https://unpkg.com/html5-qrcode"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <style>
@@ -51,7 +50,6 @@
 
     .container { padding: 20px 15px; max-width: 1000px; margin: auto; }
     
-    /* 🔴 إصلاح الأقسام - التحكم الكلي للمشاهدة */
     .view-section { display: none !important; background: var(--card-bg); padding: 30px 25px; border-radius: var(--border-radius); box-shadow: 0 20px 40px rgba(0,0,0,0.05); border: 1px solid rgba(255,255,255,0.1); animation: slideUp 0.4s ease; margin-bottom: 25px; backdrop-filter: blur(15px); }
     .view-section.active { display: block !important; }
     
@@ -74,9 +72,15 @@
     
     .toggle-btn { background: rgba(0,0,0,0.05); color: var(--text-muted); padding: 14px 5px; border-radius: 12px; font-size: 0.8rem; font-weight: 800; cursor: pointer; text-align: center; transition: 0.2s; border: 2px solid transparent; }
     body.dark-mode .toggle-btn { background: #1e293b; border-color: #334155; }
-    .toggle-btn.active-att { background: #2563eb; color: white; border-color: #2563eb; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);}
-    .toggle-btn.active-feed { background: #059669; color: white; border-color: #059669; box-shadow: 0 4px 10px rgba(5, 150, 105, 0.3);}
-    .toggle-btn.active-attit { background: #9333ea; color: white; border-color: #9333ea; box-shadow: 0 4px 10px rgba(147, 51, 234, 0.3);}
+    
+    /* 🔴 إصلاح الأزرار في الوايت مود والدارك مود لتكون زاهية جداً */
+    .toggle-btn.active-att { background: #2563eb !important; color: white !important; border-color: #2563eb !important; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3) !important;}
+    .toggle-btn.active-feed { background: #059669 !important; color: white !important; border-color: #059669 !important; box-shadow: 0 4px 10px rgba(5, 150, 105, 0.3) !important;}
+    .toggle-btn.active-attit { background: #9333ea !important; color: white !important; border-color: #9333ea !important; box-shadow: 0 4px 10px rgba(147, 51, 234, 0.3) !important;}
+
+    body.dark-mode .toggle-btn.active-att { background: #3b82f6 !important; border-color: #3b82f6 !important; box-shadow: 0 0 15px rgba(59, 130, 246, 0.5) !important;}
+    body.dark-mode .toggle-btn.active-feed { background: #10b981 !important; border-color: #10b981 !important; box-shadow: 0 0 15px rgba(16, 185, 129, 0.5) !important;}
+    body.dark-mode .toggle-btn.active-attit { background: #a855f7 !important; border-color: #a855f7 !important; box-shadow: 0 0 15px rgba(168, 85, 247, 0.5) !important;}
 
     /* 🏆 Leaderboard */
     .filter-box { background: rgba(245, 176, 65, 0.05); padding: 15px; border-radius: 16px; border: 1px dashed var(--accent); margin-bottom: 20px; text-align:center; }
@@ -111,23 +115,16 @@
     #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 14px 25px; border-radius: 12px; color: white; font-weight: 700; display: none; z-index: 3000; box-shadow: 0 5px 20px rgba(0,0,0,0.3); animation: popIn 0.3s ease; }
     @keyframes popIn { from { transform: translate(-50%, 20px); opacity: 0;} to { transform: translate(-50%, 0); opacity: 1;} }
     
-    /* 🛡️ منطق الصلاحيات الاحترافي (إخفاء وإظهار) */
+    /* 🛡️ منطق الصلاحيات الاحترافي */
     .manager-only, .admin-only, .cross-group-only { display: none !important; }
-
-    /* إظهار العناصر العادية بناءً على الصلاحية */
     body.role-manager :not(.view-section).manager-only { display: block !important; }
     body.role-manager a.manager-only { display: flex !important; }
-
     body.role-admin :not(.view-section).manager-only, body.role-admin :not(.view-section).admin-only, body.role-admin :not(.view-section).cross-group-only { display: block !important; }
     body.role-admin a.manager-only, body.role-admin a.admin-only { display: flex !important; }
-
     body.role-co-founder :not(.view-section).manager-only, body.role-co-founder :not(.view-section).admin-only, body.role-co-founder :not(.view-section).cross-group-only { display: block !important; }
     body.role-co-founder a.manager-only, body.role-co-founder a.admin-only { display: flex !important; }
-
     body.role-owner :not(.view-section).manager-only, body.role-owner :not(.view-section).admin-only, body.role-owner :not(.view-section).cross-group-only { display: block !important; }
     body.role-owner a.manager-only, body.role-owner a.admin-only { display: flex !important; }
-
-    /* إخفاء قسري للشاشات إذا حاول شخص عادي الدخول لها */
     body.role-user .manager-only, body.role-user .admin-only, body.role-manager .admin-only { display: none !important; }
   </style>
 </head>
@@ -196,11 +193,7 @@
         <h3 style="color:var(--electric-blue); text-align:center; font-size:24px; font-weight:800; margin-bottom:20px;">رصد تقييم المحاضرة</h3>
         
         <label style="font-size:13px; font-weight:bold; color:var(--text-muted);">رقم كود الطالب</label>
-        <div style="display:flex; gap:10px; margin-bottom: 15px;">
-          <input type="text" id="studentCode" placeholder="رقم فقط (مثلاً: 15)" style="margin-bottom:0; font-size:1.4rem;">
-          <button onclick="document.getElementById('qr-input').click()" style="width:60px; background:var(--accent); border:none; border-radius:14px; color:white; font-size:1.5rem; cursor:pointer; box-shadow:0 4px 10px rgba(245, 176, 65, 0.3);">📷</button>
-          <input type="file" id="qr-input" accept="image/*" capture="environment" style="display:none;" onchange="handleQR(this, 'studentCode')">
-        </div>
+        <input type="text" id="studentCode" placeholder="أدخل الرقم فقط (مثال: 15)" style="font-size:1.4rem; letter-spacing: 2px;">
         
         <div style="margin-bottom: 20px;">
             <label style="font-size:13px; font-weight:bold; color:var(--text-muted);">رقم المحاضرة المستهدفة</label>
@@ -294,6 +287,12 @@
 
     let myChart = null;
 
+    // 🔴 دالة تحويل الأرقام العربية إلى إنجليزية
+    function convertNumerals(str) {
+      const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+      return str.replace(/[٠-٩]/g, w => arabicNumbers.indexOf(w));
+    }
+
     window.onload = () => {
       if (localStorage.getItem('isLoggedIn') !== 'true') { window.location.href = 'index.html'; return; }
       if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
@@ -309,7 +308,6 @@
       document.getElementById('groupBadge').innerText = groupVal;
       document.getElementById('groupBadge').style.display = "inline-block";
 
-      // دمج كلاس الصلاحيات في الـ Body ليعمل הـ CSS بشكل دقيق
       if (role === 'OWNER') document.body.classList.add('role-owner');
       else if (role === 'CO-FOUNDER') document.body.classList.add('role-co-founder');
       else if (role === 'TEAM MANAGER' || role === 'ADMIN') document.body.classList.add('role-admin');
@@ -320,11 +318,9 @@
     };
 
     function switchView(viewId) {
-      // إخفاء كل الأقسام
       document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
       document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
       
-      // إظهار القسم المطلوب
       document.getElementById(`view-${viewId}`).classList.add('active'); 
       const navItem = document.getElementById(`nav-${viewId}`);
       if(navItem) navItem.classList.add('active');
@@ -347,17 +343,6 @@
     }
 
     function changeGlobalGroup(val) { localStorage.setItem('userGroup', val); document.getElementById('groupBadge').innerText = val; }
-
-    function handleQR(input, targetId) {
-      if (!input.files[0]) return;
-      showLoader(true, "جاري تحليل الصورة...");
-      const reader = new Html5Qrcode("view-grading"); 
-      reader.scanFile(input.files[0], true).then(res => {
-          showLoader(false);
-          let clean = res.toUpperCase().replace("EDUR9", "").replace(/[A-Z]/g, "");
-          document.getElementById(targetId).value = clean;
-      }).catch(err => { showLoader(false); showToast("❌ تعذر قراءة الـ QR", "error"); });
-    }
 
     function showLoader(show, msg="جاري العمل...") {
         const l = document.getElementById('loader');
@@ -383,9 +368,10 @@
     }
 
     async function submitData() {
-        let num = document.getElementById('studentCode').value.trim();
-        if(!num) return showToast("❌ برجاء إدخال رقم كود الطالب", "error");
+        let numRaw = document.getElementById('studentCode').value.trim();
+        if(!numRaw) return showToast("❌ برجاء إدخال رقم كود الطالب", "error");
         
+        let num = convertNumerals(numRaw); // 🔴 تحويل الأرقام للعربي
         const groupLetter = localStorage.getItem('userGroup').replace("Group ", "").trim();
         const code = groupLetter + num + "EDUR9";
         const lec = document.getElementById('currentLecNum').value;
@@ -397,15 +383,15 @@
             if(document.getElementById('attBtn').classList.contains('active-att')) {
                 p.push(fetch(`${ATTEND_API}?action=scan&qrCode=${code}&lectureNum=${lec}&weight=15${auth}`));
             }
-            let taskVal = document.getElementById('valTask').value;
+            let taskVal = convertNumerals(document.getElementById('valTask').value);
             if(taskVal) p.push(fetch(`${GRADES_API}?action=saveGrade&qrCode=${code}&taskNum=${lec}&val=${taskVal}${auth}`));
             
-            let quizVal = document.getElementById('valQuiz').value;
+            let quizVal = convertNumerals(document.getElementById('valQuiz').value);
             if(quizVal) p.push(fetch(`${QUIZ_API}?action=saveQuiz&qrCode=${code}&quizNum=${lec}&val=${quizVal}${auth}`));
             
             let f = document.getElementById('feedBtn').classList.contains('active-feed') ? 1 : 0;
             let a = document.getElementById('attitBtn').classList.contains('active-attit') ? 5 : 0;
-            let b = document.getElementById('valBonus').value || 0;
+            let b = convertNumerals(document.getElementById('valBonus').value) || 0;
             
             if(f || a || b != 0) {
                 p.push(fetch(`${EXTRA_API}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=${f}&attitude=${a}&bonus=${b}${auth}`));
@@ -432,9 +418,11 @@
     }
 
     async function searchStudent() {
-        let num = document.getElementById('searchCode').value.trim();
+        let numRaw = document.getElementById('searchCode').value.trim();
+        if(!numRaw) return showToast("❌ برجاء إدخال رقم الطالب", "error");
+        
+        let num = convertNumerals(numRaw); // 🔴 تحويل الأرقام للعربي
         let fl = document.getElementById('sfL').value, tl = document.getElementById('stL').value;
-        if(!num) return showToast("❌ برجاء إدخال رقم الطالب", "error");
         if (parseInt(fl) > parseInt(tl)) return showToast("❌ نطاق المحاضرات غير صحيح", "error");
 
         const group = localStorage.getItem('userGroup');
