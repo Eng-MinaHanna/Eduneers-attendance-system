@@ -4,46 +4,103 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>نظام الدرجات والتقييم | Eduneers</title>
+  <link rel="manifest" href="manifest.json">
   <script src="https://unpkg.com/html5-qrcode"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    /* هنا نفس كود الـ CSS الموجود مسبقاً في grades.html الخاص بك */
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
+    
     :root { 
       --primary: #0f172a; --primary-light: #1e293b; --accent: #f5b041; --accent-glow: rgba(245, 176, 65, 0.6);
       --electric-blue: #00d2ff; --electric-glow: rgba(0, 210, 255, 0.5); --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
       --text-main: #334155; --text-muted: #64748b; --card-bg: rgba(255, 255, 255, 0.85); --border-radius: 24px;   
     }
-    body.dark-mode { --primary: #f8fafc; --bg-gradient: radial-gradient(circle at top right, #1e293b 0%, #0f172a 100%); --text-main: #f8fafc; --text-muted: #cbd5e1; --card-bg: rgba(15, 23, 42, 0.85); }
-    body { font-family: 'Cairo', sans-serif; background: var(--bg-gradient); margin: 0; color: var(--text-main); min-height: 100vh; transition: 0.5s; }
+    
+    body.dark-mode { 
+      --primary: #f8fafc; --bg-gradient: radial-gradient(circle at top right, #1e293b 0%, #0f172a 100%); 
+      --text-main: #f8fafc; --text-muted: #cbd5e1; --card-bg: rgba(15, 23, 42, 0.85); 
+    }
+    
+    body { font-family: 'Cairo', sans-serif; background: var(--bg-gradient); margin: 0; color: var(--text-main); min-height: 100vh; transition: 0.5s; overflow-x: hidden;}
+    
     .circuit-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; background-image: radial-gradient(circle at 50% 50%, rgba(245, 176, 65, 0.05) 2px, transparent 2px), linear-gradient(rgba(245, 176, 65, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(245, 176, 65, 0.03) 1px, transparent 1px); background-size: 40px 40px; animation: pulseCircuit 10s infinite alternate; }
     body.dark-mode .circuit-bg { background-image: radial-gradient(circle at 50% 50%, rgba(0, 210, 255, 0.1) 2px, transparent 3px), linear-gradient(rgba(0, 210, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 210, 255, 0.05) 1px, transparent 1px); }
     @keyframes pulseCircuit { 0% { opacity: 0.3; } 100% { opacity: 0.8; } }
-    .navbar { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); color: white; padding: 12px 0; box-shadow: 0 4px 30px rgba(0,0,0,0.3); position: sticky; top: 0; z-index: 100; transition: 0.5s; }
-    body.dark-mode .navbar { background: rgba(15, 23, 42, 0.98); border-bottom: 1px solid rgba(0, 210, 255, 0.15); }
-    .nav-content { max-width: 1000px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
-    .nav-brand h2 { margin: 0; font-size: 1.5rem; font-weight: 800; background: linear-gradient(to left, #fff, #9333ea); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
-    body.dark-mode .nav-brand h2 { background: linear-gradient(to left, #fff, var(--electric-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
-    .nav-actions { display: flex; gap: 12px; align-items: center; }
-    .nav-badge { font-size: 12px; font-weight: 800; padding: 6px 12px; border-radius: 8px; font-family: monospace; backdrop-filter: blur(5px); }
+
+    /* 💎 High-Tech Navbar */
+    .navbar { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); color: white; padding: 12px 0; box-shadow: 0 4px 30px rgba(0,0,0,0.3); position: sticky; top: 0; z-index: 100; transition: 0.5s; border-bottom: 1px solid rgba(255,255,255,0.05);}
+    body.dark-mode .navbar { background: rgba(15, 23, 42, 0.98); border-bottom: 1px solid rgba(0, 210, 255, 0.15); box-shadow: 0 4px 20px rgba(0,210,255,0.05);}
+    
+    .nav-content { max-width: 1000px; margin: 0 auto; padding: 0 15px; display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box; }
+    
+    .nav-brand { display: flex; align-items: center; }
+    .nav-brand h2 { margin: 0; font-size: 1.4rem; font-weight: 800; display: flex; align-items: center; gap: 6px; color: #fff; }
+    .nav-brand h2 .brand-text { background: linear-gradient(to left, #fff, #9333ea); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
+    body.dark-mode .nav-brand h2 .brand-text { background: linear-gradient(to left, #fff, var(--electric-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
+    .nav-brand span#welcomeName { font-size: 12px; font-weight: 600; opacity: 0.8; color: #cbd5e1; }
+
+    .nav-actions { display: flex; gap: 10px; align-items: center; }
+
+    .hamburger { cursor: pointer; font-size: 1.6rem; background: none; border: none; color: white; padding: 0; transition: all 0.3s ease;}
+    .hamburger:hover { transform: scale(1.1); color: var(--accent); text-shadow: 0 0 15px var(--accent-glow);}
+    body.dark-mode .hamburger:hover { color: var(--electric-blue); text-shadow: 0 0 15px var(--electric-glow);}
+
+    .theme-toggle { background: none; border: none; font-size: 1.4rem; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; width: 35px; height: 35px; min-width: 35px; min-height: 35px; border-radius: 50%; transition: 0.3s; }
+    .theme-toggle:hover { background: rgba(255,255,255,0.1); text-shadow: 0 0 10px var(--electric-blue);}
+
+    /* 🏷️ High-Tech Badges */
+    .nav-badge { font-size: 11px; font-weight: 800; padding: 5px 10px; border-radius: 8px; letter-spacing: 0.5px; text-transform: uppercase; font-family: monospace; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); white-space: nowrap !important; flex-shrink: 0 !important; }
     .group-badge { background: rgba(245, 176, 65, 0.1); color: var(--accent); border: 1px solid rgba(245, 176, 65, 0.3); }
     body.dark-mode .group-badge { background: rgba(0, 210, 255, 0.1); color: var(--electric-blue); border: 1px solid rgba(0, 210, 255, 0.3); }
-    .theme-toggle { background: none; border: none; font-size: 1.4rem; cursor: pointer; width: 35px; height: 35px; border-radius: 50%; transition: 0.3s; }
-    .theme-toggle:hover { background: rgba(255,255,255,0.1); }
-    body.dark-mode .theme-toggle:hover { text-shadow: 0 0 10px var(--electric-blue);}
+    .role-badge { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+    body.dark-mode .role-badge { background: rgba(30, 41, 59, 0.8); color: #94a3b8; border: 1px solid #334155; }
+    
+    body.role-owner .role-badge { color: #eab308; border-color: rgba(234, 179, 8, 0.4); background: rgba(234, 179, 8, 0.1); }
+    body.role-co-founder .role-badge { color: #c084fc; border-color: rgba(192, 132, 252, 0.4); background: rgba(192, 132, 252, 0.1); }
+    body.role-admin .role-badge { color: #f87171; border-color: rgba(248, 113, 113, 0.4); background: rgba(248, 113, 113, 0.1); }
+    body.role-manager .role-badge { color: #fb923c; border-color: rgba(251, 146, 60, 0.4); background: rgba(251, 146, 60, 0.1); }
+
+    @media (max-width: 650px) {
+      .nav-brand h2 { font-size: 1.1rem; gap: 4px; }
+      .nav-brand span#welcomeName { display: none; } 
+      .nav-badge { padding: 4px 6px; font-size: 10px; letter-spacing: 0px; }
+      .nav-actions { gap: 6px; }
+      .theme-toggle { font-size: 1.1rem; width: 30px; height: 30px; }
+      #roleBadge { display: none !important; } 
+    }
+
+    /* 💎 Floating Modern Sidebar */
+    .sidebar { position: fixed; top: 0; right: -300px; width: 280px; height: 100%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); box-shadow: -15px 0 50px rgba(0,0,0,0.1); transition: right 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.5s ease; z-index: 1000; padding-top: 80px; padding-bottom: 40px; overflow-y: auto; border-left: 1px solid rgba(255,255,255,0.5); }
+    body.dark-mode .sidebar { background: rgba(15, 23, 42, 0.98); border-left: 1px solid var(--electric-glow); }
+    .sidebar.open { right: 0; }
+    .sidebar a { display: flex; align-items: center; padding: 14px 25px; margin: 8px 15px; color: var(--text-muted); text-decoration: none; font-size: 1.05rem; font-weight: 700; border-radius: 14px; transition: all 0.3s ease; }
+    .sidebar a:hover { background: #f8fafc; color: var(--primary); transform: translateX(-5px); }
+    body.dark-mode .sidebar a:hover { background: rgba(0,210,255,0.1); color: var(--electric-blue); }
+    .sidebar a.active { background: linear-gradient(135deg, rgba(147, 51, 234, 0.1), rgba(147, 51, 234, 0.05)); color: #9333ea; box-shadow: inset 3px 0 0 #9333ea; }
+    body.dark-mode .sidebar a.active { background: linear-gradient(135deg, rgba(0,210,255,0.1), rgba(0,210,255,0.05)); color: var(--electric-blue); box-shadow: inset 3px 0 0 var(--electric-blue); }
+    .sidebar-heading { padding: 25px 30px 10px; font-size: 0.75rem; color: #94a3b8; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px;}
+    .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: none; z-index: 999; opacity: 0; transition: opacity 0.4s ease;}
+    .sidebar-overlay.show { display: block; opacity: 1; }
+    .close-btn { position: absolute; top: 20px; left: 20px; font-size: 2rem; cursor: pointer; color: #94a3b8; border: none; background: none; transition: 0.3s;}
+    .close-btn:hover { color: #ef4444; transform: rotate(90deg) scale(1.1); }
+
     .container { padding: 40px 20px; max-width: 1000px; margin: auto; position: relative; z-index: 1; }
     .form-wrapper { max-width: 600px; width: 100%; margin: 0 auto; }
+    
     .view-section { display: none; background: var(--card-bg); padding: 35px 25px; border-radius: var(--border-radius); box-shadow: 0 20px 40px rgba(0,0,0,0.05); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.2); animation: slideUp 0.5s ease; margin-bottom: 25px; transition: 0.5s;}
     .view-section.active { display: block; }
     @keyframes slideUp { from { opacity: 0; transform: translateY(30px) } to { opacity: 1; transform: translateY(0) } }
+    
     select, input[type="text"], input[type="number"] { width: 100%; padding: 14px 20px; border-radius: 16px; border: 2px solid transparent; background-color: #f8fafc; color: var(--text-main); font-size: 15px; font-weight: 800; margin-bottom: 15px; box-sizing: border-box; font-family: 'Cairo', sans-serif; text-align: center; transition: 0.3s;}
     body.dark-mode input[type="text"], body.dark-mode input[type="number"], body.dark-mode select { background-color: #1e293b; color: #fff; border: 1px solid #334155; }
     body.dark-mode input:focus, body.dark-mode select:focus { border-color: var(--electric-blue); box-shadow: 0 0 10px var(--electric-glow); background-color: #0f172a;}
-    button { padding: 16px; width: 100%; border-radius: 16px; font-size: 16px; font-weight: 800; cursor: pointer; border: none; margin-bottom: 15px; font-family: 'Cairo', sans-serif; transition: 0.3s; }
+    
+    button { padding: 16px; width: 100%; border-radius: 16px; font-size: 16px; font-weight: 800; cursor: pointer; border: none; margin-bottom: 15px; font-family: 'Cairo', sans-serif; transition: 0.3s; position: relative; overflow: hidden; }
     button:active { transform: scale(0.96); }
     .btn-primary { background: linear-gradient(135deg, #9333ea, #7e22ce); color: white; box-shadow: 0 10px 20px rgba(147, 51, 234, 0.2); }
     body.dark-mode .btn-primary { background: linear-gradient(135deg, var(--electric-blue), #0284c7); box-shadow: 0 0 15px var(--electric-glow); color:#fff;}
     .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(147, 51, 234, 0.4); }
+    body.dark-mode .btn-primary:hover { box-shadow: 0 0 25px var(--electric-blue); }
     .btn-secondary { background: linear-gradient(135deg, var(--accent), #f39c12); color: #fff; }
     .btn-secondary:hover { transform: translateY(-3px); box-shadow: 0 15px 30px var(--accent-glow); }
     .btn-small { padding: 8px 16px; font-size: 13px; margin: 0; width: auto; border-radius: 10px; box-shadow: none; font-weight: 700;}
@@ -55,18 +112,19 @@
     .grade-box input, .grade-box select { margin-bottom: 0; background: #fff;}
     body.dark-mode .grade-box input, body.dark-mode .grade-box select { background: #0f172a;}
     
-    .table-container { overflow-x: auto; border-radius: 16px; border: 1px solid #e2e8f0; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+    .table-container { overflow-x: auto; border-radius: 16px; border: 1px solid #e2e8f0; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: 0.5s; }
     body.dark-mode .table-container { background: rgba(15, 23, 42, 0.9); border-color: #334155; }
     table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: center; }
     th, td { padding: 14px 10px; border-bottom: 1px solid rgba(0,0,0,0.05); }
-    th { background: #f8fafc; color: var(--text-muted); font-weight: 800; }
+    th { background: #f8fafc; color: var(--text-muted); font-weight: 800; transition: 0.5s; }
     body.dark-mode th { background: #0f172a; color: var(--electric-blue); border-bottom: 2px solid #334155;}
+    
     #message { margin-top: 15px; padding: 18px; border-radius: 16px; font-weight: 800; display: none; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-bottom: 20px;}
     .success { background: rgba(16, 185, 129, 0.1); color: #059669; border: 1px solid #a7f3d0; }
     .error { background: rgba(239, 68, 68, 0.1); color: #dc2626; border: 1px solid #fecaca; }
     .warning { background: rgba(245, 176, 65, 0.1); color: #d97706; border: 1px solid #fde68a; }
-    body.dark-mode .success { color: #34d399; border-color: #059669;}
-    body.dark-mode .error { color: #f87171; border-color: #dc2626;}
+    body.dark-mode .success { color: #34d399; border-color: #059669; background: rgba(52, 211, 153, 0.15);}
+    body.dark-mode .error { color: #f87171; border-color: #dc2626; background: rgba(248, 113, 113, 0.15);}
 
     .admin-only, .manager-only, .cross-group-only { display: none !important; }
     body.role-owner .admin-only, body.role-co-founder .admin-only, body.role-admin .admin-only { display: block !important; }
@@ -77,12 +135,13 @@
     body.dark-mode #electricLoader { color: var(--electric-blue); }
     .loader-text { margin-bottom: 20px; font-size: 18px; font-weight: 700; text-shadow: 0 0 10px currentColor;}
     .progress-bar-container { width: 80%; max-width: 400px; height: 6px; background: rgba(255,255,255,0.2); border-radius: 10px; overflow: hidden; box-shadow: inset 0 0 5px rgba(0,0,0,0.5);}
+    body.dark-mode .progress-bar-container { background: rgba(0,0,0,0.4); }
     .progress-bar-fill { height: 100%; width: 0%; background: #9333ea; box-shadow: 0 0 15px #9333ea; border-radius: 10px; transition: width 0.1s linear;}
     body.dark-mode .progress-bar-fill { background: var(--electric-blue); box-shadow: 0 0 15px var(--electric-glow); }
     .loader-percent { margin-top: 15px; font-size: 24px; font-weight: 800; font-family: monospace; text-shadow: 0 0 10px currentColor; color: #9333ea;}
     body.dark-mode .loader-percent { color: var(--electric-blue); }
     
-    .chart-container { position: relative; height: 350px; width: 100%; background: #fff; border-radius: 20px; border: 1px solid #e2e8f0; padding: 15px; box-sizing: border-box; margin-bottom: 25px;}
+    .chart-container { position: relative; height: 350px; width: 100%; background: #fff; border-radius: 20px; border: 1px solid #e2e8f0; padding: 15px; box-sizing: border-box; margin-bottom: 25px; transition: 0.5s;}
     body.dark-mode .chart-container { background: rgba(15, 23, 42, 0.9); border-color: #334155; }
   </style>
 </head>
@@ -98,12 +157,34 @@
 
   <div class="navbar">
     <div class="nav-content">
-      <div class="nav-brand"><h2>🎯 نظام التقييم</h2></div>
+      <div class="nav-brand">
+        <h2>🎯 <span class="brand-text">نظام التقييم</span> <span id="welcomeName"></span></h2>
+      </div>
       <div class="nav-actions">
         <span id="groupBadge" class="nav-badge group-badge" style="display: none;"></span>
+        <span id="roleBadge" class="nav-badge role-badge" style="display: none;"></span>
         <button class="theme-toggle" id="themeToggle" onclick="toggleDarkMode()">☀️</button>
-        <button class="theme-toggle" onclick="window.location.href='index.html'" title="العودة لنظام الحضور">🏠</button>
+        <button class="theme-toggle" onclick="window.location.href='index.html'" title="نظام الحضور">🏠</button>
+        <button class="hamburger" id="menuBtn" onclick="toggleSidebar()">☰</button>
       </div>
+    </div>
+  </div>
+
+  <!-- 🗂️ القائمة الجانبية الموحدة -->
+  <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+  <div class="sidebar" id="sidebar">
+    <button class="close-btn" onclick="toggleSidebar()">×</button>
+    
+    <div class="sidebar-heading">نظام التقييم (Grades)</div>
+    <a href="#" onclick="switchView('grading'); toggleSidebar();" id="nav-grading" class="active">📝 رصد الدرجات</a>
+    <a href="#" onclick="switchView('top'); toggleSidebar();" id="nav-top" class="manager-only">🏆 لوحة الشرف</a>
+    <a href="#" onclick="switchView('settings'); toggleSidebar();" id="nav-settings" class="admin-only">⚙️ إعدادات الكويزات</a>
+    
+    <div class="sidebar-heading" style="margin-top: 15px;">نظام الحضور (Attendance)</div>
+    <a href="index.html" style="color: var(--accent);">🏠 الانتقال لنظام الحضور</a>
+    
+    <div style="margin-top: 40px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+      <a href="#" onclick="logout();" style="color: #ef4444;">🚪 تسجيل الخروج</a>
     </div>
   </div>
 
@@ -124,7 +205,7 @@
       <button class="btn-secondary admin-only" onclick="switchView('settings')" style="flex:1; padding: 10px; background: #94a3b8; color:#fff;">⚙️ الكويزات</button>
     </div>
 
-    <!-- 📝 قسم رصد الدرجات المفتوح -->
+    <!-- 📝 قسم رصد الدرجات -->
     <div id="view-grading" class="view-section active">
       <div class="form-wrapper">
         <h3 style="text-align: center; color: var(--primary); margin-top:0;">رصد الدرجات</h3>
@@ -168,7 +249,6 @@
         <p style="text-align:center; color:var(--text-muted); font-size:13px; font-weight:700;">يتم حساب (5 درجات للحضور) + (5 للفيدباك) + (درجات التاسكات) + (درجات الكويزات)</p>
 
         <div class="grades-grid" style="margin-top: 20px;">
-          <!-- الحضور والفيدباك يعتمدان على المحاضرات -->
           <div class="grade-box" style="flex-basis: 100%;">
             <label>الحضور والفيدباك (بالأسابيع/المحاضرات)</label>
             <div style="display:flex; gap:5px; align-items:center; justify-content:center;">
@@ -199,8 +279,8 @@
         <canvas id="topChart"></canvas>
       </div>
     </div>
- 
-    <!-- ⚙️ إعدادات الإدارة (Admin Only) -->
+
+    <!-- ⚙️ إعدادات الإدارة -->
     <div id="view-settings" class="view-section admin-only">
       <div class="form-wrapper">
         <h3 style="text-align: center; color: var(--primary); margin-top:0;">إعدادات نهايات الكويزات 🔒</h3>
@@ -282,8 +362,9 @@
         document.getElementById('themeToggle').innerText = '🌙';
       }
       
+      // التوجيه التلقائي إذا لم يسجل دخوله من النظام الأول
       if (localStorage.getItem('isLoggedIn') !== 'true') {
-        alert("🔒 غير مصرح بالوصول! يرجى تسجيل الدخول من نظام الحضور أولاً.");
+        alert("🔒 يرجى تسجيل الدخول من نظام الحضور أولاً.");
         window.location.href = 'index.html';
         return;
       }
@@ -291,7 +372,21 @@
       fillGroupSelects();
       applyRoleAndGroup();
       loadSettingQuizMax();
+      
+      // إظهار اسم المستخدم
+      const userName = localStorage.getItem('userName');
+      if(userName) document.getElementById('welcomeName').innerText = `| ${userName}`;
     };
+
+    function toggleSidebar() { 
+      document.getElementById('sidebar').classList.toggle('open'); 
+      document.getElementById('overlay').classList.toggle('show'); 
+    }
+    
+    function logout() { 
+      localStorage.clear(); 
+      window.location.href = 'index.html'; 
+    }
 
     function fillGroupSelects() {
       let options = ''; const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -305,7 +400,15 @@
       const userGroup = localStorage.getItem('userGroup') || 'Group A';
       
       const groupBadge = document.getElementById('groupBadge');
+      const roleBadge = document.getElementById('roleBadge');
+      
       if(groupBadge) { groupBadge.innerText = userGroup; groupBadge.style.display = 'flex'; }
+      if(roleBadge) {
+          roleBadge.innerText = (userRole === 'Owner') ? 'المالك 👑' : (userRole === 'CO-Founder') ? 'CO-Founder ✨' : 
+                                (userRole === 'Team Manager' || userRole === 'Admin') ? 'Team Manager' : 
+                                (userRole === 'Coordinator' || userRole === 'Manager') ? 'Coordinator' : 'Cadre';
+          roleBadge.style.display = 'flex';
+      }
       
       document.getElementById('lblCurrentGroup').innerText = userGroup;
       document.getElementById('lblTopGroup').innerText = userGroup;
@@ -421,7 +524,7 @@
       } catch(err) { completeProgress(); showMessage("❌ فشل الاتصال.", "error"); playBeep('error'); }
     }
 
-    // 🏆 لوحة الشرف والرسم البياني المجمعة (Parallel Processing)
+    // 🏆 لوحة الشرف والرسم البياني المجمعة
     async function generateTopChart() {
       const fTask = document.getElementById('fromTask').value; const tTask = document.getElementById('toTask').value;
       const fQuiz = document.getElementById('fromQuiz').value; const tQuiz = document.getElementById('toQuiz').value;
@@ -435,11 +538,10 @@
       showProgress("جاري دمج بيانات (الدرجات + الحضور + الفيدباك) 🚀...");
       
       try {
-          // 🚀 إطلاق 4 طلبات للسيرفر في نفس الوقت
           const [taskRes, quizRes, attRes, feedRes] = await Promise.all([
             fetch(`${GRADES_API_URL}?action=getTop&fromTask=${fTask}&toTask=${tTask}&group=${encodeURIComponent(group)}${auth}`),
             fetch(`${QUIZZES_API_URL}?action=getTop&fromQuiz=${fQuiz}&toQuiz=${tQuiz}&group=${encodeURIComponent(group)}${auth}`),
-            fetch(`${ATTENDANCE_API_URL}?action=getTop&fromLec=${fLec}&toLec=${tLec}&group=${encodeURIComponent(group)}${auth}`).catch(() => ({json: () => ({scores:[]})})), // تخطي لو الرابط فارغ
+            fetch(`${ATTENDANCE_API_URL}?action=getTop&fromLec=${fLec}&toLec=${tLec}&group=${encodeURIComponent(group)}${auth}`).catch(() => ({json: () => ({scores:[]})})), 
             fetch(`${FEEDBACK_API_URL}?action=getTop&fromLec=${fLec}&toLec=${tLec}&group=${encodeURIComponent(group)}${auth}`).catch(() => ({json: () => ({scores:[]})}))
           ]);
           
@@ -454,7 +556,6 @@
              
              let mergedScores = {};
              
-             // دالة لدمج المجاميع
              const processScores = (arr) => {
                (arr || []).forEach(item => {
                  if(!mergedScores[item.id]) mergedScores[item.id] = { name: item.name, total: 0 };
@@ -467,12 +568,10 @@
              processScores(attData.scores);
              processScores(feedData.scores);
 
-             // تحويل لـ Array وترتيب تنازلي (أعلى 5)
              let sortedStudents = Object.values(mergedScores).sort((a, b) => b.total - a.total).slice(0, 5);
 
              if(sortedStudents.length === 0) return showMessage("⚠️ لا توجد أي درجات أو حضور مسجل في هذا النطاق.", "warning");
 
-             // تجهيز البيانات للرسم (أول اسمين فقط)
              const labels = sortedStudents.map(s => {
                 let nameParts = s.name.trim().split(/\s+/);
                 return nameParts[0] + " " + (nameParts[1] || "");
@@ -507,5 +606,12 @@
       });
     }
   </script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(err => console.log('PWA Error', err));
+    });
+  }
+</script>
 </body>
 </html>
