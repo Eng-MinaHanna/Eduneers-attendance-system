@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>نظام الدرجات والتقييم | Eduneers</title>
+  
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
+
+    :root { 
+      --primary: #0f172a; --primary-light: #1e293b;
+      --accent: #f5b041; --accent-hover: #f39c12; --accent-glow: rgba(245, 176, 65, 0.6);
+      --electric-blue: #00d2ff; --electric-glow: rgba(0, 210, 255, 0.5);
+      --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+      --text-main: #334155; --text-muted: #64748b;
+      --card-bg: rgba(255, 255, 255, 0.85); --border-radius: 24px;   
+    }
+
+    body.dark-mode {
+      --primary: #f8fafc; --primary-light: #e2e8f0;
+      --bg-gradient: radial-gradient(circle at top right, #1e293b 0%, #0f172a 100%);
+      --text-main: #f8fafc; --text-muted: #cbd5e1; --card-bg: rgba(15, 23, 42, 0.85); 
+    }
+    
+    body { font-family: 'Cairo', sans-serif; background: var(--bg-gradient); margin: 0; padding: 0; color: var(--text-main); overflow-x: hidden; min-height: 100vh; transition: background 0.5s ease, color 0.5s ease; }
+    
+    .circuit-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; background-image: radial-gradient(circle at 50% 50%, rgba(245, 176, 65, 0.05) 2px, transparent 2px), linear-gradient(rgba(245, 176, 65, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(245, 176, 65, 0.03) 1px, transparent 1px); background-size: 40px 40px, 40px 40px, 40px 40px; animation: pulseCircuit 10s infinite alternate; pointer-events: none; }
+    body.dark-mode .circuit-bg { background-image: radial-gradient(circle at 50% 50%, rgba(0, 210, 255, 0.1) 2px, transparent 3px), linear-gradient(rgba(0, 210, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 210, 255, 0.05) 1px, transparent 1px); }
+    @keyframes pulseCircuit { 0% { opacity: 0.3; } 100% { opacity: 0.8; } }
+
+    /* 💎 High-Tech Navbar */
+    .navbar { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); color: white; padding: 12px 0; box-shadow: 0 4px 30px rgba(0,0,0,0.3); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.5s ease; }
+    body.dark-mode .navbar { background: rgba(15, 23, 42, 0.98); border-bottom: 1px solid rgba(0, 210, 255, 0.15); box-shadow: 0 4px 20px rgba(0,210,255,0.05); }
+    .nav-content { max-width: 1000px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; width: 100%; box-sizing: border-box; }
+    .nav-brand h2 { margin: 0; font-size: 1.5rem; font-weight: 800; background: linear-gradient(to left, #fff, #9333ea); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
+    body.dark-mode .nav-brand h2 { background: linear-gradient(to left, #fff, var(--electric-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
+    
+    .nav-actions { display: flex; gap: 12px; align-items: center; }
+    .nav-badge { font-size: 12px; font-weight: 800; padding: 6px 12px; border-radius: 8px; letter-spacing: 0.5px; text-transform: uppercase; font-family: monospace; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+    .group-badge { background: rgba(245, 176, 65, 0.1); color: var(--accent); border: 1px solid rgba(245, 176, 65, 0.3); }
+    body.dark-mode .group-badge { background: rgba(0, 210, 255, 0.1); color: var(--electric-blue); border: 1px solid rgba(0, 210, 255, 0.3); box-shadow: 0 0 10px rgba(0, 210, 255, 0.1); }
+    
+    .theme-toggle { background: none; border: none; font-size: 1.4rem; cursor: pointer; padding: 0; display: flex; align-items: center; justify-content: center; width: 35px; height: 35px; border-radius: 50%; transition: 0.3s; }
+    .theme-toggle:hover { background: rgba(255,255,255,0.1); text-shadow: 0 0 10px var(--electric-blue);}
+
+    .container { padding: 40px 20px; max-width: 1000px; margin: auto; position: relative; z-index: 1; }
+    .form-wrapper { max-width: 600px; width: 100%; margin: 0 auto; }
+    
+    .view-section { display: none; background: var(--card-bg); padding: 35px 25px; border-radius: var(--border-radius); box-shadow: 0 20px 40px rgba(0,0,0,0.05); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.2); animation: slideUp 0.5s ease; margin-bottom: 25px; transition: background 0.5s ease;}
+    .view-section.active { display: block; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(30px) } to { opacity: 1; transform: translateY(0) } }
+
+    /* Inputs & Buttons */
+    select, input[type="number"], input[type="text"] { width: 100%; padding: 14px 20px; border-radius: 16px; border: 2px solid transparent; background-color: #f8fafc; color: var(--text-main); font-size: 15px; font-weight: 800; margin-bottom: 15px; box-sizing: border-box; font-family: 'Cairo', sans-serif; text-align: center; transition: all 0.3s ease;}
+    body.dark-mode input, body.dark-mode select { background-color: #1e293b; color: #fff; border: 1px solid #334155; }
+    body.dark-mode input:focus, body.dark-mode select:focus { border-color: var(--electric-blue); box-shadow: 0 0 10px var(--electric-glow); background-color: #0f172a;}
+    
+    button { padding: 16px; width: 100%; border-radius: 16px; font-size: 16px; font-weight: 800; cursor: pointer; border: none; margin-bottom: 15px; font-family: 'Cairo', sans-serif; transition: 0.3s; position: relative; overflow: hidden;}
+    button:active { transform: scale(0.96); }
+    .btn-primary { background: linear-gradient(135deg, #9333ea, #7e22ce); color: white; box-shadow: 0 10px 20px rgba(147, 51, 234, 0.2); }
+    body.dark-mode .btn-primary { background: linear-gradient(135deg, var(--electric-blue), #0284c7); box-shadow: 0 0 15px var(--electric-glow); color:#fff;}
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(147, 51, 234, 0.4); }
+    body.dark-mode .btn-primary:hover { box-shadow: 0 0 25px var(--electric-blue); }
+    .btn-secondary { background: linear-gradient(135deg, var(--accent), #f39c12); color: #fff; }
+    .btn-secondary:hover { transform: translateY(-3px); box-shadow: 0 15px 30px var(--accent-glow); }
+    
+    /* Grid for Grades */
+    .grades-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px;}
+    .grades-grid div { text-align: center;}
+    .grades-grid label { font-size: 13px; font-weight: 800; color: var(--text-muted); display: block; margin-bottom: 5px; text-transform: uppercase;}
+    
+    .table-container { overflow-x: auto; border-radius: 16px; border: 1px solid #e2e8f0; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+    body.dark-mode .table-container { background: rgba(15, 23, 42, 0.9); border-color: #334155; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: center; }
+    th, td { padding: 14px 10px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+    th { background: #f8fafc; color: var(--text-muted); font-weight: 800; }
+    body.dark-mode th { background: #0f172a; color: var(--electric-blue); border-bottom: 2px solid #334155;}
+    
+    #message { margin-top: 15px; padding: 18px; border-radius: 16px; font-weight: 800; display: none; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-bottom: 20px;}
+    .success { background: rgba(16, 185, 129, 0.1); color: #059669; border: 1px solid #a7f3d0; }
+    .error { background: rgba(239, 68, 68, 0.1); color: #dc2626; border: 1px solid #fecaca; }
+    body.dark-mode .success { color: #34d399; border-color: #059669; background: rgba(52, 211, 153, 0.15);}
+    body.dark-mode .error { color: #f87171; border-color: #dc2626; background: rgba(248, 113, 113, 0.15);}
+
+    .admin-only, .manager-only, .cross-group-only { display: none !important; }
+    body.role-owner .admin-only, body.role-co-founder .admin-only, body.role-admin .admin-only { display: block !important; }
+    body.role-owner .manager-only, body.role-co-founder .manager-only, body.role-admin .manager-only, body.role-manager .manager-only { display: block !important; }
+    body.role-owner div.cross-group-only, body.role-co-founder div.cross-group-only, body.role-admin div.cross-group-only { display: flex !important; }
+
+    /* ⚡ HIGH-TECH PROGRESS LOADER (Linear Bar) ⚡ */
+    #electricLoader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 9999; color: var(--text-main); transition: opacity 0.3s;}
+    body.dark-mode #electricLoader { color: var(--electric-blue); }
+    .loader-text { margin-bottom: 20px; font-size: 18px; font-weight: 700; letter-spacing: 1px; animation: pulseText 1.5s infinite alternate; text-shadow: 0 0 10px currentColor;}
+    .progress-bar-container { width: 80%; max-width: 400px; height: 6px; background: rgba(255,255,255,0.2); border-radius: 10px; overflow: hidden; position: relative; box-shadow: inset 0 0 5px rgba(0,0,0,0.5);}
+    body.dark-mode .progress-bar-container { background: rgba(0,0,0,0.4); }
+    .progress-bar-fill { height: 100%; width: 0%; background: #9333ea; box-shadow: 0 0 15px #9333ea; border-radius: 10px; transition: width 0.1s linear;}
+    body.dark-mode .progress-bar-fill { background: var(--electric-blue); box-shadow: 0 0 15px var(--electric-glow); }
+    .loader-percent { margin-top: 15px; font-size: 24px; font-weight: 800; font-family: monospace; text-shadow: 0 0 10px currentColor; color: #9333ea;}
+    body.dark-mode .loader-percent { color: var(--electric-blue); }
+    @keyframes pulseText { 0% { opacity: 0.7; } 100% { opacity: 1; } }
+  </style>
+</head>
+<body>
+
+  <!-- Animated Circuit Background -->
+  <div class="circuit-bg"></div>
+
+  <!-- ⚡ Global High-Tech Loader (Linear) ⚡ -->
+  <div id="electricLoader">
+    <div class="loader-text" id="loaderMessage">جاري نقل البيانات...</div>
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill" id="progressBarFill"></div>
+    </div>
+    <div class="loader-percent" id="loaderPercent">0%</div>
+  </div>
+
+  <div class="navbar">
+    <div class="nav-content">
+      <div class="nav-brand"><h2>🎯 نظام الدرجات</h2></div>
+      <div class="nav-actions">
+        <span id="groupBadge" class="nav-badge group-badge" style="display: none;"></span>
+        <button class="theme-toggle" id="themeToggle" onclick="toggleDarkMode()">☀️</button>
+        <button class="theme-toggle" onclick="window.location.href='index.html'" title="العودة لنظام الحضور">🏠</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div id="message"></div>
+
+    <!-- 🎛️ التحكم في المحاضرة والجروبات -->
+    <div style="background: var(--card-bg); padding: 25px; border-radius: var(--border-radius); margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
+      <div style="display: flex; gap: 15px;">
+        <div style="flex: 1;">
+          <p style="margin: 0 0 10px 0; font-weight: 800; color: var(--text-muted); font-size: 13px; text-transform: uppercase;">تحديد المحاضرة (الأسبوع)</p>
+          <select id="lectureSelect" style="margin-bottom: 0; box-shadow:none;" onchange="lectureChanged()">
+            <option value="1">أسبوع المحاضرة 1</option> <option value="2">أسبوع المحاضرة 2</option> 
+            <option value="3">أسبوع المحاضرة 3</option> <option value="4">أسبوع المحاضرة 4</option>
+            <option value="5">أسبوع المحاضرة 5</option> <option value="6">أسبوع المحاضرة 6</option>
+            <option value="7">أسبوع المحاضرة 7</option> <option value="8">أسبوع المحاضرة 8</option>
+          </select>
+        </div>
+        <div class="cross-group-only" style="flex: 1; flex-direction: column;">
+          <p style="margin: 0 0 10px 0; font-weight: 800; color: #8e44ad; font-size: 13px; text-transform: uppercase;">تحكم الجروب 👑</p>
+          <select id="globalGroupSelect" style="margin-bottom: 0; border-color: rgba(142, 68, 173, 0.3); background: rgba(142, 68, 173, 0.05); color:#8e44ad;" onchange="changeGlobalGroup(this.value)"></select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toggle Buttons -->
+    <div style="display: flex; gap: 10px; margin-bottom: 20px;" class="form-wrapper">
+      <button class="btn-primary" onclick="switchView('grading')" style="flex:1; padding: 10px;">📝 رصد درجات</button>
+      <button class="btn-secondary manager-only" onclick="switchView('dashboard')" style="flex:1; padding: 10px;">📊 لوحة الدرجات</button>
+      <button class="btn-secondary admin-only" onclick="switchView('settings')" style="flex:1; padding: 10px; background: #94a3b8;">⚙️ إعدادات</button>
+    </div>
+
+    <!-- 📝 قسم رصد الدرجات -->
+    <div id="view-grading" class="view-section active">
+      <div class="form-wrapper">
+        <h3 style="text-align: center; color: var(--primary); margin-top:0;">إدخال الدرجات</h3>
+        <p style="text-align:center; color:var(--text-muted); font-size:13px; font-weight:700;">سيتم الرصد في <span id="lblCurrentLec" style="color:var(--accent);">المحاضرة 1</span> لجروب <span id="lblCurrentGroup" style="color:var(--electric-blue);">Group A</span></p>
+
+        <div style="display:flex; gap:10px; margin-bottom: 20px; margin-top: 20px;">
+          <input type="text" id="studentCode" placeholder="كود الطالب (يدوي أو سكان)" style="margin-bottom:0;">
+          <button class="btn-secondary" style="width: auto; margin-bottom:0; padding: 0 20px;" onclick="document.getElementById('qr-input-file').click()">📷</button>
+          <input type="file" id="qr-input-file" accept="image/*" capture="environment" style="display:none;" onchange="handleQRImage(event)">
+        </div>
+
+        <div class="grades-grid">
+          <div>
+            <label>التاسك (من 70)</label>
+            <input type="number" id="gradeTask" placeholder="0" max="70" min="0">
+          </div>
+          <div>
+            <label>كويز 1 (من <span id="lblQ1">?</span>)</label>
+            <input type="number" id="gradeQ1" placeholder="0" min="0">
+          </div>
+          <div>
+            <label>كويز 2 (من <span id="lblQ2">?</span>)</label>
+            <input type="number" id="gradeQ2" placeholder="0" min="0">
+          </div>
+        </div>
+
+        <button class="btn-primary" onclick="submitGrades()">حفظ الدرجات 💾</button>
+      </div>
+    </div>
+
+    <!-- 📊 قسم لوحة الدرجات -->
+    <div id="view-dashboard" class="view-section manager-only">
+      <h3 style="text-align: center; color: var(--primary); margin-top:0;">سجل الدرجات الحي</h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr><th>الكود</th> <th>الاسم</th> <th>التاسك</th> <th>Q1</th> <th>Q2</th> <th>الإجمالي</th></tr>
+          </thead>
+          <tbody id="gradesTableBody">
+            <tr><td colspan="6" style="padding:30px;">اضغط مزامنة لعرض الدرجات</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="form-wrapper" style="margin-top: 20px;">
+        <button class="btn-secondary" onclick="loadGradesDashboard()">🔄 مزامنة الجروب الحالي</button>
+      </div>
+    </div>
+
+    <!-- ⚙️ قسم إعدادات الإدارة (Admin Only) -->
+    <div id="view-settings" class="view-section admin-only">
+      <div class="form-wrapper">
+        <h3 style="text-align: center; color: var(--primary); margin-top:0;">إعدادات النهايات العظمى 🔒</h3>
+        <p style="text-align:center; color:var(--text-muted); font-size:14px; font-weight:700;">تقييد درجات: <span id="lblSettingsLec" style="color:var(--accent);">المحاضرة 1</span></p>
+        
+        <label style="font-weight: 800; font-size: 14px; margin-bottom: 5px; display:block; margin-top:20px;">نهاية كويز 1 (Q1 Max):</label>
+        <input type="number" id="maxQ1" placeholder="مثال: 15">
+        
+        <label style="font-weight: 800; font-size: 14px; margin-bottom: 5px; display:block;">نهاية كويز 2 (Q2 Max):</label>
+        <input type="number" id="maxQ2" placeholder="مثال: 15">
+        
+        <button class="btn-primary" onclick="saveMaxGrades()">حفظ الإعدادات لهذا الأسبوع 🔒</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ⚠️ استبدل هذا الرابط برابط سكريبت الدرجات الجديد
+    const GRADES_API_URL = "https://script.google.com/macros/s/AKfycbz5qQQw2Tru7i6LekF7wToQrN3J3ahvqWbuN2l8n8LIe0V_wK-J-9yzLJPS_N98cUJ4/exec"; 
+    
+    let currentView = 'grading';
+    let currentMaxGrades = { q1: 15, q2: 15 }; 
+
+    // --- Loading Bar Logic ---
+    let loaderInterval;
+    function showProgress(msg) {
+      document.getElementById('electricLoader').style.display = 'flex';
+      document.getElementById('electricLoader').style.opacity = '1';
+      document.getElementById('loaderMessage').innerText = msg;
+      let p = 0; document.getElementById('loaderPercent').innerText = p + '%';
+      document.getElementById('progressBarFill').style.width = p + '%';
+      clearInterval(loaderInterval);
+      loaderInterval = setInterval(() => {
+        p += Math.floor(Math.random() * 8) + 1;
+        if(p > 90) p = 90;
+        document.getElementById('loaderPercent').innerText = p + '%';
+        document.getElementById('progressBarFill').style.width = p + '%';
+      }, 100);
+    }
+    function completeProgress() {
+      clearInterval(loaderInterval);
+      document.getElementById('loaderPercent').innerText = '100%';
+      document.getElementById('progressBarFill').style.width = '100%';
+      setTimeout(() => {
+        document.getElementById('electricLoader').style.opacity = '0';
+        setTimeout(() => { document.getElementById('electricLoader').style.display = 'none'; document.getElementById('progressBarFill').style.width = '0%';}, 300);
+      }, 400);
+    }
+    
+    function getAuthParams() {
+      const email = localStorage.getItem('userEmail') || "";
+      const sessionToken = localStorage.getItem('sessionToken') || "";
+      return `&email=${encodeURIComponent(email)}&token=${encodeURIComponent(sessionToken)}`;
+    }
+
+    function showMessage(text, type) {
+      const msgDiv = document.getElementById('message');
+      msgDiv.style.display = 'block'; msgDiv.className = type; msgDiv.innerText = text;
+      if(window.messageTimer) clearTimeout(window.messageTimer);
+      window.messageTimer = setTimeout(() => { msgDiv.style.display = 'none'; }, 5000);
+    }
+
+    // 📳 دالة الصوت والاهتزاز
+    function playBeep(type) {
+      if (navigator.vibrate) {
+        if (type === 'success') navigator.vibrate(150); 
+        else navigator.vibrate([100, 50, 100, 50, 200]); 
+      }
+      const ctx = new (window.AudioContext || window.webkitAudioContext)(); const osc = ctx.createOscillator(); const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      if(type === 'success') { osc.type = 'sine'; osc.frequency.value = 800; gain.gain.value = 0.1; osc.start(); osc.stop(ctx.currentTime + 0.15); } 
+      else { osc.type = 'sawtooth'; osc.frequency.value = 300; gain.gain.value = 0.1; osc.start(); osc.stop(ctx.currentTime + 0.3); }
+    }
+
+    // --- Initialization ---
+    window.onload = function() {
+      if (localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+        document.getElementById('themeToggle').innerText = '🌙';
+      }
+      
+      // الأمان: يجب أن يكون مسجل دخول في الحضور أولاً
+      if (localStorage.getItem('isLoggedIn') !== 'true') {
+        alert("🔒 غير مصرح بالوصول! يرجى تسجيل الدخول من نظام الحضور أولاً.");
+        window.location.href = 'index.html';
+        return;
+      }
+      
+      fillGroupSelects();
+      applyRoleAndGroup();
+      
+      let savedLec = localStorage.getItem('savedGradesLecture') || '1';
+      document.getElementById('lectureSelect').value = savedLec;
+      lectureChanged(); // Updates labels and fetches specific max grades
+    };
+
+    function fillGroupSelects() {
+      let options = ''; const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      for(let i=0; i<letters.length; i++) { let g = 'Group ' + letters[i]; options += `<option value="${g}">${g}</option>`; }
+      const ggs = document.getElementById('globalGroupSelect');
+      if(ggs && ggs.options.length === 0) { ggs.innerHTML = options; ggs.value = localStorage.getItem('userGroup') || 'Group A'; }
+    }
+
+    function applyRoleAndGroup() {
+      const userRole = localStorage.getItem('userRole'); 
+      const userGroup = localStorage.getItem('userGroup') || 'Group A';
+      const groupBadge = document.getElementById('groupBadge');
+      
+      groupBadge.innerText = userGroup; groupBadge.style.display = 'flex';
+      document.getElementById('lblCurrentGroup').innerText = userGroup;
+      
+      document.body.className = document.body.classList.contains('dark-mode') ? 'dark-mode ' : ''; 
+      if (userRole === 'Owner') { document.body.classList.add('role-owner'); } 
+      else if (userRole === 'CO-Founder') { document.body.classList.add('role-co-founder'); } 
+      else if (userRole === 'Team Manager' || userRole === 'Admin') { document.body.classList.add('role-admin'); } 
+      else if (userRole === 'Coordinator' || userRole === 'Manager') { document.body.classList.add('role-manager'); } 
+      else { document.body.classList.add('role-user'); }
+      
+      const ggs = document.getElementById('globalGroupSelect'); if(ggs) ggs.value = userGroup;
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem('darkMode', isDark);
+      document.getElementById('themeToggle').innerText = isDark ? '🌙' : '☀️';
+    }
+
+    function switchView(viewId) {
+      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+      document.getElementById(`view-${viewId}`).classList.add('active');
+      if(viewId === 'dashboard') loadGradesDashboard();
+    }
+
+    function changeGlobalGroup(newGroup) {
+      localStorage.setItem('userGroup', newGroup); 
+      document.getElementById('groupBadge').innerText = newGroup;
+      document.getElementById('lblCurrentGroup').innerText = newGroup;
+      if(currentView === 'dashboard') loadGradesDashboard();
+    }
+
+    function lectureChanged() {
+      const lec = document.getElementById('lectureSelect').value;
+      localStorage.setItem('savedGradesLecture', lec);
+      document.getElementById('lblCurrentLec').innerText = `المحاضرة ${lec}`;
+      document.getElementById('lblSettingsLec').innerText = `المحاضرة ${lec}`;
+      
+      // جلب إعدادات الماكس الخاصة بهذا الأسبوع تحديداً من السيرفر
+      fetchMaxGrades(lec);
+    }
+
+    // --- Grades Logic ---
+    function fetchMaxGrades(lecNumber) {
+      // For now, storing locally per lecture (e.g. maxQ1_lec1)
+      let savedQ1 = localStorage.getItem(`maxQ1_lec${lecNumber}`) || 15;
+      let savedQ2 = localStorage.getItem(`maxQ2_lec${lecNumber}`) || 15;
+      
+      currentMaxGrades.q1 = parseInt(savedQ1);
+      currentMaxGrades.q2 = parseInt(savedQ2);
+      
+      document.getElementById('lblQ1').innerText = currentMaxGrades.q1;
+      document.getElementById('lblQ2').innerText = currentMaxGrades.q2;
+      document.getElementById('maxQ1').value = currentMaxGrades.q1;
+      document.getElementById('maxQ2').value = currentMaxGrades.q2;
+    }
+
+    function saveMaxGrades() {
+      const lec = document.getElementById('lectureSelect').value;
+      const q1 = document.getElementById('maxQ1').value;
+      const q2 = document.getElementById('maxQ2').value;
+      
+      if(!q1 || !q2) return alert("أدخل البيانات كاملة");
+      
+      // Save locally per lecture (Ideally, push this to Google Sheets too!)
+      localStorage.setItem(`maxQ1_lec${lec}`, q1);
+      localStorage.setItem(`maxQ2_lec${lec}`, q2);
+      fetchMaxGrades(lec);
+      
+      showMessage(`✅ تم حفظ النهايات العظمى للمحاضرة ${lec} بنجاح!`, "success");
+      switchView('grading');
+    }
+
+    function handleQRImage(e) {
+      if (e.target.files.length == 0) return;
+      const html5QrCode = new Html5Qrcode("reader"); // Hidden reader
+      showMessage("⏳ جاري تحليل الصورة...", "info");
+      
+      html5QrCode.scanFile(e.target.files[0], true)
+      .then(decodedText => { 
+          // Smart Format: If it's just numbers, add the Group Letter
+          let code = decodedText.toUpperCase();
+          const userGroup = localStorage.getItem('userGroup') || "Group A"; 
+          const groupLetter = userGroup.replace("Group ", "").trim();
+          if (/^\d+$/.test(code)) { code = groupLetter + code; }
+          if (!code.endsWith("EDUR9")) { code = code + "EDUR9"; }
+          
+          document.getElementById('studentCode').value = code; 
+          showMessage("✅ تم قراءة الكود! أدخل الدرجات الآن.", "success");
+          playBeep('success');
+      }).catch(err => {
+          showMessage("❌ لم يتم التعرف على الـ QR.", "error");
+          playBeep('error');
+      });
+    }
+
+    function submitGrades() {
+      let code = document.getElementById('studentCode').value.trim();
+      let task = document.getElementById('gradeTask').value;
+      let q1 = document.getElementById('gradeQ1').value;
+      let q2 = document.getElementById('gradeQ2').value;
+      
+      if(!code) return alert("أدخل أو امسح كود الطالب أولاً!");
+      if(task === "" && q1 === "" && q2 === "") return alert("أدخل درجة واحدة على الأقل!");
+      
+      // Validation against Max Grades
+      if(task !== "" && (parseInt(task) > 70 || parseInt(task) < 0)) return alert("درجة التاسك غير منطقية (أقصاها 70).");
+      if(q1 !== "" && (parseInt(q1) > currentMaxGrades.q1 || parseInt(q1) < 0)) return alert(`كويز 1 لا يمكن أن يتخطى ${currentMaxGrades.q1}`);
+      if(q2 !== "" && (parseInt(q2) > currentMaxGrades.q2 || parseInt(q2) < 0)) return alert(`كويز 2 لا يمكن أن يتخطى ${currentMaxGrades.q2}`);
+
+      // Smart Code Processing
+      const role = localStorage.getItem('userRole');
+      if (role === 'Owner' || role === 'CO-Founder' || role === 'Team Manager' || role === 'Admin') {
+          const match = code.match(/^[A-Z]+/);
+          if (match) {
+              const detectedGroup = "Group " + match[0]; localStorage.setItem('userGroup', detectedGroup);
+              applyRoleAndGroup();
+          }
+      }
+      
+      const userGroup = localStorage.getItem('userGroup') || "Group A"; 
+      const groupLetter = userGroup.replace("Group ", "").trim();
+      if (/^\d+$/.test(code)) { code = groupLetter + code; }
+      if (!code.endsWith("EDUR9")) { code = code + "EDUR9"; }
+
+      const lec = document.getElementById('lectureSelect').value;
+      
+      showProgress("جاري رصد الدرجات في قاعدة البيانات 📡...");
+      
+      fetch(`${GRADES_API_URL}?action=saveGrade&qrCode=${encodeURIComponent(code)}&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(userGroup)}&task=${task}&q1=${q1}&q2=${q2}${getAuthParams()}`)
+      .then(res => res.json()).then(data => {
+          completeProgress();
+          if (data.status === "success") { 
+             showMessage(`✅ تم رصد درجات الطالب بنجاح!`, "success"); 
+             playBeep('success');
+             document.getElementById('studentCode').value = ""; document.getElementById('gradeTask').value = ""; document.getElementById('gradeQ1').value = ""; document.getElementById('gradeQ2').value = "";
+          } else { 
+             showMessage(data.message, "error"); playBeep('error'); 
+          }
+      }).catch(err => { completeProgress(); showMessage("❌ فشل الاتصال بالسيرفر. تأكد من الإنترنت.", "error"); playBeep('error'); });
+    }
+
+    function loadGradesDashboard() {
+      const lec = document.getElementById('lectureSelect').value; 
+      const group = localStorage.getItem('userGroup') || "Group A";
+      const tbody = document.getElementById('gradesTableBody'); 
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 30px; font-weight:700;">⏳ جاري المزامنة مع السيرفر...</td></tr>`;
+      
+      showProgress("جاري سحب سجل الدرجات للجروب المحدد 📊...");
+      
+      fetch(`${GRADES_API_URL}?action=getDashboard&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}${getAuthParams()}`)
+        .then(res => res.json()).then(data => {
+          completeProgress();
+          if (data.status === "success" && data.grades.length > 0) { 
+             tbody.innerHTML = data.grades.map(g => `<tr>
+              <td style="font-weight: 800; color: var(--electric-blue); font-family: monospace;">${g.id}</td> 
+              <td style="font-weight:600;">${g.name}</td> 
+              <td>${g.task !== "" ? g.task : '-'}</td>
+              <td>${g.q1 !== "" ? g.q1 : '-'}</td>
+              <td>${g.q2 !== "" ? g.q2 : '-'}</td>
+              <td style="font-weight:800; color:var(--accent);">${g.total}</td>
+            </tr>`).join('');
+          } 
+          else { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 30px; font-weight:700; color:var(--text-muted);">لا توجد درجات مسجلة في هذا الأسبوع للجروب المحدد.</td></tr>`; }
+        }).catch(err => { completeProgress(); tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#ef4444; padding: 30px;">❌ حدث خطأ في النظام</td></tr>`; });
+    }
+  </script>
+</body>
+</html>
