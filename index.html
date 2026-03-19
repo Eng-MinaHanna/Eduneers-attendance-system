@@ -71,18 +71,14 @@
     body.dark-mode .btn-primary { background: linear-gradient(135deg, var(--electric-blue), #0284c7); color: #fff; box-shadow: 0 5px 15px rgba(0, 210, 255, 0.2); }
     .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
     
-    .btn-secondary { background: linear-gradient(135deg, var(--accent), #f39c12); color: #fff; box-shadow: 0 10px 20px var(--accent-glow); }
-    .btn-secondary:hover { transform: translateY(-3px); box-shadow: 0 15px 30px var(--accent-glow); }
-    
-    .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; box-shadow: 0 10px 20px rgba(239, 68, 68, 0.2);}
-    .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(239, 68, 68, 0.4);}
-    
-    .btn-excel { background: linear-gradient(135deg, #10b981, #059669); color: white; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2); }
+    .btn-secondary { background: linear-gradient(135deg, var(--accent), #f39c12); color: #fff; box-shadow: 0 10px 20px var(--accent-glow); padding: 16px; width: 100%; border-radius: 14px; border: none; font-size: 1rem; font-weight: 800; cursor: pointer; transition: 0.3s; margin-bottom: 10px;}
+    .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; box-shadow: 0 10px 20px rgba(239, 68, 68, 0.2); padding: 16px; width: 100%; border-radius: 14px; border: none; font-size: 1rem; font-weight: 800; cursor: pointer; transition: 0.3s;}
+    .btn-excel { background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 16px; border-radius: 14px; border: none; font-size: 1rem; font-weight: 800; cursor: pointer; transition: 0.3s;}
 
     /* Badges */
     .nav-badge { font-size: 11px; font-weight: 800; padding: 5px 10px; border-radius: 8px; letter-spacing: 0.5px; text-transform: uppercase; font-family: monospace; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); white-space: nowrap !important; flex-shrink: 0 !important; min-width: max-content !important; }
     .group-badge { background: rgba(245, 176, 65, 0.1); color: var(--accent); border: 1px solid rgba(245, 176, 65, 0.3); }
-    body.dark-mode .group-badge { background: rgba(0, 210, 255, 0.1); color: var(--electric-blue); border: 1px solid rgba(0, 210, 255, 0.3); box-shadow: 0 0 10px rgba(0, 210, 255, 0.1); }
+    body.dark-mode .group-badge { background: rgba(0, 210, 255, 0.1); color: var(--electric-blue); border: 1px solid rgba(0, 210, 255, 0.3); }
     .role-badge { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
     body.dark-mode .role-badge { background: rgba(30, 41, 59, 0.8); color: #94a3b8; border: 1px solid #334155; }
     body.role-owner .role-badge { color: #eab308; border-color: rgba(234, 179, 8, 0.4); background: rgba(234, 179, 8, 0.1); }
@@ -135,6 +131,7 @@
     body.role-co-founder a.manager-only, body.role-co-founder a.admin-only { display: flex !important; }
     body.role-owner :not(.view-section).manager-only, body.role-owner :not(.view-section).admin-only, body.role-owner :not(.view-section).cross-group-only { display: block !important; }
     body.role-owner a.manager-only, body.role-owner a.admin-only { display: flex !important; }
+    body.role-user .manager-only, body.role-user .admin-only, body.role-manager .admin-only { display: none !important; }
 
     @media (max-width: 650px) {
       .nav-brand h2 { font-size: 1.1rem; gap: 4px; }
@@ -230,7 +227,7 @@
     <div id="view-manual" class="view-section">
       <div style="max-width: 500px; margin: auto;">
         <h3 style="color:var(--electric-blue); text-align:center; font-size:24px; font-weight:800; margin-bottom:20px;">التسجيل اليدوي السريع</h3>
-        <p style="font-size: 13px; color: var(--text-muted); text-align:center; margin-bottom: 20px;">أدخل <b>رقم الطالب فقط</b> (يدعم الأرقام العربية)، وسيتكفل النظام بالباقي.</p>
+        <p style="font-size: 13px; color: var(--text-muted); text-align:center; margin-bottom: 20px;">أدخل <b>رقم الطالب فقط</b> (يدعم الأرقام العربية)، وسيتكفل النظام بضبط الكود والجروب.</p>
         <input type="text" id="manualCode" placeholder="مثال: 15 أو ١٥" style="text-align:center; font-size:24px; letter-spacing:4px; font-weight:900;">
         <button class="btn-submit" onclick="submitManualCode()">تسجيل الحضور 📥</button>
       </div>
@@ -239,20 +236,20 @@
     <div id="view-dashboard" class="view-section manager-only">
       <div class="dashboard-header">
         <span style="font-weight: 800; color: var(--primary); font-size:16px;">الطلاب الحاضرين:</span>
-        <span class="count-badge" id="dashCount">0</span>
+        <span class="count-badge" id="dashCount" style="color:white; background:var(--electric-blue); padding:5px 15px; border-radius:10px; font-size:1.2rem;">0</span>
       </div>
       <div class="search-box" style="position: relative;">
         <input type="text" id="searchInput" placeholder="بحث ذكي بالاسم أو الكود..." onkeyup="filterDashboard()" style="padding-right: 40px;">
         <span style="position: absolute; right: 15px; top: 15px; opacity: 0.5;">🔍</span>
       </div>
       <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-        <button class="btn-secondary" style="flex: 1; margin:0;" onclick="loadDashboard()">🔄 تحديث</button>
-        <button class="btn-excel" style="flex: 1; margin:0;" onclick="exportToExcel()">📥 تحميل Excel</button>
+        <button class="btn-secondary" style="flex: 1; padding:12px; margin:0;" onclick="loadDashboard()">🔄 تحديث</button>
+        <button class="btn-excel" style="flex: 1; padding:12px; margin:0;" onclick="exportToExcel()">📥 تحميل Excel</button>
       </div>
       <div class="table-container">
         <table id="attendeesTable">
           <thead><tr><th>الكود</th> <th>الاسم</th> <th>الوقت</th> <th class="manager-only">إجراء</th></tr></thead>
-          <tbody id="attendeesList"><tr><td colspan="4" style="text-align:center; padding: 20px; font-weight:700; color:var(--text-muted);">اضغط تحديث لعرض السجلات</td></tr></tbody>
+          <tbody id="attendeesList"><tr><td colspan="4" style="text-align:center; padding: 20px; font-weight:700;">اضغط تحديث لعرض السجلات</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -261,8 +258,8 @@
       <div style="max-width: 600px; margin: auto;">
         <h3 style="color:var(--electric-blue); text-align:center; font-size:24px; font-weight:800; margin-bottom:20px;">📊 الإحصائيات والتحليلات</h3>
         <div class="owner-only" style="display:flex; gap:10px; margin-bottom: 20px;">
-          <button class="btn-primary btn-small" style="flex:1; margin:0; padding:12px;" onclick="loadAnalytics('all')">مقارنة شاملة 🌐</button>
-          <button class="btn-secondary btn-small" style="flex:1; margin:0; padding:12px;" onclick="loadAnalytics('group')">تحليل الجروب 📈</button>
+          <button class="btn-submit" style="flex:1; margin:0; padding:12px;" onclick="loadAnalytics('all')">مقارنة شاملة 🌐</button>
+          <button class="btn-secondary" style="flex:1; margin:0; padding:12px;" onclick="loadAnalytics('group')">تحليل الجروب 📈</button>
         </div>
         <p id="analyticsDesc" style="font-size: 13px; color: var(--text-muted); text-align:center;"></p>
         <div class="chart-container"><canvas id="attendanceChart"></canvas></div>
@@ -292,7 +289,7 @@
         <div class="table-container">
           <table>
             <thead><tr><th>المستخدم</th> <th>الرتبة</th> <th>الجروب</th> <th>إجراء</th></tr></thead>
-            <tbody id="usersList"><tr><td colspan="4" style="text-align:center; padding: 20px; color:var(--text-muted);">جاري الاتصال...</td></tr></tbody>
+            <tbody id="usersList"><tr><td colspan="4" style="text-align:center; padding: 20px;">جاري الاتصال...</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -439,6 +436,7 @@
         }
 
       } catch (error) {
+        console.error(error);
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
         const loginView = document.getElementById('view-login'); if(loginView) loginView.classList.add('active');
         showToast("❌ حدث خطأ أثناء تهيئة النظام.", "error");
@@ -534,7 +532,13 @@
       document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.sidebar a').forEach(el => el.classList.remove('active'));
       
-      document.getElementById(`view-${viewId}`).classList.add('active');
+      let targetView = document.getElementById(`view-${viewId}`);
+      if(!targetView) { 
+          viewId = 'scanner'; 
+          targetView = document.getElementById(`view-${viewId}`); 
+      }
+      
+      targetView.classList.add('active');
       const navItem = document.getElementById(`nav-${viewId}`); if(navItem) navItem.classList.add('active');
       currentView = viewId; localStorage.setItem('savedView', viewId);
       document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show');
