@@ -136,7 +136,15 @@
     .search-box input { margin-bottom: 0; padding-right: 45px; border-radius: 20px; background: #fff; border: 1px solid #e2e8f0;}
     body.dark-mode .search-box input { background: #1e293b; border-color: #334155; }
     
-    .chart-container { height: 300px; margin-top: 25px; background: rgba(0,0,0,0.02); border-radius: 20px; padding: 15px; border: 1px solid rgba(0,0,0,0.05); }
+  .chart-container { 
+  position: relative; 
+  height: 350px; /* 👈 تأكد من وجود طول ثابت */
+  width: 100%; 
+  margin-top: 20px;
+  background: rgba(0,0,0,0.02); 
+  border-radius: 20px; 
+  padding: 15px;
+}
     body.dark-mode .chart-container { background: #1e293b; border-color: #334155; }
 
     /* ⚡ Loader & Toast */
@@ -639,29 +647,28 @@ function applyRolesToUI() {
     function logout() { localStorage.clear(); toggleSidebar(); checkAuth(); window.location.reload(); }
     function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('show'); }
 
-  function switchView(viewId, el) {
+function switchView(viewId, el) {
   if(html5QrCode && html5QrCode.isScanning) stopLiveCamera();
   
   document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
   document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
   
   let targetView = document.getElementById(`view-${viewId}`);
   if(!targetView) return;
   
   targetView.classList.add('active');
-  const navItem = document.getElementById(`nav-${viewId}`); if(navItem) navItem.classList.add('active');
-  const tabItem = document.getElementById(`tab-${viewId}`); if(tabItem) tabItem.classList.add('active');
+  const tabItem = document.getElementById(`tab-${viewId}`);
+  if(tabItem) tabItem.classList.add('active');
 
   currentView = viewId;
   localStorage.setItem('savedView', viewId);
 
-  // 👈 الإصلاح هنا: تشغيل التحميل التلقائي عند فتح الصفحة
+  // 👈 الإصلاح هنا: ننتظر قليلاً حتى تظهر الحاوية قبل الرسم
   if(viewId === 'dashboard') loadDashboard();
   if(viewId === 'users') loadUsers();
   if(viewId === 'analytics') {
-      // ننتظر 300 مللي ثانية حتى تظهر الصفحة تماماً ثم نرسم
-      setTimeout(() => { loadAnalytics('group'); }, 300);
+      document.getElementById('attendanceChart').style.opacity = '0'; // إخفاء مؤقت للرسم
+      setTimeout(() => { loadAnalytics('group'); }, 350); 
   }
 }
 
@@ -787,56 +794,43 @@ function applyRolesToUI() {
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a");
       link.href = URL.createObjectURL(blob); link.download = `Report_${group}_Lec_${lec}.csv`; link.click(); showToast("✅ تم التصدير", "success");
     }
-
 async function loadAnalytics(type = 'group') {
   const group = localStorage.getItem('userGroup') || "Group A";
   const lec = document.getElementById('lecture').value;
-  const rawRole = localStorage.getItem('userRole') || "CADRE";
-  const role = rawRole.toUpperCase(); // لضمان قراءة CO-FOUNDER
-  const auth = getAuthParams();
+  const auth = getAuthParams(); // 👈 إرسال بيانات الجلسة لضمان الأمان
   
-  showLoader(true, "جاري تحليل البيانات وتحضير الرسم البياني...");
+  showLoader(true, "جاري سحب البيانات وتحليل الأداء... 📈");
   
-  // تحديد الرابط بناءً على النوع والصلاحية
-  let url = "";
-  if (type === 'all' && (role === 'OWNER' || role === 'CO-FOUNDER' || role === 'TEAM MANAGER' || role === 'ADMIN')) {
-      url = `${ATTENDANCE_API_URL}?action=getOwnerAnalytics&lectureNum=${lec}${auth}`;
-      document.getElementById('analyticsDesc').innerText = `📊 مقارنة شاملة لنسبة حضور كافة المجموعات - محاضرة ${lec}`;
-  } else {
-      url = `${ATTENDANCE_API_URL}?action=getAnalytics&group=${group}${auth}`;
-      document.getElementById('analyticsDesc').innerText = `📈 تتبع كفاءة حضور ${group} على مدار الكورس`;
-  }
+  let url = (type === 'all') ? 
+      `${ATTENDANCE_API_URL}?action=getOwnerAnalytics&lectureNum=${lec}${auth}` : 
+      `${ATTENDANCE_API_URL}?action=getAnalytics&group=${group}${auth}`;
 
   try {
     const res = await fetch(url);
     const data = await res.json();
-    if (data.status === "success") {
-       // تمرير البيانات لدالة الرسم
-       renderAnalyticsChart(data.labels, data.data, type === 'all' ? 'حضور المجموعات' : 'حضور الجروب الحالي');
+    if (data.status === "success" && data.data.length > 0) {
+       renderAnalyticsChart(data.labels, data.data, type === 'all' ? 'مقارنة الجروبات' : 'حضور ' + group);
+       document.getElementById('analyticsDesc').innerText = `✅ تم تحديث البيانات بناءً على محاضرة رقم ${lec}`;
     } else {
-       showToast("⚠️ " + data.message, "error");
+       showToast("⚠️ لا توجد بيانات كافية للرسم", "error");
     }
   } catch (e) {
-    showToast("❌ فشل الاتصال بالسيرفر المركزي", "error");
+    showToast("❌ خطأ في الاتصال بالسيرفر", "error");
   }
   showLoader(false);
 }
 
    function renderAnalyticsChart(labelsArray, dataArray, labelTitle) {
   const canvas = document.getElementById('attendanceChart');
-  if (!canvas) return; // تأكد أن العنصر موجود
-  
   const ctx = canvas.getContext('2d');
   
-  // 👈 خطوة هامة جداً: مسح الرسم القديم لمنع تداخل البيانات
-  if (attendanceChartInstance) {
-      attendanceChartInstance.destroy();
-  }
+  // 👈 تدمير الرسم القديم إجباري لمنع تداخل الرسوم
+  if (attendanceChartInstance) { attendanceChartInstance.destroy(); }
+
+  document.getElementById('attendanceChart').style.opacity = '1';
 
   const isDark = document.body.classList.contains('dark-mode');
-  const primaryColor = isDark ? '#00d2ff' : '#0f172a';
-  const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)';
-  const textColor = isDark ? '#cbd5e1' : '#64748b';
+  const accentColor = isDark ? '#00d2ff' : '#0f172a'; // أزرق نيون في المظلم
 
   attendanceChartInstance = new Chart(ctx, {
     type: 'bar',
@@ -845,28 +839,21 @@ async function loadAnalytics(type = 'group') {
       datasets: [{
         label: labelTitle,
         data: dataArray,
-        backgroundColor: primaryColor,
+        backgroundColor: accentColor,
         borderColor: '#f5b041',
         borderWidth: 2,
-        borderRadius: 10,
-        hoverBackgroundColor: '#f5b041'
+        borderRadius: 10, // زوايا دائرية للأعمدة
+        hoverBackgroundColor: '#f39c12'
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      animation: { duration: 1500, easing: 'easeOutQuart' },
       scales: {
-        x: { grid: { display: false }, ticks: { color: textColor, font: { family: 'Cairo', weight: 'bold' } } },
-        y: { 
-          beginAtZero: true, 
-          grid: { color: gridColor, borderDash: [5, 5] },
-          ticks: { color: textColor, stepSize: 1 }
-        }
+        x: { ticks: { color: isDark ? '#fff' : '#334155', font: {family: 'Cairo', weight: 'bold'} } },
+        y: { beginAtZero: true, ticks: { stepSize: 1, color: isDark ? '#fff' : '#334155' }, grid: { color: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' } }
       },
-      plugins: {
-        legend: { display: false } // إخفاء الليبل العلوي لزيادة المساحة
-      }
+      plugins: { legend: { display: false } }
     }
   });
 }
