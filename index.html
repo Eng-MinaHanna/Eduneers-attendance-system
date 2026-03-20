@@ -56,7 +56,25 @@
     .tab-item.active { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
     body.dark-mode .tab-item.active { background: linear-gradient(135deg, var(--electric-blue), #0284c7); color: #fff; }
 
-    .container { padding: 10px 15px; max-width: 1000px; margin: auto; }
+   /* 🖥️ تحسين شكل اللاب توب ومنع التمطيط */
+.container { 
+  padding: 30px 15px; 
+  max-width: 1000px; /* العرض الأقصى للمحتوى */
+  margin: auto; 
+  position: relative; 
+  z-index: 1; 
+}
+
+/* تصغير صناديق الإدخال والسكّانر لتبدو احترافية */
+.form-wrapper, #view-login .form-wrapper, #view-scanner div, #view-manual .form-wrapper { 
+  max-width: 500px; 
+  margin: 0 auto; 
+}
+
+#reader { 
+  max-width: 500px; 
+  margin: 20px auto; 
+}
     
     .view-section { display: none !important; background: var(--card-bg); padding: 30px 25px; border-radius: var(--border-radius); box-shadow: 0 20px 40px rgba(0,0,0,0.05); border: 1px solid rgba(255,255,255,0.1); animation: slideUp 0.4s ease; margin-bottom: 25px; backdrop-filter: blur(15px); }
     .view-section.active { display: block !important; }
@@ -742,32 +760,30 @@
     }
 
     function loadUsers() {
-      const tbody = document.getElementById('usersList'); tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 30px;">⏳ جاري جلب الصلاحيات...</td></tr>`;
-      showProgress("قراءة بروتوكولات الأمان...");
-      fetch(`${LOGIN_API_URL}?action=getUsers${getAuthParams()}`).then(res => res.json()).then(data => {
-        completeProgress();
-        if (data.status === "success" && data.users.length > 0) {
-          const visibleUsers = data.users.filter(u => u.role !== 'Owner'); const currentUserRole = localStorage.getItem('userRole').toUpperCase();
-          if (visibleUsers.length === 0) { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 30px;">لا توجد صلاحيات</td></tr>`; return; }
-          tbody.innerHTML = visibleUsers.map(u => {
-            const isProtected = (u.role === 'CO-Founder' && currentUserRole !== 'OWNER');
-            return `<tr>
-              <td style="font-size:13px; line-height: 1.5; color: inherit;"><b>${u.name}</b><br><span style="color:var(--text-muted); font-family:monospace;">${u.email}</span></td> 
-              <td>
-                <select class="role-select" onchange="changeUserRole('${u.email}', this.value)" ${isProtected ? 'disabled title="مغلق - صلاحية عليا"' : ''}>
-                  <option value="Cadre" ${u.role === 'Cadre' || u.role === 'User' ? 'selected' : ''}>Cadre</option>
-                  <option value="Coordinator" ${u.role === 'Coordinator' || u.role === 'Manager' ? 'selected' : ''}>Coordinator</option>
-                  <option value="Team Manager" ${u.role === 'Team Manager' || u.role === 'Admin' ? 'selected' : ''}>Team Manager</option>
-                  <option value="CO-Founder" ${u.role === 'CO-Founder' ? 'selected' : ''}>CO-Founder ✨</option>
-                </select>
-              </td>
-              <td><select class="role-select" onchange="changeUserGroup('${u.email}', this.value)" ${isProtected ? 'disabled' : ''}>${generateGroupOptions(u.group)}</select></td>
-              <td>${isProtected ? '<span style="font-size:12px; color:var(--electric-blue); font-weight:800; background:rgba(0, 210, 255, 0.1); padding:4px 8px; border-radius:8px;">🔒 محمي</span>' : `<button class="btn-danger btn-small" onclick="deleteUser('${u.email}')">عزل 🗑️</button>`}</td>
-            </tr>`;
-          }).join('');
-        } else { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 30px;">الخادم خالي</td></tr>`; }
-      }).catch(err => { completeProgress(); tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#ef4444; padding: 30px;">❌ حدث خطأ</td></tr>`; });
-    }
+  const tbody = document.getElementById('usersList');
+  tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px;">⏳ جاري فك التشفير...</td></tr>`;
+  
+  // 👈 هنا الإصلاح: إرسال الإيميل والتوكن مع الطلب
+  fetch(`${LOGIN_API_URL}?action=getUsers${getAuthParams()}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "success" && data.users.length > 0) {
+        const visibleUsers = data.users.filter(u => u.role !== 'Owner');
+        tbody.innerHTML = visibleUsers.map(u => {
+          return `<tr>
+            <td style="font-size:13px;"><b>${u.name}</b><br><span style="opacity:0.6; font-size:10px;">${u.email}</span></td> 
+            <td><span class="status-badge">${u.role}</span></td>
+            <td><span class="status-badge">${u.group}</span></td>
+            <td><button class="btn-danger btn-small" onclick="deleteUser('${u.email}')">عزل</button></td>
+          </tr>`;
+        }).join('');
+      } else {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px;">لا توجد صلاحيات مسجلة</td></tr>`;
+      }
+    }).catch(err => {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#ef4444; padding: 20px;">❌ فشل في جلب البيانات (تأكد من صلاحياتك)</td></tr>`;
+    });
+}
 
     function changeUserRole(email, newRole) {
       showProgress("تحديث الصلاحية...");
