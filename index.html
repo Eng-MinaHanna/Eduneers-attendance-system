@@ -205,17 +205,20 @@
         <select id="globalGroupSelect" style="margin-bottom:0; max-width: 300px; border-color:#c084fc; color:#c084fc;" onchange="changeGlobalGroup(this.value)"></select>
     </div>
 
-    <div id="view-scanner" class="view-section active">
-      <div style="max-width: 500px; margin: auto;">
-        <h3 style="color:var(--electric-blue); text-align:center; font-size:24px; font-weight:800; margin-bottom:20px;">المسح الضوئي للحضور</h3>
-        <select id="cameraSelection"><option value="">جاري البحث عن كاميرات...</option></select>
-        <button class="btn-primary" onclick="startLiveCamera()">🎥 تفعيل الكاميرا</button>
+     <div id="view-scanner" class="view-section">
+      <div class="form-wrapper">
+        <h3 style="margin-top:0; color:var(--primary); font-weight:800; font-size:22px; margin-bottom: 20px; text-align:center;">المسح الضوئي للحضور</h3>
+        <select id="cameraSelection" style="border-radius:20px;"><option value="">جاري البحث عن كاميرات...</option></select>
+        <button class="btn-primary" onclick="startLiveCamera()">🎥 تفعيل المسح الذكي</button>
         <input type="file" id="qr-input-file" accept="image/*" capture="environment" style="display:none;">
-        <button class="btn-secondary" onclick="document.getElementById('qr-input-file').click()" style="margin-bottom:0;">📸 التقاط صورة للـ QR</button>
-        <div id="reader" style="width: 100%; border-radius: 20px; overflow: hidden; display: none; border: 3px dashed var(--accent); margin-top: 15px; background: rgba(0,0,0,0.05); padding: 10px;"></div>
-        <button class="btn-danger" id="stopCamBtn" style="display:none; margin-top:15px;" onclick="stopLiveCamera()">إيقاف الكاميرا</button>
+        <button class="btn-secondary" onclick="document.getElementById('qr-input-file').click()">📸 التقاط صورة للـ QR</button>
+      </div>
+      <div id="reader"></div>
+      <div class="form-wrapper">
+        <button class="btn-danger" id="stopCamBtn" style="display:none;" onclick="stopLiveCamera()">إيقاف الكاميرا</button>
       </div>
     </div>
+
 
     <div id="view-manual" class="view-section">
       <div style="max-width: 500px; margin: auto;">
