@@ -36,10 +36,12 @@
     body.dark-mode .nav-brand h2 .brand-text { background: linear-gradient(to left, #fff, var(--electric-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
     
     .nav-actions { display: flex; gap: 8px; align-items: center; }
-    .nav-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; font-size: 1.1rem; }
+    
+    /* 🔴 إصلاح أزرار البار العلوي (Navbar Buttons) */
+    .nav-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; font-size: 1.1rem; padding: 0; margin: 0;}
     .nav-btn:hover { background: var(--accent); border-color: var(--accent); }
-    body.dark-mode .nav-btn { background: rgba(255,255,255,0.05) !important; border-color: rgba(255,255,255,0.1) !important; color: #fff !important; }
-    body.dark-mode .nav-btn:hover { background: var(--electric-blue) !important; border-color: var(--electric-blue) !important; box-shadow: 0 0 10px var(--electric-glow) !important;}
+    body.dark-mode .nav-btn { background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255,255,255,0.1); color: #fff; }
+    body.dark-mode .nav-btn:hover { background: var(--electric-blue); border-color: var(--electric-blue); box-shadow: 0 0 10px var(--electric-glow); color: #000; }
 
     /* 🗂️ Sidebar */
     .sidebar { position: fixed; top: 0; right: -300px; width: 280px; height: 100%; background: var(--card-bg); backdrop-filter: blur(25px); z-index: 2000; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: right; padding-top: 60px; box-shadow: -10px 0 30px rgba(0,0,0,0.2); border-left: 1px solid rgba(255,255,255,0.1); }
@@ -127,10 +129,9 @@
     body.dark-mode .table-container { background: rgba(15, 23, 42, 0.9); border-color: #334155; }
     table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: right; }
     th, td { padding: 16px 15px; border-bottom: 1px solid rgba(0,0,0,0.05); vertical-align: middle; }
-    th { background: #f8fafc; color: var(--text-muted); font-weight: 800; white-space: nowrap; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; transition: background 0.5s ease;}
+    th { background: #f8fafc; color: var(--text-muted); font-weight: 800; white-space: nowrap; text-transform: uppercase; font-size: 12px; transition: background 0.5s ease;}
     body.dark-mode th { background: #0f172a; color: var(--electric-blue); border-bottom: 2px solid #334155; }
     body.dark-mode td { border-bottom: 1px solid rgba(255,255,255,0.05); color: #f1f5f9;}
-    tbody tr { transition: background 0.2s ease;}
     tbody tr:hover { background-color: #f8fafc; }
     body.dark-mode tbody tr:hover { background-color: rgba(0, 210, 255, 0.08); }
     .status-badge { background: #f1f5f9; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; color: var(--text-main); border: 1px solid #e2e8f0;}
@@ -144,10 +145,8 @@
     #reader { width: 100%; max-width: 500px; margin: 0 auto 20px auto; border-radius: 20px; overflow: hidden; display: none; border: 3px dashed var(--accent); background: #f8fafc; padding: 10px;}
     body.dark-mode #reader { border-color: var(--electric-blue); background: rgba(30, 41, 59, 0.5); }
 
-    .chart-container { position: relative; height: 320px; width: 100%; background: #fff; border-radius: 20px; border: 1px solid #e2e8f0; padding: 15px; box-sizing: border-box; margin-bottom: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.02);}
+    .chart-container { position: relative; height: 350px; width: 100%; margin-top: 20px; background: rgba(0,0,0,0.02); border-radius: 20px; padding: 15px;}
     body.dark-mode .chart-container { background: #1e293b; border-color: #334155; }
-    .admin-form-container { background: rgba(255,255,255,0.5); padding: 25px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.05); margin-bottom: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.02); max-width: 600px; margin-left: auto; margin-right: auto;}
-    body.dark-mode .admin-form-container { background: rgba(30, 41, 59, 0.8); border-color: #334155; }
 
     /* ⚡ Loader & Toast */
     #electricLoader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 9999; color: var(--text-main); transition: opacity 0.3s; }
@@ -167,7 +166,18 @@
 
     /* 🛡️ Permissions */
     .manager-only, .admin-only, .owner-only, .cross-group-only { display: none !important; }
-    body.role-manager .manager-only:not(.view-section), body.role-admin .manager-only:not(.view-section), body.role-admin .admin-only:not(.view-section), body.role-admin .cross-group-only:not(.view-section), body.role-co-founder .manager-only:not(.view-section), body.role-co-founder .admin-only:not(.view-section), body.role-co-founder .cross-group-only:not(.view-section), body.role-owner .manager-only:not(.view-section), body.role-owner .admin-only:not(.view-section), body.role-owner .cross-group-only:not(.view-section) { display: block !important; }
+    
+    body.role-manager .manager-only:not(.view-section),
+    body.role-admin .manager-only:not(.view-section),
+    body.role-admin .admin-only:not(.view-section),
+    body.role-admin .cross-group-only:not(.view-section),
+    body.role-co-founder .manager-only:not(.view-section),
+    body.role-co-founder .admin-only:not(.view-section),
+    body.role-co-founder .cross-group-only:not(.view-section),
+    body.role-owner .manager-only:not(.view-section),
+    body.role-owner .admin-only:not(.view-section),
+    body.role-owner .cross-group-only:not(.view-section) { display: block !important; }
+    
     .view-section.active { display: block !important; }
     #view-dashboard:not(.active), #view-analytics:not(.active), #view-users:not(.active) { display: none !important; }
 
@@ -178,7 +188,9 @@
     body.dark-mode .divider hr { border-top-color: rgba(255,255,255,0.1); }
     .divider span { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #fff; padding: 0 20px; color: var(--text-muted); font-size: 14px; font-weight: 700; border-radius: 10px; border: 1px solid rgba(0,0,0,0.05);}
     body.dark-mode .divider span { background: #0f172a; color: var(--electric-blue); border-color: rgba(0,210,255,0.2); box-shadow: 0 0 10px rgba(0,210,255,0.1); }
-    
+    .admin-form-container { background: rgba(255,255,255,0.5); padding: 25px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.05); margin-bottom: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.02); max-width: 600px; margin-left: auto; margin-right: auto;}
+    body.dark-mode .admin-form-container { background: rgba(30, 41, 59, 0.8); border-color: #334155; }
+
     /* Login Atom Animation */
     .atom-logo { width: 80px; height: 80px; margin: 0 auto 15px; position: relative; display: flex; justify-content: center; align-items: center; }
     .atom-ring { position: absolute; width: 100%; height: 100%; border: 2px solid var(--accent); border-radius: 50%; opacity: 0.6; box-shadow: 0 0 10px var(--accent-glow); }
@@ -220,9 +232,9 @@
       <div class="nav-actions">
         <span id="groupBadge" class="nav-badge group-badge" style="display: none;"></span>
         <span id="roleBadge" class="nav-badge role-badge" style="display: none;"></span>
-        <button class="theme-toggle" id="themeToggle" onclick="toggleDarkMode()">☀️</button>
-        <button class="theme-toggle" onclick="window.location.href='grades.html'" title="نظام الدرجات والتقييم">🎯</button>
-        <button class="hamburger" id="menuBtn" onclick="toggleSidebar()" style="display:none;">☰</button>
+        <button class="nav-btn" id="themeToggle" onclick="toggleDarkMode()">☀️</button>
+        <button class="nav-btn" onclick="window.location.href='grades.html'" title="نظام الدرجات والتقييم">🎯</button>
+        <button class="nav-btn" id="menuBtn" onclick="toggleSidebar()" style="display:none;">☰</button>
       </div>
     </div>
   </div>
@@ -648,19 +660,15 @@
           }
       }
       
-      if(viewId === 'dashboard') loadDashboard(); 
-      if(viewId === 'users') loadUsers(); 
-      if(viewId === 'analytics') {
-          fetchAnalyticsData(); // استدعاء دالة التحليلات الآمنة
-      }
+      if(viewId === 'dashboard') loadDashboard(); if(viewId === 'users') loadUsers(); 
+      if(viewId === 'analytics') { fetchAnalyticsData(); }
     }
 
     function changeGlobalGroup(newGroup) {
       localStorage.setItem('userGroup', newGroup); 
       const gBadge = document.getElementById('groupBadge');
       if(gBadge) gBadge.innerText = newGroup;
-      if(currentView === 'dashboard') loadDashboard(); 
-      if(currentView === 'analytics') fetchAnalyticsData();
+      if(currentView === 'dashboard') loadDashboard(); if(currentView === 'analytics') fetchAnalyticsData();
     }
 
     function startLiveCamera() {
@@ -704,23 +712,18 @@
     function sendDataToAPI(studentCode) {
       if(!studentCode) return; 
       studentCode = studentCode.toUpperCase();
-      
-      if (!studentCode.endsWith("EDUR9")) {
-          studentCode = studentCode + "EDUR9";
-      }
+      if (!studentCode.endsWith("EDUR9")) { studentCode = studentCode + "EDUR9"; }
 
       const role = localStorage.getItem('userRole').toUpperCase();
       if (role === 'OWNER' || role === 'CO-FOUNDER' || role === 'TEAM MANAGER' || role === 'ADMIN') {
           const match = studentCode.match(/^[A-Z]+/);
           if (match) {
-              const detectedGroup = "Group " + match[0]; 
-              changeGlobalGroup(detectedGroup);
+              const detectedGroup = "Group " + match[0]; changeGlobalGroup(detectedGroup);
               const ggs = document.getElementById('globalGroupSelect'); if(ggs) ggs.value = detectedGroup;
           }
       }
       
-      const lec = document.getElementById('lecture').value; 
-      const group = localStorage.getItem('userGroup') || "Group A";
+      const lec = document.getElementById('lecture').value; const group = localStorage.getItem('userGroup') || "Group A";
 
       if (!navigator.onLine) {
         offlineQueue.push({ code: studentCode, lecture: lec, group: group, time: new Date().toISOString() });
@@ -782,7 +785,6 @@
       link.href = URL.createObjectURL(blob); link.download = `Report_${group}_Lec_${lec}.csv`; link.click(); showToast("✅ تم التصدير", "success");
     }
 
-    // 🔴 دالة التحليلات الآمنة (Anti-Crash)
     function fetchAnalyticsData(type = 'group') {
       showProgress("تحليل البيانات وبناء الرسوم... 📈");
       const group = localStorage.getItem('userGroup') || "Group A"; 
@@ -830,7 +832,6 @@
         });
     }
 
-    // Wrap the old loadAnalytics to call the new safe one
     function loadAnalytics(type = 'group') {
         fetchAnalyticsData(type);
     }
