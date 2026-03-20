@@ -776,11 +776,11 @@
       link.href = URL.createObjectURL(blob); link.download = `Report_${group}_Lec_${lec}.csv`; link.click(); showToast("✅ تم التصدير", "success");
     }
 
-    function loadAnalytics(type = 'group') {
-      showProgress("جاري معالجة الخوارزميات وتحليل البيانات 📈...");
-      const group = localStorage.getItem('userGroup') || "Group A"; const lec = document.getElementById('lecture').value; const role = localStorage.getItem('userRole');
+function loadAnalytics(type = 'group') {
+      showProgress("تحليل البيانات...");
+      const group = localStorage.getItem('userGroup') || "Group A"; const lec = document.getElementById('lecture').value; const role = localStorage.getItem('userRole').toUpperCase();
       let url = ""; let chartTitle = "";
-      if (type === 'all' && (role === 'Owner' || role === 'CO-Founder')) {
+      if (type === 'all' && (role === 'OWNER' || role === 'CO-FOUNDER')) {
          url = `${ATTENDANCE_API_URL}?action=getOwnerAnalytics&lectureNum=${encodeURIComponent(lec)}${getAuthParams()}`;
          document.getElementById('analyticsDesc').innerText = `📊 مقارنة حية لحضور كافة الجروبات - محاضرة ${lec}`; chartTitle = 'حضور الجروبات';
       } else {
@@ -789,12 +789,10 @@
       }
       fetch(url).then(res => res.json()).then(data => {
           completeProgress();
-          if (data.status === "success") {
-            document.getElementById('message').style.display = 'none'; renderChart(data.labels, data.data, chartTitle);
-          } else { showMessage(data.message, "error"); }
-        }).catch(err => { completeProgress(); showMessage("❌ فشل في معالجة الرسوم البيانية.", "error"); });
+          if (data.status === "success") { document.getElementById('message').style.display = 'none'; renderAnalyticsChart(data.labels, data.data, chartTitle); } else { showToast(data.message, "error"); }
+        }).catch(err => { completeProgress(); showToast("❌ فشل في الرسوم البيانية.", "error"); });
     }
-    
+
     function renderAnalyticsChart(labelsArray, dataArray, labelTitle) {
       const ctx = document.getElementById('attendanceChart').getContext('2d');
       if (attendanceChartInstance) attendanceChartInstance.destroy();
@@ -849,7 +847,6 @@
           } else { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 30px;">الخادم خالي</td></tr>`; }
         }).catch(err => { completeProgress(); tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#ef4444; padding: 30px;">❌ حدث خطأ في جلب البيانات</td></tr>`; });
     }
-
     function changeUserRole(email, newRole) {
       showProgress("تحديث الصلاحية...");
       fetch(`${LOGIN_API_URL}?action=updateRole&targetEmail=${encodeURIComponent(email)}&role=${encodeURIComponent(newRole)}${getAuthParams()}`)
