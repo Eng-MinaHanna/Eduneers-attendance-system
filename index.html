@@ -639,41 +639,31 @@ function applyRolesToUI() {
     function logout() { localStorage.clear(); toggleSidebar(); checkAuth(); window.location.reload(); }
     function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('show'); }
 
-    function switchView(viewId, el) {
-      if(currentView === 'scanner' && viewId !== 'scanner') stopLiveCamera();
-      
-      document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-      document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
-      document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-      
-      let targetView = document.getElementById(`view-${viewId}`);
-      if(!targetView) { viewId = 'scanner'; targetView = document.getElementById(`view-${viewId}`); }
-      
-      targetView.classList.add('active');
-      const navItem = document.getElementById(`nav-${viewId}`); if(navItem) navItem.classList.add('active');
-      const tabItem = document.getElementById(`tab-${viewId}`); if(tabItem) tabItem.classList.add('active');
-      if(el && el.classList.contains('tab-item')) el.classList.add('active');
+  function switchView(viewId, el) {
+  if(html5QrCode && html5QrCode.isScanning) stopLiveCamera();
+  
+  document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  
+  let targetView = document.getElementById(`view-${viewId}`);
+  if(!targetView) return;
+  
+  targetView.classList.add('active');
+  const navItem = document.getElementById(`nav-${viewId}`); if(navItem) navItem.classList.add('active');
+  const tabItem = document.getElementById(`tab-${viewId}`); if(tabItem) tabItem.classList.add('active');
 
-      currentView = viewId; localStorage.setItem('savedView', viewId);
-      document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show');
+  currentView = viewId;
+  localStorage.setItem('savedView', viewId);
 
-      const lecContainer = document.getElementById('lectureContainer');
-      if (viewId === 'users' || viewId === 'login') { 
-          lecContainer.style.setProperty('display', 'none', 'important'); 
-      } else { 
-          if(document.body.classList.contains('role-admin') || document.body.classList.contains('role-owner') || document.body.classList.contains('role-co-founder')) {
-              lecContainer.style.setProperty('display', 'block', 'important');
-          } else if(viewId === 'scanner' || viewId === 'manual') {
-              lecContainer.style.setProperty('display', 'block', 'important');
-              const cgo = document.querySelector('#lectureContainer .cross-group-only');
-              if(cgo) cgo.style.display = 'none';
-          } else {
-              lecContainer.style.setProperty('display', 'none', 'important');
-          }
-      }
-      
-      if(viewId === 'dashboard') loadDashboard(); if(viewId === 'users') loadUsers(); if(viewId === 'analytics') loadAnalytics('group'); 
-    }
+  // 👈 الإصلاح هنا: تشغيل التحميل التلقائي عند فتح الصفحة
+  if(viewId === 'dashboard') loadDashboard();
+  if(viewId === 'users') loadUsers();
+  if(viewId === 'analytics') {
+      // ننتظر 300 مللي ثانية حتى تظهر الصفحة تماماً ثم نرسم
+      setTimeout(() => { loadAnalytics('group'); }, 300);
+  }
+}
 
     function changeGlobalGroup(newGroup) {
       localStorage.setItem('userGroup', newGroup); 
@@ -801,33 +791,85 @@ function applyRolesToUI() {
 async function loadAnalytics(type = 'group') {
   const group = localStorage.getItem('userGroup') || "Group A";
   const lec = document.getElementById('lecture').value;
+  const rawRole = localStorage.getItem('userRole') || "CADRE";
+  const role = rawRole.toUpperCase(); // لضمان قراءة CO-FOUNDER
   const auth = getAuthParams();
   
-  showLoader(true, "جاري تحليل البيانات...");
+  showLoader(true, "جاري تحليل البيانات وتحضير الرسم البياني...");
   
-  let url = (type === 'all') ? 
-      `${ATTENDANCE_API_URL}?action=getOwnerAnalytics&lectureNum=${lec}${auth}` : 
-      `${ATTENDANCE_API_URL}?action=getAnalytics&group=${group}${auth}`;
+  // تحديد الرابط بناءً على النوع والصلاحية
+  let url = "";
+  if (type === 'all' && (role === 'OWNER' || role === 'CO-FOUNDER' || role === 'TEAM MANAGER' || role === 'ADMIN')) {
+      url = `${ATTENDANCE_API_URL}?action=getOwnerAnalytics&lectureNum=${lec}${auth}`;
+      document.getElementById('analyticsDesc').innerText = `📊 مقارنة شاملة لنسبة حضور كافة المجموعات - محاضرة ${lec}`;
+  } else {
+      url = `${ATTENDANCE_API_URL}?action=getAnalytics&group=${group}${auth}`;
+      document.getElementById('analyticsDesc').innerText = `📈 تتبع كفاءة حضور ${group} على مدار الكورس`;
+  }
 
   try {
     const res = await fetch(url);
     const data = await res.json();
     if (data.status === "success") {
-       // 👈 السر هنا: التأكد من وجود البيانات قبل الرسم
-       setTimeout(() => {
-          renderAnalyticsChart(data.labels, data.data, type === 'all' ? 'مقارنة الجروبات' : 'حضور الجروب');
-       }, 200); 
+       // تمرير البيانات لدالة الرسم
+       renderAnalyticsChart(data.labels, data.data, type === 'all' ? 'حضور المجموعات' : 'حضور الجروب الحالي');
+    } else {
+       showToast("⚠️ " + data.message, "error");
     }
-  } catch (e) { showToast("❌ فشل تحميل البيانات", "error"); }
+  } catch (e) {
+    showToast("❌ فشل الاتصال بالسيرفر المركزي", "error");
+  }
   showLoader(false);
 }
 
-    function renderAnalyticsChart(labelsArray, dataArray, labelTitle) {
-      const ctx = document.getElementById('attendanceChart').getContext('2d');
-      if (attendanceChartInstance) attendanceChartInstance.destroy();
-      const isDark = document.body.classList.contains('dark-mode'); const chartColor = isDark ? '#00d2ff' : '#0f172a'; const gridColor = isDark ? '#334155' : '#e2e8f0';
-      attendanceChartInstance = new Chart(ctx, { type: 'bar', data: { labels: labelsArray, datasets: [{ label: labelTitle, data: dataArray, backgroundColor: chartColor, borderColor: '#f5b041', borderWidth: 2, borderRadius: 12, hoverBackgroundColor: '#f5b041' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false }, ticks: { color: isDark ? '#cbd5e1' : '#64748b' } }, y: { beginAtZero: true, ticks: { stepSize: 5, color: isDark ? '#cbd5e1' : '#64748b' }, grid: { color: gridColor, borderDash: [4, 4] } } }, plugins: { legend: { display: false } }, animation: { duration: 1500, easing: 'easeOutQuart' } } });
+   function renderAnalyticsChart(labelsArray, dataArray, labelTitle) {
+  const canvas = document.getElementById('attendanceChart');
+  if (!canvas) return; // تأكد أن العنصر موجود
+  
+  const ctx = canvas.getContext('2d');
+  
+  // 👈 خطوة هامة جداً: مسح الرسم القديم لمنع تداخل البيانات
+  if (attendanceChartInstance) {
+      attendanceChartInstance.destroy();
+  }
+
+  const isDark = document.body.classList.contains('dark-mode');
+  const primaryColor = isDark ? '#00d2ff' : '#0f172a';
+  const gridColor = isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)';
+  const textColor = isDark ? '#cbd5e1' : '#64748b';
+
+  attendanceChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labelsArray,
+      datasets: [{
+        label: labelTitle,
+        data: dataArray,
+        backgroundColor: primaryColor,
+        borderColor: '#f5b041',
+        borderWidth: 2,
+        borderRadius: 10,
+        hoverBackgroundColor: '#f5b041'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 1500, easing: 'easeOutQuart' },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: textColor, font: { family: 'Cairo', weight: 'bold' } } },
+        y: { 
+          beginAtZero: true, 
+          grid: { color: gridColor, borderDash: [5, 5] },
+          ticks: { color: textColor, stepSize: 1 }
+        }
+      },
+      plugins: {
+        legend: { display: false } // إخفاء الليبل العلوي لزيادة المساحة
+      }
     }
+  });
+}
 
     function loadUsers() {
   const tbody = document.getElementById('usersList');
