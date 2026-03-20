@@ -329,15 +329,26 @@
         const l = document.getElementById('loader');
         document.getElementById('loaderMsg').innerText = message;
         l.style.display = 'flex';
-        let p=0; document.getElementById('loaderPercent').innerText = p + '%'; document.getElementById('barFill').style.width = p + '%';
+        let p=0; 
+        document.getElementById('percent').innerText = p + '%'; 
+        document.getElementById('barFill').style.width = p + '%';
         clearInterval(loaderInterval);
-        loaderInterval = setInterval(()=>{ p+=Math.floor(Math.random()*10)+1; if(p>90)p=90; document.getElementById('barFill').style.width=p+'%'; document.getElementById('loaderPercent').innerText=p+'%'; }, 100);
+        loaderInterval = setInterval(()=>{ 
+            p+=Math.floor(Math.random()*10)+1; 
+            if(p>90) p=90; 
+            document.getElementById('barFill').style.width=p+'%'; 
+            document.getElementById('percent').innerText=p+'%'; 
+        }, 100);
     }
 
     function completeProgress() {
         clearInterval(loaderInterval);
-        document.getElementById('barFill').style.width='100%'; document.getElementById('loaderPercent').innerText='100%';
-        setTimeout(() => { document.getElementById('loader').style.display = 'none'; document.getElementById('barFill').style.width='0%'; }, 300);
+        document.getElementById('barFill').style.width='100%'; 
+        document.getElementById('percent').innerText='100%';
+        setTimeout(() => { 
+            document.getElementById('loader').style.display = 'none'; 
+            document.getElementById('barFill').style.width='0%'; 
+        }, 300);
     }
 
     function showToast(text, type="success") {
