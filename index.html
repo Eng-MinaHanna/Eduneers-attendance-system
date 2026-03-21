@@ -19,10 +19,27 @@
     }
 
     /* -------------------------------------- */
+    /* 🌙 إعدادات الوضع المظلم والخلفية الأساسية */
+    /* -------------------------------------- */
+    body.dark-mode { 
+      --primary: #f8fafc; 
+      --bg-gradient: radial-gradient(circle at top right, #1e293b 0%, #0f172a 100%); 
+      --text-main: #f8fafc; 
+      --text-muted: #cbd5e1; 
+      --card-bg: rgba(15, 23, 42, 0.9); 
+    }
+    
+    body { font-family: 'Cairo', sans-serif; background: var(--bg-gradient); margin: 0; color: var(--text-main); min-height: 100vh; transition: background 0.5s, color 0.5s; overflow-x: hidden; }
+    
+    .circuit-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; background-image: radial-gradient(circle at 50% 50%, rgba(245, 176, 65, 0.05) 2px, transparent 2px); background-size: 40px 40px; animation: pulseCircuit 10s infinite alternate; pointer-events: none; }
+    body.dark-mode .circuit-bg { background-image: radial-gradient(circle at 50% 50%, rgba(0, 210, 255, 0.1) 2px, transparent 3px); }
+    @keyframes pulseCircuit { 0% { opacity: 0.5; } 100% { opacity: 1; } }
+
+    /* -------------------------------------- */
     /* 🖼️ تنسيق اللوجو (التبديل بين الفاتح والداكن) */
     /* -------------------------------------- */
     .logo-light, .logo-dark { max-width: 150px; height: auto; margin-bottom: 15px; transition: 0.3s; }
-    .logo-dark { display: none; } /* إخفاء اللوجو الداكن في الوضع الافتراضي */
+    .logo-dark { display: none; }
     
     body.dark-mode .logo-light { display: none; }
     body.dark-mode .logo-dark { display: inline-block; }
