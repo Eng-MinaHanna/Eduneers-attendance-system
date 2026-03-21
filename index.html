@@ -666,15 +666,19 @@
       document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show');
 
       const lecContainer = document.getElementById('lectureContainer');
+      const cgo = document.querySelector('#lectureContainer .cross-group-only'); // جلب عنصر اختيار الجروب
+      
       if (viewId === 'users' || viewId === 'login') { 
           lecContainer.style.setProperty('display', 'none', 'important'); 
       } else { 
           if(document.body.classList.contains('role-admin') || document.body.classList.contains('role-owner') || document.body.classList.contains('role-co-founder')) {
               lecContainer.style.setProperty('display', 'block', 'important');
+              // إظهار اختيار الجروب للإداريين في كل الصفحات (بما فيها الكاميرا واليدوي)
+              if(cgo) cgo.style.setProperty('display', 'block', 'important'); 
           } else if(viewId === 'scanner' || viewId === 'manual') {
               lecContainer.style.setProperty('display', 'block', 'important');
-              const cgo = document.querySelector('#lectureContainer .cross-group-only');
-              if(cgo) cgo.style.display = 'none';
+              // إخفاء اختيار الجروب للمستخدمين العاديين
+              if(cgo) cgo.style.setProperty('display', 'none', 'important');
           } else {
               lecContainer.style.setProperty('display', 'none', 'important');
           }
@@ -683,7 +687,7 @@
       if(viewId === 'dashboard') loadDashboard(); if(viewId === 'users') loadUsers(); 
       if(viewId === 'analytics') { fetchAnalyticsData(); }
     }
-
+    
     function changeGlobalGroup(newGroup) {
       localStorage.setItem('userGroup', newGroup); 
       const gBadge = document.getElementById('groupBadge');
