@@ -285,12 +285,18 @@ async function init() {
       showLoader(true, "جاري استدعاء البيانات وتحليلها من خوادم السحابة...");
       const auth = `&email=${encodeURIComponent(localStorage.getItem('userEmail'))}&token=${encodeURIComponent(localStorage.getItem('sessionToken'))}`;
 
+      // إعدادات الـ Fetch لحل مشاكل إعادة التوجيه و الـ CORS مع Google Apps Script
+      const fetchOptions = {
+        method: 'GET',
+        mode: 'cors', // إجبار المتصفح على استخدام وضع CORS
+        redirect: 'follow' // السماح بتتبع إعادة التوجيه التي يقوم بها جوجل
+      };
+
       try {
-        // 🔴 تم تصحيح علامة & إلى ? لتبدأ الباراميترات بشكل سليم
         const [resAtt, resGrd, resExt] = await Promise.all([
-          fetch(`${ATTEND_API}?action=getComparisonData${auth}`).then(r => r.json()),
-          fetch(`${GRADES_API}?action=getComparisonData${auth}`).then(r => r.json()),
-          fetch(`${EXTRA_API}?action=getComparisonData${auth}`).then(r => r.json())
+          fetch(`${ATTEND_API}?action=getComparisonData${auth}`, fetchOptions).then(r => r.json()),
+          fetch(`${GRADES_API}?action=getComparisonData${auth}`, fetchOptions).then(r => r.json()),
+          fetch(`${EXTRA_API}?action=getComparisonData${auth}`, fetchOptions).then(r => r.json())
         ]);
 
         if (resAtt.status === "success") {
@@ -300,7 +306,7 @@ async function init() {
           alert("خطأ في البيانات المسترجعة: " + (resAtt.message || "Unknown error"));
         }
       } catch (e) {
-        alert("❌ خطأ تقني في الربط: تأكد من تفعيل CORS وعمل Deployment جديد لكل السكريبتات.");
+        alert("❌ خطأ تقني في الربط. تأكد من إعدادات الـ Apps Script.");
         console.error(e);
       }
       showLoader(false);
