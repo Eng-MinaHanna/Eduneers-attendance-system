@@ -152,21 +152,6 @@
       align-items: center;
     }
 
-    /* ساعة الـ Navbar */
-    #liveClockBadge {
-      font-size: 11px;
-      font-weight: 800;
-      padding: 5px 10px;
-      border-radius: 8px;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.15);
-      color: rgba(255,255,255,0.8);
-      font-family: monospace;
-      letter-spacing: 0.5px;
-      white-space: nowrap;
-    }
-
-    @media (max-width: 400px) { #liveClockBadge { display: none; } }
 
     /* ⚡ Success Flash Overlay */
     #successFlash {
@@ -1169,7 +1154,7 @@
         <span id="groupBadge" class="nav-badge group-badge" style="display: none;"></span>
         <span id="roleBadge" class="nav-badge role-badge" style="display: none;"></span>
         <button class="nav-btn" id="themeToggle" onclick="toggleDarkMode()">☀️</button>
-        <span id="liveClockBadge" style="display:none;"></span>
+
         <button class="nav-btn manager-only" onclick="window.location.href='grades.html'"
           title="نظام الدرجات والتقييم">🎯</button>
         <button class="nav-btn" id="menuBtn" onclick="toggleSidebar()" style="display:none;">☰</button>
@@ -2000,15 +1985,7 @@
         document.getElementById('loginEmail')?.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('loginPassword').focus(); });
         document.getElementById('manualCode')?.addEventListener('keydown', e => { if (e.key === 'Enter') submitManualCode(); });
 
-        // 🕐 Live clock in navbar
-        function updateLiveClock() {
-          const now = new Date();
-          const timeStr = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-          const el = document.getElementById('liveClockBadge');
-          if (el) el.innerText = '🕐 ' + timeStr;
-        }
-        updateLiveClock();
-        setInterval(updateLiveClock, 1000);
+
 
       } catch (error) {
         console.error("System Error:", error);
@@ -2093,7 +2070,7 @@
         const mBtn = document.getElementById('menuBtn'); if (mBtn) mBtn.style.display = 'flex';
         const appTabs = document.getElementById('appTabs'); if (appTabs) appTabs.style.display = 'flex';
         const wName = document.getElementById('welcomeName'); if (wName) wName.innerText = `| ${userName}`;
-        const clockBadge = document.getElementById('liveClockBadge'); if (clockBadge) clockBadge.style.display = 'inline-flex';
+
         applyRolesToUI();
         if (currentView === 'login' || !document.getElementById(`view-${currentView}`)) currentView = 'scanner';
         switchView(currentView); syncRole(true);
