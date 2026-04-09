@@ -9,7 +9,7 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
-  <style>
+<style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
 
     :root { 
@@ -32,9 +32,9 @@
     
     body { font-family: 'Cairo', sans-serif; background: var(--bg-gradient); margin: 0; color: var(--text-main); min-height: 100vh; transition: background 0.5s, color 0.5s; overflow-x: hidden; }
     
-    .circuit-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; background-image: radial-gradient(circle at 50% 50%, rgba(245, 176, 65, 0.05) 2px, transparent 2px); background-size: 40px 40px; animation: pulseCircuit 10s infinite alternate; pointer-events: none; }
+    .circuit-bg { position: fixed; top: -5%; left: -5%; width: 110vw; height: 110vh; z-index: -1; background-image: radial-gradient(circle at 50% 50%, rgba(245, 176, 65, 0.05) 2px, transparent 2px); background-size: 40px 40px; animation: pulseCircuit 12s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate; pointer-events: none; }
     body.dark-mode .circuit-bg { background-image: radial-gradient(circle at 50% 50%, rgba(0, 210, 255, 0.1) 2px, transparent 3px); }
-    @keyframes pulseCircuit { 0% { opacity: 0.5; } 100% { opacity: 1; } }
+    @keyframes pulseCircuit { 0% { opacity: 0.3; transform: scale(1); } 100% { opacity: 0.8; transform: scale(1.05); } }
 
     /* -------------------------------------- */
     /* 🖼️ تنسيق اللوجو (التبديل بين الفاتح والداكن) */
@@ -73,34 +73,21 @@
 
     /* 🏷️ Tabs */
     .tabs-container { display: flex; background: var(--card-bg); margin: 15px auto; max-width: 1000px; border-radius: 15px; padding: 5px; gap: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid rgba(255,255,255,0.1); overflow-x: auto; backdrop-filter: blur(10px); }
-    .tab-item { flex: 1; padding: 12px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: 800; font-size: 0.8rem; color: #64748b; transition: 0.3s; min-width: 80px; }
+    .tab-item { flex: 1; padding: 10px 5px; text-align: center; border-radius: 10px; cursor: pointer; font-weight: 800; font-size: 0.85rem; color: #64748b; transition: 0.3s; min-width: 75px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+    .tab-item span:first-child { font-size: 1.4rem; height: 24px; display: flex; align-items: center; justify-content: center; margin-bottom: 2px; }
     .tab-item.active { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
     body.dark-mode .tab-item { color: #94a3b8; }
     body.dark-mode .tab-item.active { background: linear-gradient(135deg, var(--electric-blue), #0284c7); color: #fff; box-shadow: 0 4px 15px var(--electric-glow); }
 
-    /* 🖥️ تحسين شكل اللاب توب ومنع التمطيط */
-    .container { 
-      padding: 30px 15px; 
-      max-width: 1000px; /* العرض الأقصى للمحتوى */
-      margin: auto; 
-      position: relative; 
-      z-index: 1; 
-    }
-
-    /* تصغير صناديق الإدخال والسكّانر لتبدو احترافية */
-    .form-wrapper, #view-login .form-wrapper, #view-scanner div, #view-manual .form-wrapper { 
-      max-width: 500px; 
-      margin: 0 auto; 
-    }
-
-    #reader { 
-      max-width: 500px; 
-      margin: 20px auto; 
-    }
+    .container { padding: 10px 15px; max-width: 1000px; margin: auto; }
+    .form-wrapper { max-width: 500px; width: 100%; margin: 0 auto; }
     
-    .view-section { display: none !important; background: var(--card-bg); padding: 30px 25px; border-radius: var(--border-radius); box-shadow: 0 20px 40px rgba(0,0,0,0.05); border: 1px solid rgba(255,255,255,0.1); animation: slideUp 0.4s ease; margin-bottom: 25px; backdrop-filter: blur(15px); }
-    .view-section.active { display: block !important; }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(20px) } to { opacity: 1; transform: translateY(0) } }
+    .view-section { display: none !important; background: var(--card-bg); padding: 30px 25px; border-radius: var(--border-radius); box-shadow: 0 20px 40px rgba(0,0,0,0.05); border: 1px solid rgba(255,255,255,0.1); margin-bottom: 25px; backdrop-filter: blur(15px); transition: transform 0.4s ease, box-shadow 0.4s ease; }
+    .view-section.active { display: block !important; animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes slideUpFade { 
+        0% { opacity: 0; transform: translateY(40px) scale(0.96); filter: blur(5px); } 
+        100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } 
+    }
 
     /* 🔴 حقول الإدخال (Inputs) شاملة الدارك مود */
     input, select, textarea { 
@@ -183,32 +170,28 @@
     #reader { width: 100%; max-width: 500px; margin: 0 auto 20px auto; border-radius: 20px; overflow: hidden; display: none; border: 3px dashed var(--accent); background: #f8fafc; padding: 10px;}
     body.dark-mode #reader { border-color: var(--electric-blue); background: rgba(30, 41, 59, 0.5); }
 
-    .chart-container { 
-      position: relative; 
-      height: 350px; 
-      width: 100%; 
-      margin-top: 20px;
-      background: rgba(0,0,0,0.02); 
-      border-radius: 20px; 
-      padding: 15px;
-    }
+    .chart-container { position: relative; height: 350px; width: 100%; margin-top: 20px; background: rgba(0,0,0,0.02); border-radius: 20px; padding: 15px;}
     body.dark-mode .chart-container { background: #1e293b; border-color: #334155; }
 
     /* ⚡ Loader & Toast */
-    #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.95); display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 9999; color: white; backdrop-filter: blur(10px); }
-    .bar-bg { width: 70%; max-width: 400px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; margin: 15px 0; }
-    .bar-fill { width: 0%; height: 100%; background: var(--electric-blue); transition: 0.1s linear; box-shadow: 0 0 15px var(--electric-blue); }
+    #electricLoader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 9999; color: var(--text-main); transition: opacity 0.3s; }
+    body.dark-mode #electricLoader { color: var(--electric-blue); }
+    .loader-text { margin-bottom: 20px; font-size: 18px; font-weight: 700; letter-spacing: 1px; animation: pulseText 1.5s infinite alternate; text-shadow: 0 0 10px currentColor;}
+    .progress-bar-container { width: 80%; max-width: 400px; height: 6px; background: rgba(255,255,255,0.2); border-radius: 10px; overflow: hidden; position: relative; box-shadow: inset 0 0 5px rgba(0,0,0,0.5); }
+    body.dark-mode .progress-bar-container { background: rgba(0,0,0,0.4); }
+    .progress-bar-fill { height: 100%; width: 0%; background: var(--accent); box-shadow: 0 0 15px var(--accent-glow); border-radius: 10px; transition: width 0.1s linear; }
+    body.dark-mode .progress-bar-fill { background: var(--electric-blue); box-shadow: 0 0 15px var(--electric-glow); }
+    .loader-percent { margin-top: 15px; font-size: 24px; font-weight: 800; font-family: monospace; text-shadow: 0 0 10px currentColor; color: var(--accent); }
+    body.dark-mode .loader-percent { color: var(--electric-blue); }
+    @keyframes pulseText { 0% { opacity: 0.7; } 100% { opacity: 1; } }
+
     #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 14px 25px; border-radius: 12px; color: white; font-weight: 700; display: none; z-index: 3000; box-shadow: 0 5px 20px rgba(0,0,0,0.3); animation: popIn 0.3s ease; }
     @keyframes popIn { from { transform: translate(-50%, 20px); opacity: 0;} to { transform: translate(-50%, 0); opacity: 1;} }
     #offlineBadge { display: none; background: #ef4444; color: white; padding: 12px 15px; border-radius: 16px; font-weight: 800; text-align: center; margin-bottom: 20px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);}
 
     /* 🛡️ Permissions */
-    /* 🛡️ نظام صلاحيات مطور يمنع تداخل الصفحات */
-    .manager-only, .admin-only, .owner-only, .cross-group-only { 
-      display: none !important; 
-    }
-
-    /* إظهار العناصر العادية (أزرار، بدجات) داخل الصفحات */
+    .manager-only, .admin-only, .owner-only, .cross-group-only { display: none !important; }
+    
     body.role-manager .manager-only:not(.view-section),
     body.role-admin .manager-only:not(.view-section),
     body.role-admin .admin-only:not(.view-section),
@@ -218,47 +201,75 @@
     body.role-co-founder .cross-group-only:not(.view-section),
     body.role-owner .manager-only:not(.view-section),
     body.role-owner .admin-only:not(.view-section),
-    body.role-owner .cross-group-only:not(.view-section) { 
-      display: block !important; 
-    }
+    body.role-owner .cross-group-only:not(.view-section) { display: block !important; }
     
-    /* إظهار التابوهات (Tabs) فقط إذا كانت الصفحة نشطة والمستخدم معه صلاحية */
     .view-section.active { display: block !important; }
+    #view-dashboard:not(.active), #view-analytics:not(.active), #view-users:not(.active) { display: none !important; }
+
+    .google-btn-container { display: flex; justify-content: center; margin-top: 20px; padding: 20px; background: rgba(248, 250, 252, 0.5); border-radius: 20px; border: 2px dashed rgba(0,0,0,0.1);}
+    body.dark-mode .google-btn-container { background: rgba(30, 41, 59, 0.5); border-color: rgba(255,255,255,0.1); }
     
-    /* حماية إضافية للأقسام الحساسة */
-    #view-dashboard:not(.active), #view-analytics:not(.active), #view-users:not(.active) {
-      display: none !important;
+    /* -------------------------------------- */
+    /* تنسيق الفاصل (Divider) المُصحح */
+    /* -------------------------------------- */
+    .divider { text-align: center; margin: 30px 0; position: relative; }
+    .divider hr { border: none; border-top: 1px solid rgba(0,0,0,0.1); }
+    body.dark-mode .divider hr { border-top-color: rgba(255,255,255,0.1); }
+    .divider span { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--card-bg); padding: 0 20px; color: var(--text-muted); font-size: 14px; font-weight: 700; border-radius: 10px; border: 1px solid rgba(0,0,0,0.05);}
+    body.dark-mode .divider span { background: #0f172a; color: var(--electric-blue); border-color: rgba(0,210,255,0.2); box-shadow: 0 0 10px rgba(0,210,255,0.1); }
+    
+    .admin-form-container { background: rgba(255,255,255,0.5); padding: 25px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.05); margin-bottom: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.02); max-width: 600px; margin-left: auto; margin-right: auto;}
+    body.dark-mode .admin-form-container { background: rgba(30, 41, 59, 0.8); border-color: #334155; }
+
+    /* 📐 استجابة الشاشات (Responsive Design) */
+    @media (min-width: 1024px) {
+      /* إعدادات اللابتوب والشاشات الكبيرة */
+      .container { max-width: 1200px; padding: 40px 20px; }
+      .form-wrapper, .admin-form-container, .view-section > div { max-width: 800px !important; margin: auto; }
+      .view-section { padding: 40px 50px; }
+      .view-section:hover { transform: translateY(-4px); box-shadow: 0 35px 60px rgba(0,0,0,0.08); }
+      body.dark-mode .view-section:hover { box-shadow: 0 35px 60px rgba(0,210,255,0.05); border-color: rgba(0,210,255,0.2); }
+      input, select, textarea { padding: 18px; font-size: 16px; margin-bottom: 20px; transition: 0.4s ease; }
+      button { padding: 18px; font-size: 1.1rem; border-radius: 18px; }
+      .chart-container { height: 450px; }
+      table { font-size: 16px; }
+      th, td { padding: 20px; }
     }
-    
+
     @media (max-width: 650px) {
+      /* إعدادات الهواتف المحمولة */
       .nav-brand h2 { font-size: 1.1rem; gap: 4px; }
       .nav-brand span#welcomeName { display: none; } 
       .nav-badge { padding: 4px 6px; font-size: 10px; letter-spacing: 0px; }
+      .view-section { padding: 20px 15px; }
+      h2, h3 { font-size: 1.2rem !important; }
+      input, select, textarea, button { font-size: 14px; padding: 12px; }
     }
-  </style>
+</style>
+
 </head>
 <body class="dark-mode">
 
   <div class="circuit-bg"></div>
 
-  <div id="loader">
-    <div style="width:60px; height:60px; margin-bottom:20px; position:relative; display:flex; justify-content:center; align-items:center;">
-       <div style="position:absolute; width:100%; height:100%; border:2px solid var(--electric-blue); border-radius:50%; opacity:0.6; animation: spin 2s linear infinite;"></div>
-       <div style="width:12px; height:12px; background:var(--electric-blue); border-radius:50%; box-shadow: 0 0 20px var(--electric-blue);"></div>
+  <div id="electricLoader">
+    <div class="loader-text" id="loaderMessage">جاري نقل البيانات...</div>
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill" id="progressBarFill"></div>
     </div>
-    <div id="loaderMsg" style="font-weight: 800; font-size: 1.1rem; letter-spacing: 1px;">جاري العمل...</div>
-    <div class="bar-bg"><div class="bar-fill" id="barFill"></div></div>
-    <div style="font-size: 24px; font-weight: 900; font-family: monospace; color: var(--electric-blue);" id="percent">0%</div>
+    <div class="loader-percent" id="loaderPercent">0%</div>
   </div>
-  <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
 
   <div class="navbar">
     <div class="nav-content">
-      <div class="nav-brand"><h2>⚡ <span class="brand-text">Eduneers</span> <span id="welcomeName" style="font-size: 11px; opacity:0.7;"></span></h2></div>
+      <div class="nav-brand">
+        <h2>⚡ <span class="brand-text">Eduneers</span> <span id="welcomeName"></span></h2>
+      </div>
       <div class="nav-actions">
-        <span id="groupBadge" style="font-size: 11px; font-weight: 800; background: rgba(0, 210, 255, 0.1); color: var(--electric-blue); padding: 5px 10px; border-radius: 8px; border: 1px solid rgba(0, 210, 255, 0.3); display: none;"></span>
-        <button class="nav-btn" onclick="toggleDarkMode()">🌓</button>
-        <button class="nav-btn" onclick="window.location.href='grades.html'" title="نظام التقييم والدرجات">🎯</button>
+        <span id="groupBadge" class="nav-badge group-badge" style="display: none;"></span>
+        <span id="roleBadge" class="nav-badge role-badge" style="display: none;"></span>
+        <button class="nav-btn" id="themeToggle" onclick="toggleDarkMode()">☀️</button>
+        <button class="nav-btn manager-only" onclick="window.location.href='grades.html'" title="نظام الدرجات والتقييم">🎯</button>
         <button class="nav-btn" id="menuBtn" onclick="toggleSidebar()" style="display:none;">☰</button>
       </div>
     </div>
@@ -276,30 +287,37 @@
       <span>📷</span> <span>مسح الـ QR</span>
     </a>
     <a href="#" onclick="switchView('manual'); toggleSidebar();" id="nav-manual">
-      <span>✍️</span> <span>التسجيل اليدوي</span>
+      <span>✍️</span> <span>التسجيل اليدوي السريع</span>
     </a>
-    <a href="grades.html" style="color: var(--accent);">
-      <span>🎯</span> <span>نظام الدرجات</span>
+    
+    <a href="grades.html" class="manager-only" style="color: var(--accent);">
+      <span>🎯</span> <span>نظام رصد الدرجات</span>
     </a>
-    <a href="#" class="manager-only" onclick="switchView('dashboard'); toggleSidebar();" id="nav-dashboard">
+    
+    <div class="sidebar-heading">متابعة الحضور</div>
+    <a href="#" onclick="switchView('dashboard'); toggleSidebar();" id="nav-dashboard">
       <span>📊</span> <span>لوحة الحضور</span>
     </a>
-    <a href="#" class="manager-only" onclick="switchView('analytics'); toggleSidebar();" id="nav-analytics">
-      <span>📈</span> <span>التحليلات</span>
+    <a href="#" onclick="switchView('analytics'); toggleSidebar();" id="nav-analytics" class="manager-only">
+      <span>📈</span> <span>إحصائيات الجروبات</span>
     </a>
-    <a href="#" class="admin-only" onclick="switchView('users'); toggleSidebar();" id="nav-users">
+    
+    <div class="sidebar-heading admin-only">إدارة النظام</div>
+    <a href="#" onclick="switchView('users'); toggleSidebar();" id="nav-users" class="admin-only">
       <span>👥</span> <span>إدارة المستخدمين</span>
     </a>
-
-    <div style="height: 1px; background: rgba(255,255,255,0.1); margin: 15px 25px;"></div>
-    <a href="#" onclick="logout()" style="color: #ef4444; margin-top: 10px;"><span>🚪</span> <span>تسجيل الخروج</span></a>
+    
+    <div style="margin-top: 40px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+      <a href="#" onclick="logout();" style="color: #ef4444;">🚪 تسجيل الخروج</a>
+    </div>
   </div>
 
   <div class="tabs-container" id="appTabs" style="display:none;">
     <div class="tab-item active" id="tab-scanner" onclick="switchView('scanner', this)"><span>📷</span><span> كاميرا</span></div>
     <div class="tab-item" id="tab-manual" onclick="switchView('manual', this)"><span>✍️</span><span> يدوي</span></div>
-    <div class="tab-item manager-only" id="tab-dashboard" onclick="switchView('dashboard', this)"><span>📊</span><span> متابعة</span></div>
+    <div class="tab-item" id="tab-dashboard" onclick="switchView('dashboard', this)"><span>📊</span><span> متابعة</span></div>
     <div class="tab-item admin-only" id="tab-users" onclick="switchView('users', this)"><span>👥</span><span> إدارة</span></div>
+    <div class="tab-item manager-only" id="tab-mail" onclick="switchView('mail', this)"><span>📧</span><span> إعلان</span></div>
   </div>
 
   <div class="container">
@@ -307,31 +325,24 @@
     <div id="offlineBadge" onclick="syncOfflineData()">📶 لديك بيانات غير مزامنة (<span id="offlineCount">0</span>). اضغط للرفع!</div>
 
     <div id="lectureContainer" class="manager-only" style="background: var(--card-bg); padding: 15px; border-radius: 16px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); text-align:center; box-shadow: 0 10px 20px rgba(0,0,0,0.05); display:none;">
-      
       <div style="margin-bottom: 15px;">
           <label style="font-weight: 800; color: var(--electric-blue); font-size: 13px; display:block; margin-bottom:10px;">رقم المحاضرة المستهدفة</label>
-          <select id="lecture" style="margin-bottom: 0; max-width: 300px;">
-              <script>for(let i=1;i<=20;i++) document.write(`<option value="${i}">المحاضرة ${i}</option>`);</script>
-          </select>
+          <select id="lecture" style="margin-bottom: 0; max-width: 300px;"><script>for(let i=1;i<=20;i++) document.write(`<option value="${i}">المحاضرة ${i}</option>`);</script></select>
       </div>
-
-      <div class="cross-group-only" style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; display:none !important;">
+      <div class="manager-only cross-group-only" style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;">
           <label style="font-weight: 800; color: #c084fc; font-size: 13px; display:block; margin-bottom:10px;">تحكم الجروب 👑</label>
           <select id="globalGroupSelect" style="margin-bottom:0; max-width: 300px; border-color:#c084fc; color:#c084fc;" onchange="changeGlobalGroup(this.value)"></select>
       </div>
 
-  </div>
+    </div>
 
     <div id="view-scanner" class="view-section active">
       <div style="max-width: 500px; margin: auto;">
         <h3 style="color:var(--electric-blue); text-align:center; font-size:24px; font-weight:800; margin-bottom:20px;">المسح الضوئي للحضور</h3>
         <select id="cameraSelection"><option value="">جاري البحث عن كاميرات...</option></select>
-        
         <button class="btn-primary" onclick="startLiveCamera()" style="width: 100%; display: flex; justify-content: center;">🎥 تفعيل المسح الذكي</button>
-        
         <input type="file" id="qr-input-file" accept="image/*" capture="environment" style="display:none;">
         <button class="btn-secondary" onclick="document.getElementById('qr-input-file').click()" style="margin-bottom:0;">📸 التقاط صورة للـ QR</button>
-        
         <div id="reader" style="width: 100%; border-radius: 20px; overflow: hidden; display: none; border: 3px dashed var(--accent); margin-top: 15px; background: rgba(0,0,0,0.05); padding: 10px;"></div>
         <button class="btn-danger" id="stopCamBtn" style="display:none; margin-top:15px; width: 100%; justify-content: center;" onclick="stopLiveCamera()">إيقاف الكاميرا</button>
       </div>
@@ -340,28 +351,37 @@
     <div id="view-manual" class="view-section">
       <div style="max-width: 500px; margin: auto;">
         <h3 style="color:var(--electric-blue); text-align:center; font-size:24px; font-weight:800; margin-bottom:20px;">التسجيل اليدوي السريع</h3>
-        <p style="font-size: 13px; color: var(--text-muted); text-align:center; margin-bottom: 20px;">أدخل <b>رقم الطالب فقط</b> (يدعم الأرقام العربية ١٢٣).</p>
+        <p style="font-size: 14px; color: var(--text-muted); text-align:center; margin-bottom: 20px;">أدخل <b>رقم الطالب فقط</b> (يدعم الأرقام العربية ١٢٣).</p>
         <input type="text" id="manualCode" placeholder="مثال: 15 أو ١٥" style="text-align:center; font-size:24px; letter-spacing:4px; font-weight:900;">
         <button class="btn-primary" onclick="submitManualCode()">تسجيل الحضور 📥</button>
       </div>
     </div>
 
-    <div id="view-dashboard" class="view-section manager-only">
+    <div id="view-dashboard" class="view-section">
       <div class="dashboard-header">
-        <span style="font-weight: 800; color: var(--primary); font-size:16px;">الطلاب الحاضرين:</span>
+        <span style="font-weight: 800; color: var(--primary); font-size:16px;">مؤشر الحضور الحي:</span>
         <span class="count-badge" id="dashCount">0</span>
       </div>
-      <div class="search-box" style="position: relative;">
-        <input type="text" id="searchInput" placeholder="بحث ذكي بالاسم أو الكود..." onkeyup="filterDashboard()" style="padding-right: 40px;">
-        <span style="position: absolute; right: 15px; top: 15px; opacity: 0.5;">🔍</span>
-      </div>
-      <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-        <button class="btn-secondary" style="flex: 1; padding:12px; margin:0;" onclick="loadDashboard()">🔄 تحديث</button>
-        <button class="btn-excel" style="flex: 1; padding:12px; margin:0;" onclick="exportToExcel()">📥 تحميل Excel</button>
+      <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;">
+          <div class="search-box" style="position: relative; margin: 0;">
+            <input type="text" id="searchInput" placeholder="بحث ذكي بالاسم أو الكود..." onkeyup="filterDashboard()" style="margin: 0; padding: 14px; padding-right: 45px; text-align: right; border-radius: 14px; box-sizing: border-box; width: 100%;">
+            <span style="position: absolute; right: 15px; top: 16px; opacity: 0.5;">🔍</span>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn-secondary" style="flex: 1; margin: 0; padding: 12px; font-size: 14px; gap: 8px;" onclick="loadDashboard()"><span>🔄</span><span>تحديث</span></button>
+            <button class="btn-excel" style="flex: 1; margin: 0; padding: 12px; font-size: 14px; gap: 8px;" onclick="exportToExcel()"><span>📥</span><span>تحميل Excel</span></button>
+          </div>
       </div>
       <div class="table-container">
         <table id="attendeesTable">
-          <thead><tr><th>الكود</th> <th>الاسم</th> <th>الوقت</th> <th class="manager-only">إجراء</th></tr></thead>
+          <thead>
+            <tr>
+              <th onclick="sortDashboard('id')" style="cursor:pointer; transition:0.3s;" title="رتب بالكود">الكود <span id="sort-id" style="font-size:14px; margin-right:4px;">⇕</span></th> 
+              <th onclick="sortDashboard('name')" style="cursor:pointer; transition:0.3s;" title="رتب أبجدياً">الاسم <span id="sort-name" style="font-size:14px; margin-right:4px;">⇕</span></th> 
+              <th onclick="sortDashboard('time')" style="cursor:pointer; transition:0.3s;" title="رتب بوقت التوثيق">الوقت <span id="sort-time" style="font-size:14px; margin-right:4px;">⇕</span></th> 
+              <th>إجراء</th>
+            </tr>
+          </thead>
           <tbody id="attendeesList"><tr><td colspan="4" style="text-align:center; padding: 20px; font-weight:700; color:var(--text-muted);">اضغط تحديث لعرض السجلات</td></tr></tbody>
         </table>
       </div>
@@ -370,13 +390,13 @@
     <div id="view-analytics" class="view-section manager-only">
       <div style="max-width: 600px; margin: auto;">
         <h3 style="color:var(--electric-blue); text-align:center; font-size:24px; font-weight:800; margin-bottom:20px;">📊 الإحصائيات والتحليلات</h3>
-        <div class="owner-only" style="display:flex; gap:10px; margin-bottom: 20px;">
-          <button class="btn-primary btn-small" style="flex:1; margin:0; padding:12px;" onclick="loadAnalytics('all')">مقارنة شاملة 🌐</button>
-          <button class="btn-secondary btn-small" style="flex:1; margin:0; padding:12px;" onclick="loadAnalytics('group')">تحليل الجروب 📈</button>
+        <div class="owner-only flex-container" style="gap: 15px; margin-bottom: 25px; background: rgba(255,255,255,0.5); padding: 15px; border-radius: 16px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 6px rgba(0,0,0,0.02); max-width: 600px; margin-left: auto; margin-right: auto;">
+          <button class="btn-primary btn-small" style="flex:1; margin:0; padding:12px; font-size:14px;" onclick="loadAnalytics('all')">مقارنة شاملة 🌐</button>
+          <button class="btn-secondary btn-small" style="flex:1; margin:0; padding:12px; font-size:14px;" onclick="loadAnalytics('group')">تحليل الجروب 📈</button>
         </div>
         <p id="analyticsDesc" style="font-size: 13px; color: var(--text-muted); text-align:center;"></p>
         <div class="chart-container"><canvas id="attendanceChart"></canvas></div>
-        <button class="btn-secondary" style="margin-top: 15px;" onclick="loadAnalytics()">تحديث البيانات 🔄</button>
+        <button class="btn-secondary" style="margin-top: 15px;" onclick="loadAnalytics()">🔄 تحديث البيانات</button>
       </div>
     </div>
 
@@ -387,7 +407,7 @@
           <input type="text" id="newUserName" placeholder="الاسم بالكامل">
           <input type="email" id="newUserEmail" placeholder="البريد الإلكتروني الرسمي">
           <input type="password" id="newUserPass" placeholder="كلمة مرور الدخول">
-          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+          <div style="display: flex; gap: 15px; margin-bottom: 20px;">
             <select id="newUserRole" style="margin-bottom: 0;">
               <option value="Cadre">مسجل (Cadre)</option>
               <option value="Coordinator">مراقب (Coordinator)</option>
@@ -398,7 +418,13 @@
           </div>
           <button class="btn-primary" onclick="addUser()">توثيق المستخدم ➕</button>
         </div>
-        <div class="form-wrapper"><button class="btn-secondary" onclick="loadUsers()">🔄 سحب بيانات المستخدمين</button></div>
+        <div class="form-wrapper" style="display:flex; gap:10px; margin-bottom:15px;">
+            <button class="btn-secondary" style="margin:0; padding:12px; flex:1; gap: 6px;" onclick="loadUsers()"><span>🔄</span><span>سحب/تحديث</span></button>
+            <div class="search-box" style="position:relative; flex:2;">
+                <input type="text" id="searchUsersInput" placeholder="بحث بالاسم أو الايميل..." onkeyup="filterSystemUsers()" style="margin:0; padding:12px; padding-right:35px; width:100%; box-sizing:border-box; text-align: right;">
+                <span style="position:absolute; right:12px; top:13px; opacity:0.5;">🔍</span>
+            </div>
+        </div>
         <div class="table-container" style="margin-top:20px;">
           <table>
             <thead><tr><th>المستخدم</th> <th>الرتبة</th> <th>الجروب</th> <th>إجراء</th></tr></thead>
@@ -408,7 +434,48 @@
       </div>
     </div>
 
-    <div id="view-login" class="view-section">
+    <div id="view-mail" class="view-section manager-only">
+      <div style="max-width: 600px; margin: auto;">
+        <h3 style="color:var(--electric-blue); text-align:center; font-size:24px; font-weight:800; margin-bottom:20px;">📧 مساحة الإعلانات الإدارية</h3>
+        <p style="text-align:center; font-size:13px; margin-bottom:20px; color:var(--text-muted); line-height: 1.6;">إرسال رسائل مخصصة لمتدرب معين أو لكافة الجروب. يتم تحميل لوجو الشركة وتوقيعك الرسمي (كوردينتور) بأسفل الرسالة بشكل ديناميكي.</p>
+        
+        <div class="admin-form-container">
+          <style>
+              .custom-multi-select { position: relative; width: 100%; margin-bottom: 15px; direction: rtl; text-align: right; }
+              .select-box { background: rgba(0,0,0,0.03); border: 2px solid transparent; padding: 14px 20px; border-radius: 14px; color: var(--text-main); font-weight: 800; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
+              .select-box:hover { border-color: var(--accent); background: rgba(0,0,0,0.05); }
+              body.dark-mode .select-box { background: rgba(255,255,255,0.03); }
+              .options-container { display: none; position: absolute; top: calc(100% + 5px); left: 0; right: 0; background: var(--card-bg); backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; z-index: 1000; max-height: 280px; overflow-y: auto; box-shadow: 0 15px 40px rgba(0,0,0,0.2); padding: 10px; }
+              .options-container.open { display: block; animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+              .option-item { padding: 12px; display: flex; align-items: center; gap: 12px; cursor: pointer; border-radius: 10px; transition: 0.2s; color: var(--text-main); font-weight: 700; font-size: 14px; border-bottom: 1px solid rgba(0,0,0,0.03); }
+              .option-item:last-child { border-bottom: none; }
+              .option-item:hover { background: rgba(245, 176, 65, 0.1); }
+              .option-item input { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent); flex-shrink: 0; margin: 0; }
+              @keyframes slideDown { 0% { opacity: 0; transform: translateY(-10px); } 100% { opacity: 1; transform: translateY(0); } }
+          </style>
+          <div class="custom-multi-select">
+             <div class="select-box" onclick="toggleMailOptionList()">
+                <span id="mailSelectBoxText">اختر المتدربين المرسل إليهم 🔽</span>
+             </div>
+             <div class="options-container" id="mailOptionList">
+                <div style="text-align:center; padding: 20px; color: var(--text-muted);">يرجى الانتظار...</div>
+             </div>
+          </div>
+          <input type="text" id="mailSubject" placeholder="عنوان الرسالة (Subject) هام جداً..." required>
+          <textarea id="mailBody" rows="6" placeholder="اكتب محتوى رسالتك هنا... (يمكنك الرجوع لسطر جديد وسيتم تنظيمه برمجياً)" style="resize: vertical; margin-bottom: 15px; width: 100%; border-radius: 14px; padding: 14px; text-align: right; box-sizing: border-box;" required></textarea>
+          
+          <div style="border: 2px dashed rgba(0,0,0,0.1); border-radius: 14px; padding: 15px; margin-bottom: 20px; text-align: center; position: relative;">
+              <span style="font-size: 13px; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 10px;">إرفاق ملف (اختياري / حد أقصى 5MB)</span>
+              <input type="file" id="mailAttachment" accept="image/*,.pdf" style="width: 100%; font-size: 13px; text-align: center; background: transparent; border: none; outline: none; padding: 0;">
+          </div>
+          
+          <button class="btn-primary" onclick="sendBroadcastMail()">إطلاق الإعلانات 🔥</button>
+        </div>
+      </div>
+    </div>
+
+
+<div id="view-login" class="view-section">
       <div class="form-wrapper">
         <div style="text-align: center; margin-bottom: 30px;">
           
@@ -433,13 +500,12 @@
   </div>
 
   <script>
-    const ATTEND_API = "https://script.google.com/macros/s/AKfycbzrLXNuxcAM5A1euSqtbqt-3L2sqAPXGb0A3JF7hiCaJ5giW86c51bs45ISAPANa4PP/exec"; 
-    const ATTENDANCE_API_URL = ATTEND_API; 
+    const ATTENDANCE_API_URL = "https://script.google.com/macros/s/AKfycbxmKb4E6BwyaRLpsOciufG1-jiJYAs2TaKf0lMhVwfj3eBEg09xOI77LEkqmnre7oDljg/exec"; 
     const LOGIN_API_URL = "https://script.google.com/macros/s/AKfycbw-oytOWrgERm2yXu-NagMlyS14HlUGeAlsWqrZl2SwRJIi0IDL1AH2VduQvsmIIkNgFA/exec";
 
     let html5QrCode; let allAttendees = []; 
     let currentView = localStorage.getItem('savedView') || 'login';
-    let attendanceChartInstance = null; let myChart = null;
+    let attendanceChartInstance = null;
     let lastSyncTime = 0; const SYNC_COOLDOWN = 60000;
     
     let offlineQueue = JSON.parse(localStorage.getItem('offlineQueue')) || [];
@@ -452,18 +518,18 @@
 
     let loaderInterval;
     function showProgress(message="جاري العمل...") {
-        const l = document.getElementById('loader');
-        document.getElementById('loaderMsg').innerText = message;
+        const l = document.getElementById('electricLoader');
+        document.getElementById('loaderMessage').innerText = message;
         l.style.display = 'flex';
-        let p=0; document.getElementById('percent').innerText = p + '%'; document.getElementById('barFill').style.width = p + '%';
+        let p=0; document.getElementById('loaderPercent').innerText = p + '%'; document.getElementById('progressBarFill').style.width = p + '%';
         clearInterval(loaderInterval);
-        loaderInterval = setInterval(()=>{ p+=Math.floor(Math.random()*10)+1; if(p>90)p=90; document.getElementById('barFill').style.width=p+'%'; document.getElementById('percent').innerText=p+'%'; }, 100);
+        loaderInterval = setInterval(()=>{ p+=Math.floor(Math.random()*10)+1; if(p>90)p=90; document.getElementById('progressBarFill').style.width=p+'%'; document.getElementById('loaderPercent').innerText=p+'%'; }, 100);
     }
 
     function completeProgress() {
         clearInterval(loaderInterval);
-        document.getElementById('barFill').style.width='100%'; document.getElementById('percent').innerText='100%';
-        setTimeout(() => { document.getElementById('loader').style.display = 'none'; document.getElementById('barFill').style.width='0%'; }, 300);
+        document.getElementById('progressBarFill').style.width='100%'; document.getElementById('loaderPercent').innerText='100%';
+        setTimeout(() => { document.getElementById('electricLoader').style.display = 'none'; document.getElementById('progressBarFill').style.width='0%'; }, 300);
     }
 
     function showToast(text, type="success") {
@@ -494,7 +560,8 @@
 
     function toggleDarkMode() {
       document.body.classList.toggle('dark-mode'); const isDark = document.body.classList.contains('dark-mode');
-      localStorage.setItem('darkMode', isDark); 
+      localStorage.setItem('darkMode', isDark);
+      document.getElementById('themeToggle').innerText = isDark ? '🌙' : '☀️';
       if(currentView === 'analytics' && attendanceChartInstance) { loadAnalytics('group'); }
     }
 
@@ -502,13 +569,15 @@
       const badge = document.getElementById('offlineBadge'); const countSpan = document.getElementById('offlineCount');
       if (offlineQueue.length > 0) {
         badge.style.display = 'block'; countSpan.innerText = offlineQueue.length;
-        badge.style.backgroundColor = navigator.onLine ? '#f39c12' : '#ef4444'; 
+        if (navigator.onLine) badge.style.backgroundColor = '#f39c12'; 
+        else badge.style.backgroundColor = '#ef4444'; 
       } else { badge.style.display = 'none'; }
     }
 
     function syncOfflineData() {
-      if (!navigator.onLine) return alert("الإنترنت مقطوع. تأكد من الاتصال.");
+      if (!navigator.onLine) return alert("الإنترنت ما زال مقطوعاً. تأكد من الاتصال أولاً.");
       if (offlineQueue.length === 0) return;
+      
       showProgress("جاري رفع البيانات المتأخرة للسيرفر...");
       let successCount = 0;
       function uploadNext(index) {
@@ -519,13 +588,13 @@
         fetch(`${ATTENDANCE_API_URL}?action=scan&qrCode=${encodeURIComponent(record.code)}&lectureNum=${encodeURIComponent(record.lecture)}&group=${encodeURIComponent(record.group)}${getAuthParams()}`)
           .then(res => res.json()).then(data => { if (data.status === "success" || data.status === "already") successCount++; uploadNext(index + 1);
           }).catch(err => {
-             offlineQueue = offlineQueue.slice(index); localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue)); updateOfflineBadge(); completeProgress(); showToast("❌ انقطع الاتصال أثناء المزامنة.", "error");
+             offlineQueue = offlineQueue.slice(index); localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue)); updateOfflineBadge(); completeProgress(); showToast("❌ انقطع الاتصال أثناء المزامنة. حاول مجدداً.", "error");
           });
       }
       uploadNext(0);
     }
 
-    window.onload = function() {
+window.onload = function() {
       try {
         if (localStorage.getItem('darkMode') === 'true') { document.body.classList.add('dark-mode'); document.getElementById('themeToggle').innerText = '🌙'; }
         updateOfflineBadge(); window.addEventListener('online', updateOfflineBadge); window.addEventListener('offline', updateOfflineBadge);
@@ -556,10 +625,9 @@
           }).catch(err => console.log("Cam warning:", err));
         }
 
-        // برمجة زرار جوجل عشان يشتغل على الموبايل بدون مشاكل
         if (typeof google !== 'undefined' && google.accounts) {
           google.accounts.id.initialize({
-            client_id: "841979425871-4frlmc9t57ahvui609v35ksv8rvnvo0b.apps.googleusercontent.com", 
+            client_id: "199540075185-0s74k90bdpodvtnao1ce7euec2o0vr31.apps.googleusercontent.com",
             callback: handleGoogleLogin,
             cancel_on_tap_outside: false
           });
@@ -567,7 +635,7 @@
             document.getElementById("googleBtnWrapper"),
             { theme: "filled_black", size: "large", shape: "pill", text: "signin_with" }
           );
-        } 
+        }
         
       } catch (error) {
         console.error("System Error:", error);
@@ -669,7 +737,7 @@
     function logout() { localStorage.clear(); toggleSidebar(); checkAuth(); location.reload(); }
     function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('show'); }
 
-    function switchView(viewId, el) {
+    function switchView(viewId, tabElement = null) {
       if(currentView === 'scanner' && viewId !== 'scanner') stopLiveCamera();
       
       document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
@@ -681,35 +749,45 @@
       
       targetView.classList.add('active');
       const navItem = document.getElementById(`nav-${viewId}`); if(navItem) navItem.classList.add('active');
-      const tabItem = document.getElementById(`tab-${viewId}`); if(tabItem) tabItem.classList.add('active');
-      if(el && el.classList.contains('tab-item')) el.classList.add('active');
+      if(tabElement) {
+        tabElement.classList.add('active');
+        localStorage.setItem('lastActiveTab', tabElement.id);
+      } else {
+        const t = document.getElementById(`tab-${viewId}`); if(t) t.classList.add('active');
+      }
 
       currentView = viewId; localStorage.setItem('savedView', viewId);
       document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('show');
 
       const lecContainer = document.getElementById('lectureContainer');
+      const cgo = document.querySelector('#lectureContainer .cross-group-only');
+      
       if (viewId === 'users' || viewId === 'login') { 
           lecContainer.style.setProperty('display', 'none', 'important'); 
       } else { 
           if(document.body.classList.contains('role-admin') || document.body.classList.contains('role-owner') || document.body.classList.contains('role-co-founder')) {
               lecContainer.style.setProperty('display', 'block', 'important');
-          } else if(viewId === 'scanner' || viewId === 'manual') {
+              if(cgo) cgo.style.setProperty('display', 'block', 'important'); 
+          } else if(viewId === 'scanner' || viewId === 'manual' || viewId === 'dashboard') {
               lecContainer.style.setProperty('display', 'block', 'important');
-              const cgo = document.querySelector('#lectureContainer .cross-group-only');
-              if(cgo) cgo.style.display = 'none';
+              if(cgo) cgo.style.setProperty('display', 'none', 'important');
           } else {
               lecContainer.style.setProperty('display', 'none', 'important');
           }
       }
       
-      if(viewId === 'dashboard') loadDashboard(); if(viewId === 'users') loadUsers(); if(viewId === 'analytics') loadAnalytics('group'); 
+      if(viewId === 'dashboard') loadDashboard(); if(viewId === 'users') loadUsers(); 
+      if(viewId === 'analytics') { fetchAnalyticsData(); }
+      if(viewId === 'mail') {
+          loadMailTargetList();
+      }
     }
-
+    
     function changeGlobalGroup(newGroup) {
       localStorage.setItem('userGroup', newGroup); 
       const gBadge = document.getElementById('groupBadge');
       if(gBadge) gBadge.innerText = newGroup;
-      if(currentView === 'dashboard') loadDashboard(); if(currentView === 'analytics') loadAnalytics('group');
+      if(currentView === 'dashboard') loadDashboard(); if(currentView === 'analytics') fetchAnalyticsData();
     }
 
     function startLiveCamera() {
@@ -750,14 +828,10 @@
       document.getElementById('manualCode').value = ""; 
     }
 
-    // 🔴 الدالة المعدلة لإظهار اسم الطالب في حالة النجاح
     function sendDataToAPI(studentCode) {
       if(!studentCode) return; 
       studentCode = studentCode.toUpperCase();
-      
-      if (!studentCode.endsWith("EDUR9")) {
-          studentCode = studentCode + "EDUR9";
-      }
+      if (!studentCode.endsWith("EDUR9")) { studentCode = studentCode + "EDUR9"; }
 
       const role = localStorage.getItem('userRole').toUpperCase();
       if (role === 'OWNER' || role === 'CO-FOUNDER' || role === 'TEAM MANAGER' || role === 'ADMIN') {
@@ -781,11 +855,9 @@
       .then(res => res.json()).then(data => {
           completeProgress();
           if (data.status === "success") { 
-            // 👈 التعديل هنا: قراءة الاسم وعرضه
             let studentName = data.name || data.studentName || data.student_name;
-            let successMsg = studentName ? `✅ تم تسجيل (${studentName}) بنجاح` : (data.message || "✅ تم التسجيل بنجاح");
-            showToast(successMsg, "success"); 
-            playBeep('success'); 
+            let successMsg = studentName ? `✅ تم تسجيل ${studentName} بنجاح` : (data.message || "✅ تم التسجيل بنجاح");
+            showToast(successMsg, "success"); playBeep('success'); 
           } 
           else { showToast(data.message, "error"); playBeep('error'); }
       }).catch(err => { 
@@ -802,25 +874,86 @@
       fetch(`${ATTENDANCE_API_URL}?action=getDashboard&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}${getAuthParams()}`)
         .then(res => res.json()).then(data => {
           completeProgress(); document.getElementById('dashCount').innerText = data.count || 0;
-          if (data.status === "success" && data.attendees.length > 0) { allAttendees = data.attendees; renderTable(allAttendees); } 
+          if (data.status === "success" && data.attendees.length > 0) { allAttendees = data.attendees.map((d, i) => ({...d, _originalIdx: i})); renderTable(allAttendees); } 
           else { allAttendees = []; tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 30px; color:var(--text-muted);">لا توجد سجلات حالياً</td></tr>`; }
         }).catch(err => { completeProgress(); tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#ef4444; padding: 30px;">❌ خطأ</td></tr>`; });
     }
 
     function renderTable(dataArray) {
-      const tbody = document.getElementById('attendeesList'); const isManager = (localStorage.getItem('userRole') !== 'Cadre' && localStorage.getItem('userRole') !== 'User');
-      if (dataArray.length === 0) { tbody.innerHTML = `<tr><td colspan="${isManager? 4 : 3}" style="text-align:center; padding: 30px;">لا نتائج</td></tr>`; return; }
-      tbody.innerHTML = dataArray.map(a => `<tr><td style="font-weight: 800; color: var(--electric-blue); font-family: monospace;">${a.id}</td> <td style="font-weight:600;">${a.name}</td> <td><span class="status-badge">${a.time}</span></td>${isManager ? `<td><button class="btn-danger btn-small" onclick="deleteAttendance('${a.id}')">إلغاء 🗑️</button></td>` : ''}</tr>`).join('');
+      const tbody = document.getElementById('attendeesList');
+      if (dataArray.length === 0) { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 30px;">لا نتائج</td></tr>`; return; }
+      tbody.innerHTML = dataArray.map(a => `<tr id="row-${a.id}"><td style="font-weight: 800; color: var(--electric-blue); font-family: monospace;">${a.id}</td> <td style="font-weight:600;">${a.name}</td> <td><span class="status-badge">${a.time}</span></td><td><button class="btn-danger btn-small" id="btn-del-${a.id}" onclick="deleteAttendance('${a.id}')" style="transition: 0.3s;">إلغاء 🗑️</button></td></tr>`).join('');
     }
 
-    function filterDashboard() { const query = document.getElementById('searchInput').value.toLowerCase(); renderTable(allAttendees.filter(a => a.name.toLowerCase().includes(query) || a.id.toString().toLowerCase().includes(query))); }
+    function filterDashboard() { const query = document.getElementById('searchInput').value.toLowerCase(); renderTable(allAttendees.filter(a => (a.name || "").toLowerCase().includes(query) || (a.id || "").toString().toLowerCase().includes(query))); }
 
+    let currentSortCol = null;
+    let currentSortAsc = true;
+    function sortDashboard(col) {
+        if (currentSortCol === col) { currentSortAsc = !currentSortAsc; } 
+        else { currentSortCol = col; currentSortAsc = true; }
+        
+        document.querySelectorAll('th span[id^="sort-"]').forEach(el => el.innerText = "⇕");
+        const indicator = document.getElementById('sort-' + col);
+        if(indicator) indicator.innerText = currentSortAsc ? " ▼" : " ▲";
+        
+        allAttendees.sort((a, b) => {
+            if (col === 'time') { 
+                return currentSortAsc ? a._originalIdx - b._originalIdx : b._originalIdx - a._originalIdx; 
+            }
+            let valA = (a[col] || "").toString().toLowerCase();
+            let valB = (b[col] || "").toString().toLowerCase();
+            if (valA < valB) return currentSortAsc ? -1 : 1;
+            if (valA > valB) return currentSortAsc ? 1 : -1;
+            return 0;
+        });
+        filterDashboard();
+    }
+
+    let deleteConfirmations = {};
     function deleteAttendance(studentCode) {
-      if(!confirm("مسح السجل؟ لا يمكن التراجع.")) return;
+      if (!deleteConfirmations[studentCode]) {
+         let btn = document.getElementById('btn-del-' + studentCode);
+         if(btn) {
+             btn.innerText = "تأكيد الحذف؟ ⚠️";
+             btn.style.background = "#be123c";
+             deleteConfirmations[studentCode] = true;
+             setTimeout(() => { 
+                 if(btn && deleteConfirmations[studentCode]) {
+                     btn.innerText = "إلغاء 🗑️";
+                     btn.style.background = ""; 
+                     deleteConfirmations[studentCode] = false;
+                 }
+             }, 3500);
+         }
+         return;
+      }
+      
+      deleteConfirmations[studentCode] = false;
+      let row = document.getElementById('row-' + studentCode);
+      if(row) {
+          row.style.transition = "all 0.4s ease";
+          row.style.opacity = "0";
+          row.style.transform = "scale(0.95) translateX(30px)";
+          setTimeout(() => row.remove(), 400);
+      }
+      
+      const dashCountEl = document.getElementById('dashCount');
+      if(dashCountEl) dashCountEl.innerText = Math.max(0, parseInt(dashCountEl.innerText) - 1);
+      
       const lec = document.getElementById('lecture').value; const group = localStorage.getItem('userGroup') || "Group A"; 
-      showProgress("جاري الحذف...");
+      
       fetch(`${ATTENDANCE_API_URL}?action=deleteAttendance&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}${getAuthParams()}`)
-      .then(res => res.json()).then(data => { completeProgress(); if(data.status === 'success') { showToast("✅ تم الحذف", "success"); loadDashboard(); } else showToast(data.message, "error"); }).catch(err => completeProgress());
+      .then(res => res.json()).then(data => { 
+          if(data.status === 'success') { 
+              showToast("✅ تمت إزالة السجل نهائياً", "success"); 
+              allAttendees = allAttendees.filter(a => a.id !== studentCode);
+          } else { 
+              showToast(data.message, "error"); loadDashboard();
+          } 
+      }).catch(err => {
+          showToast("❌ فشل الاتصال بالسيرفر، تراجعت عن الإلغاء", "error"); loadDashboard();
+      });
     }
 
     function exportToExcel() {
@@ -832,30 +965,94 @@
       link.href = URL.createObjectURL(blob); link.download = `Report_${group}_Lec_${lec}.csv`; link.click(); showToast("✅ تم التصدير", "success");
     }
 
-    function loadAnalytics(type = 'group') {
-      showProgress("تحليل البيانات...");
-      const group = localStorage.getItem('userGroup') || "Group A"; const lec = document.getElementById('lecture').value; const role = localStorage.getItem('userRole').toUpperCase();
-      let url = ""; let chartTitle = "";
+    function fetchAnalyticsData(type = 'group') {
+      showProgress("تحليل البيانات وبناء الرسوم... 📈");
+      const group = localStorage.getItem('userGroup') || "Group A"; 
+      const lec = document.getElementById('lecture').value || "1"; 
+      const role = (localStorage.getItem('userRole') || "").toUpperCase();
+      
+      let url = ""; 
+      let chartTitle = "";
+      
       if (type === 'all' && (role === 'OWNER' || role === 'CO-FOUNDER')) {
          url = `${ATTENDANCE_API_URL}?action=getOwnerAnalytics&lectureNum=${encodeURIComponent(lec)}${getAuthParams()}`;
-         document.getElementById('analyticsDesc').innerText = `📊 مقارنة حية لحضور كافة الجروبات - محاضرة ${lec}`; chartTitle = 'حضور الجروبات';
+         document.getElementById('analyticsDesc').innerText = `📊 مقارنة حية لحضور كافة الجروبات - محاضرة ${lec}`; 
+         chartTitle = 'حضور الجروبات';
       } else {
          url = `${ATTENDANCE_API_URL}?action=getAnalytics&group=${encodeURIComponent(group)}${getAuthParams()}`;
-         document.getElementById('analyticsDesc').innerText = `📈 تتبع كفاءة الحضور لـ ${group} على مدار الكورس`; chartTitle = 'كثافة الحضور';
+         document.getElementById('analyticsDesc').innerText = `📈 تتبع كفاءة الحضور لـ ${group} على مدار الكورس`; 
+         chartTitle = 'كثافة الحضور';
       }
-      fetch(url).then(res => res.json()).then(data => {
-          completeProgress();
-          if (data.status === "success") { document.getElementById('message').style.display = 'none'; renderAnalyticsChart(data.labels, data.data, chartTitle); } else { showToast(data.message, "error"); }
-        }).catch(err => { completeProgress(); showToast("❌ فشل في الرسوم البيانية.", "error"); });
+
+      fetch(url)
+        .then(res => res.text())
+        .then(text => {
+            completeProgress();
+            try {
+                const data = JSON.parse(text);
+                if (data.status === "success") { 
+                    if(data.labels && data.labels.length > 0) {
+                        document.getElementById('analyticsDesc').style.display = 'block';
+                        renderAnalyticsChart(data.labels, data.data, chartTitle); 
+                    } else {
+                        showToast("⚠️ لا توجد بيانات حضور كافية للرسم البياني حتى الآن.", "warning");
+                        if(attendanceChartInstance) { attendanceChartInstance.destroy(); }
+                    }
+                } else { 
+                    showToast(data.message || "حدث خطأ في جلب البيانات من السيرفر", "error"); 
+                }
+            } catch(e) {
+                console.error("Server Error Response:", text);
+                showToast("❌ خطأ في الاستجابة من السيرفر الرئيسي.", "error");
+            }
+        })
+        .catch(err => { 
+            completeProgress(); 
+            showToast("❌ فشل في الاتصال بالإنترنت أو قاعدة البيانات.", "error"); 
+        });
+    }
+
+    function loadAnalytics(type = 'group') {
+        fetchAnalyticsData(type);
     }
 
     function renderAnalyticsChart(labelsArray, dataArray, labelTitle) {
-      const ctx = document.getElementById('attendanceChart').getContext('2d');
-      if (attendanceChartInstance) attendanceChartInstance.destroy();
-      const isDark = document.body.classList.contains('dark-mode'); const chartColor = isDark ? '#00d2ff' : '#0f172a'; const gridColor = isDark ? '#334155' : '#e2e8f0';
-      attendanceChartInstance = new Chart(ctx, { type: 'bar', data: { labels: labelsArray, datasets: [{ label: labelTitle, data: dataArray, backgroundColor: chartColor, borderColor: '#f5b041', borderWidth: 2, borderRadius: 12, hoverBackgroundColor: '#f5b041' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false }, ticks: { color: isDark ? '#cbd5e1' : '#64748b' } }, y: { beginAtZero: true, ticks: { stepSize: 5, color: isDark ? '#cbd5e1' : '#64748b' }, grid: { color: gridColor, borderDash: [4, 4] } } }, plugins: { legend: { display: false } }, animation: { duration: 1500, easing: 'easeOutQuart' } } });
+      const canvas = document.getElementById('attendanceChart');
+      const ctx = canvas.getContext('2d');
+      if (attendanceChartInstance) { attendanceChartInstance.destroy(); }
+      
+      const isDark = document.body.classList.contains('dark-mode'); 
+      const chartColor = isDark ? '#00d2ff' : '#0f172a'; 
+      const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+
+      attendanceChartInstance = new Chart(ctx, { 
+          type: 'bar', 
+          data: { 
+              labels: labelsArray, 
+              datasets: [{ 
+                  label: labelTitle, 
+                  data: dataArray, 
+                  backgroundColor: chartColor, 
+                  borderColor: '#f5b041', 
+                  borderWidth: 2, 
+                  borderRadius: 12, 
+                  hoverBackgroundColor: '#f5b041' 
+              }] 
+          }, 
+          options: { 
+              responsive: true, 
+              maintainAspectRatio: false, 
+              scales: { 
+                  x: { grid: { display: false }, ticks: { color: isDark ? '#fff' : '#334155', font: {family: 'Cairo', weight: 'bold'} } }, 
+                  y: { beginAtZero: true, ticks: { stepSize: 1, color: isDark ? '#fff' : '#334155' }, grid: { color: gridColor, borderDash: [4, 4] } } 
+              }, 
+              plugins: { legend: { display: false } }, 
+              animation: { duration: 1500, easing: 'easeOutQuart' } 
+          } 
+      });
     }
 
+    let allSystemUsers = [];
     function loadUsers() {
       const tbody = document.getElementById('usersList');
       if (!tbody) return; 
@@ -867,41 +1064,56 @@
         .then(data => {
           completeProgress();
           if (data.status === "success" && data.users && data.users.length > 0) {
-            const currentUserRole = (localStorage.getItem('userRole') || '').toUpperCase();
-            const visibleUsers = data.users.filter(u => u.role !== 'Owner'); 
-            if (visibleUsers.length === 0) { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 30px;">لا توجد صلاحيات</td></tr>`; return; }
-            
-            let tableContent = '';
-            visibleUsers.forEach(u => {
-              const isProtected = (u.role === 'CO-Founder' && currentUserRole !== 'OWNER');
-              let groupOptions = '';
-              const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-              for(let i=0; i<letters.length; i++) { 
-                  let gName = 'Group ' + letters[i]; 
-                  groupOptions += `<option value="${gName}" ${u.group === gName ? 'selected' : ''}>${gName}</option>`; 
-              }
-              
-              tableContent += `<tr>
-                <td style="font-size:13px; line-height: 1.5; color: inherit;"><b>${u.name}</b><br><span style="color:var(--text-muted); font-family:monospace;">${u.email}</span></td> 
-                <td>
-                  <select class="role-select" onchange="changeUserRole('${u.email}', this.value)" ${isProtected ? 'disabled title="مغلق - صلاحية عليا"' : ''}>
-                    <option value="Cadre" ${u.role === 'Cadre' || u.role === 'User' ? 'selected' : ''}>Cadre</option>
-                    <option value="Coordinator" ${u.role === 'Coordinator' || u.role === 'Manager' ? 'selected' : ''}>Coordinator</option>
-                    <option value="Team Manager" ${u.role === 'Team Manager' || u.role === 'Admin' ? 'selected' : ''}>Team Manager</option>
-                    <option value="CO-Founder" ${u.role === 'CO-Founder' ? 'selected' : ''}>CO-Founder ✨</option>
-                  </select>
-                </td>
-                <td>
-                  <select class="role-select" onchange="changeUserGroup('${u.email}', this.value)" ${isProtected ? 'disabled' : ''}>
-                    ${groupOptions}
-                  </select>
-                </td>
-                <td>${isProtected ? '<span style="font-size:12px; color:var(--electric-blue); font-weight:800; background:rgba(0, 210, 255, 0.1); padding:4px 8px; border-radius:8px;">🔒 محمي</span>' : `<button class="btn-danger btn-small" onclick="deleteUser('${u.email}')">عزل 🗑️</button>`}</td>
-              </tr>`;
-            });
-            tbody.innerHTML = tableContent;
-          } else { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 30px;">الخادم خالي</td></tr>`; }
+            allSystemUsers = data.users.filter(u => u.role !== 'Owner'); 
+            renderUsersTable(allSystemUsers);
+          } else { 
+            allSystemUsers = [];
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 30px;">الخادم خالي أو لا صلاحيات</td></tr>`; 
+          }
         }).catch(err => { completeProgress(); tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#ef4444; padding: 30px;">❌ حدث خطأ في جلب البيانات</td></tr>`; });
+    }
+
+    function renderUsersTable(usersToRender) {
+      const tbody = document.getElementById('usersList');
+      if (!tbody) return;
+      if (usersToRender.length === 0) { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 30px;">لا توجد تطابقات للبحث</td></tr>`; return; }
+      
+      const currentUserRole = (localStorage.getItem('userRole') || '').toUpperCase();
+      let tableContent = '';
+      
+      usersToRender.forEach(u => {
+        const isProtected = (u.role === 'CO-Founder' && currentUserRole !== 'OWNER');
+        let groupOptions = '';
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        for(let i=0; i<letters.length; i++) { 
+            let gName = 'Group ' + letters[i]; 
+            groupOptions += `<option value="${gName}" ${u.group === gName ? 'selected' : ''}>${gName}</option>`; 
+        }
+        
+        tableContent += `<tr>
+          <td style="font-size:13px; line-height: 1.5; color: inherit;"><b>${u.name}</b><br><span style="color:var(--text-muted); font-family:monospace;">${u.email}</span></td> 
+          <td>
+            <select class="role-select" onchange="changeUserRole('${u.email}', this.value)" ${isProtected ? 'disabled title="مغلق - صلاحية عليا"' : ''}>
+              <option value="Cadre" ${u.role === 'Cadre' || u.role === 'User' ? 'selected' : ''}>Cadre</option>
+              <option value="Coordinator" ${u.role === 'Coordinator' || u.role === 'Manager' ? 'selected' : ''}>Coordinator</option>
+              <option value="Team Manager" ${u.role === 'Team Manager' || u.role === 'Admin' ? 'selected' : ''}>Team Manager</option>
+              <option value="CO-Founder" ${u.role === 'CO-Founder' ? 'selected' : ''}>CO-Founder ✨</option>
+            </select>
+          </td>
+          <td>
+            <select class="role-select" onchange="changeUserGroup('${u.email}', this.value)" ${isProtected ? 'disabled' : ''}>
+              ${groupOptions}
+            </select>
+          </td>
+          <td>${isProtected ? '<span style="font-size:12px; color:var(--electric-blue); font-weight:800; background:rgba(0, 210, 255, 0.1); padding:4px 8px; border-radius:8px;">🔒 محمي</span>' : `<button class="btn-danger btn-small" onclick="deleteUser('${u.email}')">عزل 🗑️</button>`}</td>
+        </tr>`;
+      });
+      tbody.innerHTML = tableContent;
+    }
+
+    function filterSystemUsers() {
+       const query = (document.getElementById('searchUsersInput').value || "").toLowerCase();
+       renderUsersTable(allSystemUsers.filter(u => (u.name||"").toLowerCase().includes(query) || (u.email||"").toLowerCase().includes(query)));
     }
 
     function changeUserRole(email, newRole) {
@@ -934,6 +1146,166 @@
       if(!confirm("تأكيد العزل؟")) return; 
       showProgress("تدمير الصلاحيات...");
       fetch(`${LOGIN_API_URL}?action=deleteUser&targetEmail=${encodeURIComponent(email)}${getAuthParams()}`).then(res => res.json()).then(data => { completeProgress(); if(data.status === 'success') { showToast("✅ تم العزل", "success"); loadUsers(); } else { showToast(data.message, "error"); } });
+    }
+
+    let allGroupStudentsForMail = [];
+    function loadMailTargetList() {
+        const listContainer = document.getElementById('mailOptionList');
+        const selectBox = document.getElementById('mailSelectBoxText');
+        if (!listContainer) return;
+
+        listContainer.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--text-muted);">جاري جلب قائمة متدربي الجروب... ⏳</div>`;
+        selectBox.innerText = `جار التحميل... 🔽`;
+        
+        const group = document.getElementById('globalGroupSelect') ? document.getElementById('globalGroupSelect').value : (localStorage.getItem('userGroup') || "Group A");
+        
+        fetch(`${ATTENDANCE_API_URL}?action=getTop&fromLec=1&toLec=1&group=${encodeURIComponent(group)}${getAuthParams()}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'success' && data.scores) {
+                allGroupStudentsForMail = data.scores.filter(s => s.id != null && s.id !== "");
+                let html = `
+                    <div class="option-item" style="border-bottom: 2px dashed rgba(0,0,0,0.1); margin-bottom: 5px; color: var(--accent);">
+                       <input type="checkbox" id="cbMailAll" onchange="toggleMailSelectAll(this.checked)">
+                       <label style="flex:1; cursor:pointer;" onclick="this.previousElementSibling.click()">تحديد كافة المتدربين داخل الجروب (${allGroupStudentsForMail.length})</label>
+                    </div>
+                `;
+                allGroupStudentsForMail.forEach(s => {
+                    html += `
+                    <div class="option-item">
+                       <input type="checkbox" class="cb-mail-student" value="${s.id}" onchange="updateMailSelectText()">
+                       <label style="flex:1; cursor:pointer;" onclick="this.previousElementSibling.click()">${s.name} (${s.id})</label>
+                    </div>`;
+                });
+                listContainer.innerHTML = html;
+                updateMailSelectText();
+            } else {
+                listContainer.innerHTML = `<div style="text-align:center; padding: 20px; color: #ef4444;">❌ الكشف التابع لهذا الجروب فارغ أو غير موجود</div>`;
+                selectBox.innerText = `حاول مجدداً ⚠️`;
+            }
+        }).catch(e => {
+           listContainer.innerHTML = `<div style="text-align:center; padding: 20px; color: #ef4444;">❌ خطأ في الاتصال بقواعد البيانات</div>`;
+           selectBox.innerText = `لا يوجد اتصال ⚠️`;
+        });
+    }
+
+
+    function updateAttachLabel(input) {
+        const label = document.getElementById('attachLabelContent');
+        if (!label) return;
+        if (input.files && input.files[0]) {
+            const f = input.files[0];
+            const size = (f.size / 1024 / 1024).toFixed(2);
+            const icon = f.type.includes('pdf') ? '📄' : '🖼️';
+            label.innerHTML = `
+                <div style="font-size:28px; margin-bottom:6px;">${icon}</div>
+                <div style="font-weight:800; color:var(--accent);">${f.name}</div>
+                <div style="font-size:12px; color:var(--text-muted); margin-top:3px;">${size} MB — جاهز للإرفاق ✅</div>
+            `;
+        } else {
+            label.innerHTML = `
+                <div style="font-size: 32px; margin-bottom: 8px; opacity: 0.5;">☁️</div>
+                <div style="font-weight: 700; color: var(--text-main); margin-bottom: 4px;">اسحب الملف هنا أو اضغط للاختيار</div>
+                <div style="font-size: 12px; color: var(--text-muted);">PDF أو صور — الحد الأقصى 5MB</div>
+            `;
+        }
+    }
+
+    function toggleMailOptionList() { document.getElementById('mailOptionList').classList.toggle('open'); }
+    function toggleMailSelectAll(isChecked) {
+        document.querySelectorAll('.cb-mail-student').forEach(cb => cb.checked = isChecked);
+        updateMailSelectText();
+    }
+    function updateMailSelectText() {
+        const cbs = document.querySelectorAll('.cb-mail-student');
+        const checked = Array.from(cbs).filter(cb => cb.checked);
+        const box = document.getElementById('mailSelectBoxText');
+        const allCb = document.getElementById('cbMailAll');
+        
+        if (checked.length === 0) {
+            box.innerText = "اختر المتدربين المرسل إليهم 🔽";
+            if(allCb) allCb.checked = false;
+        } else if (checked.length === cbs.length && cbs.length > 0) {
+            box.innerText = `تم تحديد كافة المتدربين (${cbs.length}) 🔽`;
+            if(allCb) allCb.checked = true;
+        } else {
+            box.innerText = `تم تحديد (${checked.length}) متدربين 🔽`;
+            if(allCb) allCb.checked = false;
+        }
+    }
+
+    function sendBroadcastMail() {
+      const cbs = document.querySelectorAll('.cb-mail-student:checked');
+      if (cbs.length === 0) return showToast("⚠️ يرجى تحديد متدرب واحد على الأقل!", "warning");
+      
+      const isAllChecked = document.getElementById('cbMailAll').checked;
+      const target = isAllChecked ? 'all' : Array.from(cbs).map(cb => cb.value).join(',');
+      
+      const subject = document.getElementById('mailSubject').value.trim();
+      const body = document.getElementById('mailBody').value.trim();
+      if (!subject || !body) return showToast("⚠️ يرجى تعبئة عنوان ومحتوى الرسالة!", "warning");
+
+      const fileInput = document.getElementById('mailAttachment');
+      let fileData = null;
+      var file = fileInput.files[0];
+      
+      if (file && file.size > 5 * 1024 * 1024) return showToast("❌ حجم الملف يجب أن لا يتخطى 5MB!", "error");
+
+      const processRequest = (base64File, mimeType, fileName) => {
+          showProgress("جاري الإرسال للخوادم المركزية 🚀 (تأكد من استقرار الإنترنت)...");
+          
+          const payload = {
+              action: "sendBroadcast",
+              senderName: localStorage.getItem('userName') || "مدير التدريب",
+              group: document.getElementById('globalGroupSelect') ? document.getElementById('globalGroupSelect').value : (localStorage.getItem('userGroup') || "Group A"),
+              target: target,
+              subject: subject,
+              body: body
+          };
+
+          if(base64File) {
+              payload.attachment = {
+                  data: base64File.split(',')[1],
+                  mimeType: mimeType,
+                  filename: fileName
+              };
+          }
+
+          fetch(ATTENDANCE_API_URL, {
+              method: "POST",
+              headers: { "Content-Type": "text/plain;charset=utf-8" },
+              body: JSON.stringify(payload)
+          }).then(r => r.text()).then(text => {
+              completeProgress();
+              try {
+                  const data = JSON.parse(text);
+                  if (data.status === 'success') {
+                      showToast(`✅ تم الإرسال بفضل الله. (${data.sentCount} رسالة تم توجيهها)`, "success");
+                      document.getElementById('mailSubject').value = '';
+                      document.getElementById('mailBody').value = '';
+                      if (fileInput) fileInput.value = '';
+                  } else {
+                      showToast(data.message || "حدث خطأ أثناء المعالجة.", "error");
+                  }
+              } catch(e) {
+                  console.error("Server API Error. Returned HTML/Text instead of JSON:", text);
+                  showToast("❌ خطأ بسيرفر جوجل! راجع كود doPost للمنصة.", "error");
+              }
+          }).catch(e => { 
+              completeProgress(); 
+              console.error("Network/CORS Error:", e);
+              showToast("❌ خطأ اتصال أو CORS! تأكد من نشر السكربت كـ (Anyone)", "error"); 
+          });
+      };
+
+      if (file) {
+          showProgress("جاري تشفير المرفق للرفع الآمن...");
+          const reader = new FileReader();
+          reader.onload = function(e) { processRequest(e.target.result, file.type, file.name); };
+          reader.readAsDataURL(file);
+      } else {
+          processRequest(null, null, null);
+      }
     }
   </script>
 <script>
