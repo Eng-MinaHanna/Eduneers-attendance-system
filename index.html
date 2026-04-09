@@ -19,14 +19,31 @@
       --text-main: #334155; --text-muted: #64748b; --card-bg: rgba(255, 255, 255, 0.9); --border-radius: 24px;   
     }
 
+    /* -------------------------------------- */
+    /* 🌙 إعدادات الوضع المظلم والخلفية الأساسية */
+    /* -------------------------------------- */
     body.dark-mode { 
-      --primary: #f8fafc; --bg-gradient: radial-gradient(circle at top right, #1e293b 0%, #0f172a 100%); 
-      --text-main: #f8fafc; --text-muted: #cbd5e1; --card-bg: rgba(15, 23, 42, 0.9); 
+      --primary: #f8fafc; 
+      --bg-gradient: radial-gradient(circle at top right, #1e293b 0%, #0f172a 100%); 
+      --text-main: #f8fafc; 
+      --text-muted: #cbd5e1; 
+      --card-bg: rgba(15, 23, 42, 0.9); 
     }
     
-    body { font-family: 'Cairo', sans-serif; background: var(--bg-gradient); margin: 0; color: var(--text-main); min-height: 100vh; transition: 0.5s; overflow-x: hidden; }
+    body { font-family: 'Cairo', sans-serif; background: var(--bg-gradient); margin: 0; color: var(--text-main); min-height: 100vh; transition: background 0.5s, color 0.5s; overflow-x: hidden; }
+    
     .circuit-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; background-image: radial-gradient(circle at 50% 50%, rgba(245, 176, 65, 0.05) 2px, transparent 2px); background-size: 40px 40px; animation: pulseCircuit 10s infinite alternate; pointer-events: none; }
     body.dark-mode .circuit-bg { background-image: radial-gradient(circle at 50% 50%, rgba(0, 210, 255, 0.1) 2px, transparent 3px); }
+    @keyframes pulseCircuit { 0% { opacity: 0.5; } 100% { opacity: 1; } }
+
+    /* -------------------------------------- */
+    /* 🖼️ تنسيق اللوجو (التبديل بين الفاتح والداكن) */
+    /* -------------------------------------- */
+    .logo-light, .logo-dark { max-width: 150px; height: auto; margin-bottom: 15px; transition: 0.3s; }
+    .logo-dark { display: none; }
+    
+    body.dark-mode .logo-light { display: none; }
+    body.dark-mode .logo-dark { display: inline-block; }
 
     /* 💎 Navbar */
     .navbar { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(16px); color: white; padding: 12px 0; box-shadow: 0 4px 30px rgba(0,0,0,0.3); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.05); }
@@ -36,10 +53,12 @@
     body.dark-mode .nav-brand h2 .brand-text { background: linear-gradient(to left, #fff, var(--electric-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
     
     .nav-actions { display: flex; gap: 8px; align-items: center; }
-    .nav-btn { appearance: none; -webkit-appearance: none; background: rgba(255,255,255,0.1) !important; border: 1px solid rgba(255,255,255,0.2) !important; color: white !important; width: 38px !important; height: 38px !important; border-radius: 10px !important; display: flex !important; align-items: center !important; justify-content: center !important; cursor: pointer !important; transition: 0.3s !important; font-size: 1.1rem !important; padding: 0 !important; margin: 0 !important; }
-    .nav-btn:hover { background: var(--accent) !important; border-color: var(--accent) !important; color: #fff !important; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
-    body.dark-mode .nav-btn { background: rgba(30, 41, 59, 0.8) !important; border-color: rgba(255,255,255,0.1) !important; color: #fff !important; }
-    body.dark-mode .nav-btn:hover { background: var(--electric-blue) !important; border-color: var(--electric-blue) !important; box-shadow: 0 0 10px var(--electric-glow) !important; color: #000 !important; }
+    
+    /* أزرار البار العلوي (Navbar Buttons) */
+    .nav-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; font-size: 1.1rem; padding: 0; margin: 0;}
+    .nav-btn:hover { background: var(--accent); border-color: var(--accent); }
+    body.dark-mode .nav-btn { background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255,255,255,0.1); color: #fff; }
+    body.dark-mode .nav-btn:hover { background: var(--electric-blue); border-color: var(--electric-blue); box-shadow: 0 0 10px var(--electric-glow); color: #000; }
 
     /* 🗂️ Sidebar */
     .sidebar { position: fixed; top: 0; right: -300px; width: 280px; height: 100%; background: var(--card-bg); backdrop-filter: blur(25px); z-index: 2000; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: right; padding-top: 60px; box-shadow: -10px 0 30px rgba(0,0,0,0.2); border-left: 1px solid rgba(255,255,255,0.1); }
@@ -59,47 +78,71 @@
     body.dark-mode .tab-item { color: #94a3b8; }
     body.dark-mode .tab-item.active { background: linear-gradient(135deg, var(--electric-blue), #0284c7); color: #fff; box-shadow: 0 4px 15px var(--electric-glow); }
 
-    .container { padding: 10px 15px; max-width: 1000px; margin: auto; }
-    .form-wrapper { max-width: 500px; width: 100%; margin: 0 auto; }
+    /* 🖥️ تحسين شكل اللاب توب ومنع التمطيط */
+    .container { 
+      padding: 30px 15px; 
+      max-width: 1000px; /* العرض الأقصى للمحتوى */
+      margin: auto; 
+      position: relative; 
+      z-index: 1; 
+    }
+
+    /* تصغير صناديق الإدخال والسكّانر لتبدو احترافية */
+    .form-wrapper, #view-login .form-wrapper, #view-scanner div, #view-manual .form-wrapper { 
+      max-width: 500px; 
+      margin: 0 auto; 
+    }
+
+    #reader { 
+      max-width: 500px; 
+      margin: 20px auto; 
+    }
     
     .view-section { display: none !important; background: var(--card-bg); padding: 30px 25px; border-radius: var(--border-radius); box-shadow: 0 20px 40px rgba(0,0,0,0.05); border: 1px solid rgba(255,255,255,0.1); animation: slideUp 0.4s ease; margin-bottom: 25px; backdrop-filter: blur(15px); }
     .view-section.active { display: block !important; }
     @keyframes slideUp { from { opacity: 0; transform: translateY(20px) } to { opacity: 1; transform: translateY(0) } }
 
+    /* 🔴 حقول الإدخال (Inputs) شاملة الدارك مود */
     input, select, textarea { 
       width: 100%; padding: 14px; border-radius: 14px; border: 2px solid transparent; 
       background-color: rgba(0,0,0,0.03); color: var(--text-main); font-size: 15px; 
       font-weight: 800; margin-bottom: 15px; box-sizing: border-box; text-align: center; 
       font-family: 'Cairo'; transition: 0.3s;
     }
-    input:focus, select:focus { border-color: var(--accent) !important; outline: none; background: #fff !important;}
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); outline: none; background: #fff; box-shadow: 0 0 8px rgba(245, 176, 65, 0.2);}
+    input::placeholder, textarea::placeholder { color: var(--text-muted); }
     
     body.dark-mode input, body.dark-mode select, body.dark-mode textarea { 
-      background-color: #1e293b !important; color: #fff !important; border: 1px solid #334155 !important; 
+      background-color: #1e293b !important; 
+      color: #fff !important; 
+      border: 1px solid #334155 !important; 
     }
-    body.dark-mode input::placeholder, body.dark-mode textarea::placeholder { color: #94a3b8 !important; }
+    body.dark-mode input::placeholder, body.dark-mode textarea::placeholder {
+      color: #94a3b8 !important;
+    }
     body.dark-mode input:focus, body.dark-mode select:focus, body.dark-mode textarea:focus { 
-      border-color: var(--electric-blue) !important; background-color: #0f172a !important; box-shadow: 0 0 10px var(--electric-glow) !important;
+      border-color: var(--electric-blue) !important; 
+      background-color: #0f172a !important; 
+      box-shadow: 0 0 10px var(--electric-glow) !important;
     }
     
     .small-input { width: 70px !important; display: inline-block; padding: 8px 5px !important; margin: 0 5px !important; border: 2px solid var(--accent) !important; color: inherit !important; background: transparent !important; font-weight: 900 !important; }
 
-    button { appearance: none; -webkit-appearance: none; width: 100%; padding: 16px; border-radius: 14px; border: none; font-size: 1rem; font-weight: 800; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 10px; font-family: 'Cairo', sans-serif; position: relative; overflow: hidden; margin-bottom: 10px; }
+    /* -------------------------------------- */
+    /* تنسيق الأزرار (Buttons) */
+    /* -------------------------------------- */
+    button { width: 100%; padding: 16px; border-radius: 14px; border: none; font-size: 1rem; font-weight: 800; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 10px; font-family: 'Cairo', sans-serif; position: relative; overflow: hidden; margin-bottom: 10px; }
     button:active { transform: scale(0.96); }
 
-    .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-light)) !important; color: white !important; box-shadow: 0 10px 20px rgba(15, 23, 42, 0.2) !important; }
-    body.dark-mode .btn-primary { background: linear-gradient(135deg, var(--electric-blue), #0284c7) !important; color: #fff !important; box-shadow: 0 0 15px var(--electric-glow) !important; }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.2) !important; }
+    .btn-primary { background: var(--accent); color: #0f172a; box-shadow: 0 10px 20px rgba(15, 23, 42, 0.1); }
+    .btn-primary:hover { background-color: #d49a38; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+    body.dark-mode .btn-primary { background: var(--accent); color: #0f172a; box-shadow: 0 5px 15px rgba(245, 176, 65, 0.2); }
     
-    .btn-secondary { background: linear-gradient(135deg, var(--accent), #f39c12) !important; color: #fff !important; box-shadow: 0 10px 20px var(--accent-glow) !important; }
-    .btn-secondary:hover { transform: translateY(-3px); box-shadow: 0 15px 30px var(--accent-glow) !important; }
+    .btn-secondary { background: linear-gradient(135deg, var(--accent), #f39c12); color: #fff; box-shadow: 0 10px 20px var(--accent-glow); padding: 16px; width: 100%; border-radius: 14px; border: none; font-size: 1rem; font-weight: 800; cursor: pointer; transition: 0.3s; margin-bottom: 10px;}
+    .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; box-shadow: 0 10px 20px rgba(239, 68, 68, 0.2); padding: 16px; width: 100%; border-radius: 14px; border: none; font-size: 1rem; font-weight: 800; cursor: pointer; transition: 0.3s;}
+    .btn-excel { background: linear-gradient(135deg, #10b981, #059669); color: white; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2); padding: 16px; width: 100%; border-radius: 14px; border: none; font-size: 1rem; font-weight: 800; cursor: pointer; transition: 0.3s;}
     
-    .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626) !important; color: white !important; box-shadow: 0 10px 20px rgba(239, 68, 68, 0.2) !important;}
-    .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(239, 68, 68, 0.4) !important;}
-    
-    .btn-excel { background: linear-gradient(135deg, #10b981, #059669) !important; color: white !important; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2) !important; }
-    
-    .btn-small { padding: 8px 16px !important; font-size: 13px !important; margin: 0 !important; width: auto !important; border-radius: 10px !important; box-shadow: none !important; font-weight: 700 !important;}
+    .btn-small { padding: 8px 16px; font-size: 13px; margin: 0; width: auto; border-radius: 10px; box-shadow: none; font-weight: 700;}
     .role-select { padding: 8px 12px; font-size: 13px; margin: 0; width: auto; background-color: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 10px; cursor: pointer; color: var(--primary);}
     body.dark-mode .role-select { background-color: #1e293b !important; border-color: #334155 !important; color: #fff !important;}
 
@@ -124,10 +167,9 @@
     body.dark-mode .table-container { background: rgba(15, 23, 42, 0.9); border-color: #334155; }
     table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: right; }
     th, td { padding: 16px 15px; border-bottom: 1px solid rgba(0,0,0,0.05); vertical-align: middle; }
-    th { background: #f8fafc; color: var(--text-muted); font-weight: 800; white-space: nowrap; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; transition: background 0.5s ease;}
+    th { background: #f8fafc; color: var(--text-muted); font-weight: 800; white-space: nowrap; text-transform: uppercase; font-size: 12px; transition: background 0.5s ease;}
     body.dark-mode th { background: #0f172a; color: var(--electric-blue); border-bottom: 2px solid #334155; }
     body.dark-mode td { border-bottom: 1px solid rgba(255,255,255,0.05); color: #f1f5f9;}
-    tbody tr { transition: background 0.2s ease;}
     tbody tr:hover { background-color: #f8fafc; }
     body.dark-mode tbody tr:hover { background-color: rgba(0, 210, 255, 0.08); }
     .status-badge { background: #f1f5f9; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; color: var(--text-main); border: 1px solid #e2e8f0;}
@@ -141,55 +183,53 @@
     #reader { width: 100%; max-width: 500px; margin: 0 auto 20px auto; border-radius: 20px; overflow: hidden; display: none; border: 3px dashed var(--accent); background: #f8fafc; padding: 10px;}
     body.dark-mode #reader { border-color: var(--electric-blue); background: rgba(30, 41, 59, 0.5); }
 
-    .chart-container { position: relative; height: 320px; width: 100%; background: #fff; border-radius: 20px; border: 1px solid #e2e8f0; padding: 15px; box-sizing: border-box; margin-bottom: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.02);}
+    .chart-container { 
+      position: relative; 
+      height: 350px; 
+      width: 100%; 
+      margin-top: 20px;
+      background: rgba(0,0,0,0.02); 
+      border-radius: 20px; 
+      padding: 15px;
+    }
     body.dark-mode .chart-container { background: #1e293b; border-color: #334155; }
-    .admin-form-container { background: rgba(255,255,255,0.5); padding: 25px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.05); margin-bottom: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.02); max-width: 600px; margin-left: auto; margin-right: auto;}
-    body.dark-mode .admin-form-container { background: rgba(30, 41, 59, 0.8); border-color: #334155; }
 
     /* ⚡ Loader & Toast */
-    #electricLoader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 9999; color: var(--text-main); transition: opacity 0.3s; }
-    body.dark-mode #electricLoader { color: var(--electric-blue); }
-    .loader-text { margin-bottom: 20px; font-size: 18px; font-weight: 700; letter-spacing: 1px; animation: pulseText 1.5s infinite alternate; text-shadow: 0 0 10px currentColor;}
-    .progress-bar-container { width: 80%; max-width: 400px; height: 6px; background: rgba(255,255,255,0.2); border-radius: 10px; overflow: hidden; position: relative; box-shadow: inset 0 0 5px rgba(0,0,0,0.5); }
-    body.dark-mode .progress-bar-container { background: rgba(0,0,0,0.4); }
-    .progress-bar-fill { height: 100%; width: 0%; background: var(--accent); box-shadow: 0 0 15px var(--accent-glow); border-radius: 10px; transition: width 0.1s linear; }
-    body.dark-mode .progress-bar-fill { background: var(--electric-blue); box-shadow: 0 0 15px var(--electric-glow); }
-    .loader-percent { margin-top: 15px; font-size: 24px; font-weight: 800; font-family: monospace; text-shadow: 0 0 10px currentColor; color: var(--accent); }
-    body.dark-mode .loader-percent { color: var(--electric-blue); }
-    @keyframes pulseText { 0% { opacity: 0.7; } 100% { opacity: 1; } }
-
+    #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.95); display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 9999; color: white; backdrop-filter: blur(10px); }
+    .bar-bg { width: 70%; max-width: 400px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; margin: 15px 0; }
+    .bar-fill { width: 0%; height: 100%; background: var(--electric-blue); transition: 0.1s linear; box-shadow: 0 0 15px var(--electric-blue); }
     #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 14px 25px; border-radius: 12px; color: white; font-weight: 700; display: none; z-index: 3000; box-shadow: 0 5px 20px rgba(0,0,0,0.3); animation: popIn 0.3s ease; }
     @keyframes popIn { from { transform: translate(-50%, 20px); opacity: 0;} to { transform: translate(-50%, 0); opacity: 1;} }
     #offlineBadge { display: none; background: #ef4444; color: white; padding: 12px 15px; border-radius: 16px; font-weight: 800; text-align: center; margin-bottom: 20px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);}
 
     /* 🛡️ Permissions */
-    .manager-only, .admin-only, .owner-only, .cross-group-only { display: none !important; }
-    body.role-manager .manager-only:not(.view-section), body.role-admin .manager-only:not(.view-section), body.role-admin .admin-only:not(.view-section), body.role-admin .cross-group-only:not(.view-section), body.role-co-founder .manager-only:not(.view-section), body.role-co-founder .admin-only:not(.view-section), body.role-co-founder .cross-group-only:not(.view-section), body.role-owner .manager-only:not(.view-section), body.role-owner .admin-only:not(.view-section), body.role-owner .cross-group-only:not(.view-section) { display: block !important; }
-    .view-section.active { display: block !important; }
-    #view-dashboard:not(.active), #view-analytics:not(.active), #view-users:not(.active) { display: none !important; }
+    /* 🛡️ نظام صلاحيات مطور يمنع تداخل الصفحات */
+    .manager-only, .admin-only, .owner-only, .cross-group-only { 
+      display: none !important; 
+    }
 
-    .google-btn-container { display: flex; justify-content: center; margin-top: 20px; padding: 20px; background: rgba(248, 250, 252, 0.5); border-radius: 20px; border: 2px dashed rgba(0,0,0,0.1);}
-    body.dark-mode .google-btn-container { background: rgba(30, 41, 59, 0.5); border-color: rgba(255,255,255,0.1); }
-    .divider { text-align: center; margin: 30px 0; position: relative; }
-    .divider hr { border: none; border-top: 1px solid rgba(0,0,0,0.1); }
-    body.dark-mode .divider hr { border-top-color: rgba(255,255,255,0.1); }
-    .divider span { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #fff; padding: 0 20px; color: var(--text-muted); font-size: 14px; font-weight: 700; border-radius: 10px; border: 1px solid rgba(0,0,0,0.05);}
-    body.dark-mode .divider span { background: #0f172a; color: var(--electric-blue); border-color: rgba(0,210,255,0.2); box-shadow: 0 0 10px rgba(0,210,255,0.1); }
+    /* إظهار العناصر العادية (أزرار، بدجات) داخل الصفحات */
+    body.role-manager .manager-only:not(.view-section),
+    body.role-admin .manager-only:not(.view-section),
+    body.role-admin .admin-only:not(.view-section),
+    body.role-admin .cross-group-only:not(.view-section),
+    body.role-co-founder .manager-only:not(.view-section),
+    body.role-co-founder .admin-only:not(.view-section),
+    body.role-co-founder .cross-group-only:not(.view-section),
+    body.role-owner .manager-only:not(.view-section),
+    body.role-owner .admin-only:not(.view-section),
+    body.role-owner .cross-group-only:not(.view-section) { 
+      display: block !important; 
+    }
     
-    /* Login Atom Animation */
-    .atom-logo { width: 80px; height: 80px; margin: 0 auto 15px; position: relative; display: flex; justify-content: center; align-items: center; }
-    .atom-ring { position: absolute; width: 100%; height: 100%; border: 2px solid var(--accent); border-radius: 50%; opacity: 0.6; box-shadow: 0 0 10px var(--accent-glow); }
-    body.dark-mode .atom-ring { border-color: var(--electric-blue); box-shadow: 0 0 15px var(--electric-glow); }
-    .atom-ring:nth-child(1) { animation: rotate1 4s linear infinite; }
-    .atom-ring:nth-child(2) { animation: rotate2 4s linear infinite; }
-    .atom-ring:nth-child(3) { animation: rotate3 4s linear infinite; }
-    .atom-core { width: 16px; height: 16px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 20px var(--accent), 0 0 40px var(--accent); animation: pulseCore 2s infinite alternate;}
-    body.dark-mode .atom-core { background: var(--electric-blue); box-shadow: 0 0 20px var(--electric-blue), 0 0 40px var(--electric-blue); }
-    @keyframes rotate1 { 0% { transform: rotateX(65deg) rotateY(0deg) rotateZ(0deg); } 100% { transform: rotateX(65deg) rotateY(0deg) rotateZ(360deg); } }
-    @keyframes rotate2 { 0% { transform: rotateX(65deg) rotateY(60deg) rotateZ(0deg); } 100% { transform: rotateX(65deg) rotateY(60deg) rotateZ(360deg); } }
-    @keyframes rotate3 { 0% { transform: rotateX(65deg) rotateY(120deg) rotateZ(0deg); } 100% { transform: rotateX(65deg) rotateY(120deg) rotateZ(360deg); } }
-    @keyframes pulseCore { 0% { transform: scale(0.8); } 100% { transform: scale(1.2); } }
-
+    /* إظهار التابوهات (Tabs) فقط إذا كانت الصفحة نشطة والمستخدم معه صلاحية */
+    .view-section.active { display: block !important; }
+    
+    /* حماية إضافية للأقسام الحساسة */
+    #view-dashboard:not(.active), #view-analytics:not(.active), #view-users:not(.active) {
+      display: none !important;
+    }
+    
     @media (max-width: 650px) {
       .nav-brand h2 { font-size: 1.1rem; gap: 4px; }
       .nav-brand span#welcomeName { display: none; } 
@@ -201,24 +241,24 @@
 
   <div class="circuit-bg"></div>
 
-  <div id="electricLoader">
-    <div class="loader-text" id="loaderMessage">جاري نقل البيانات...</div>
-    <div class="progress-bar-container">
-      <div class="progress-bar-fill" id="progressBarFill"></div>
+  <div id="loader">
+    <div style="width:60px; height:60px; margin-bottom:20px; position:relative; display:flex; justify-content:center; align-items:center;">
+       <div style="position:absolute; width:100%; height:100%; border:2px solid var(--electric-blue); border-radius:50%; opacity:0.6; animation: spin 2s linear infinite;"></div>
+       <div style="width:12px; height:12px; background:var(--electric-blue); border-radius:50%; box-shadow: 0 0 20px var(--electric-blue);"></div>
     </div>
-    <div class="loader-percent" id="loaderPercent">0%</div>
+    <div id="loaderMsg" style="font-weight: 800; font-size: 1.1rem; letter-spacing: 1px;">جاري العمل...</div>
+    <div class="bar-bg"><div class="bar-fill" id="barFill"></div></div>
+    <div style="font-size: 24px; font-weight: 900; font-family: monospace; color: var(--electric-blue);" id="percent">0%</div>
   </div>
+  <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
 
   <div class="navbar">
     <div class="nav-content">
-      <div class="nav-brand">
-        <h2>⚡ <span class="brand-text">Eduneers</span> <span id="welcomeName"></span></h2>
-      </div>
+      <div class="nav-brand"><h2>⚡ <span class="brand-text">Eduneers</span> <span id="welcomeName" style="font-size: 11px; opacity:0.7;"></span></h2></div>
       <div class="nav-actions">
-        <span id="groupBadge" class="nav-badge group-badge" style="display: none;"></span>
-        <span id="roleBadge" class="nav-badge role-badge" style="display: none;"></span>
-        <button class="nav-btn" id="themeToggle" onclick="toggleDarkMode()">☀️</button>
-        <button class="nav-btn" onclick="window.location.href='grades.html'" title="نظام الدرجات والتقييم">🎯</button>
+        <span id="groupBadge" style="font-size: 11px; font-weight: 800; background: rgba(0, 210, 255, 0.1); color: var(--electric-blue); padding: 5px 10px; border-radius: 8px; border: 1px solid rgba(0, 210, 255, 0.3); display: none;"></span>
+        <button class="nav-btn" onclick="toggleDarkMode()">🌓</button>
+        <button class="nav-btn" onclick="window.location.href='grades.html'" title="نظام التقييم والدرجات">🎯</button>
         <button class="nav-btn" id="menuBtn" onclick="toggleSidebar()" style="display:none;">☰</button>
       </div>
     </div>
@@ -236,29 +276,23 @@
       <span>📷</span> <span>مسح الـ QR</span>
     </a>
     <a href="#" onclick="switchView('manual'); toggleSidebar();" id="nav-manual">
-      <span>✍️</span> <span>التسجيل اليدوي السريع</span>
+      <span>✍️</span> <span>التسجيل اليدوي</span>
     </a>
-    
     <a href="grades.html" style="color: var(--accent);">
-      <span>🎯</span> <span>نظام رصد الدرجات</span>
+      <span>🎯</span> <span>نظام الدرجات</span>
     </a>
-    
-    <div class="sidebar-heading manager-only">متابعة الحضور</div>
-    <a href="#" onclick="switchView('dashboard'); toggleSidebar();" id="nav-dashboard" class="manager-only">
+    <a href="#" class="manager-only" onclick="switchView('dashboard'); toggleSidebar();" id="nav-dashboard">
       <span>📊</span> <span>لوحة الحضور</span>
     </a>
-    <a href="#" onclick="switchView('analytics'); toggleSidebar();" id="nav-analytics" class="manager-only">
-      <span>📈</span> <span>إحصائيات الجروبات</span>
+    <a href="#" class="manager-only" onclick="switchView('analytics'); toggleSidebar();" id="nav-analytics">
+      <span>📈</span> <span>التحليلات</span>
     </a>
-    
-    <div class="sidebar-heading admin-only">إدارة النظام</div>
-    <a href="#" onclick="switchView('users'); toggleSidebar();" id="nav-users" class="admin-only">
+    <a href="#" class="admin-only" onclick="switchView('users'); toggleSidebar();" id="nav-users">
       <span>👥</span> <span>إدارة المستخدمين</span>
     </a>
-    
-    <div style="margin-top: 40px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-      <a href="#" onclick="logout();" style="color: #ef4444;">🚪 تسجيل الخروج</a>
-    </div>
+
+    <div style="height: 1px; background: rgba(255,255,255,0.1); margin: 15px 25px;"></div>
+    <a href="#" onclick="logout()" style="color: #ef4444; margin-top: 10px;"><span>🚪</span> <span>تسجيل الخروج</span></a>
   </div>
 
   <div class="tabs-container" id="appTabs" style="display:none;">
@@ -273,23 +307,31 @@
     <div id="offlineBadge" onclick="syncOfflineData()">📶 لديك بيانات غير مزامنة (<span id="offlineCount">0</span>). اضغط للرفع!</div>
 
     <div id="lectureContainer" class="manager-only" style="background: var(--card-bg); padding: 15px; border-radius: 16px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); text-align:center; box-shadow: 0 10px 20px rgba(0,0,0,0.05); display:none;">
+      
       <div style="margin-bottom: 15px;">
           <label style="font-weight: 800; color: var(--electric-blue); font-size: 13px; display:block; margin-bottom:10px;">رقم المحاضرة المستهدفة</label>
-          <select id="lecture" style="margin-bottom: 0; max-width: 300px;"><script>for(let i=1;i<=20;i++) document.write(`<option value="${i}">المحاضرة ${i}</option>`);</script></select>
+          <select id="lecture" style="margin-bottom: 0; max-width: 300px;">
+              <script>for(let i=1;i<=20;i++) document.write(`<option value="${i}">المحاضرة ${i}</option>`);</script>
+          </select>
       </div>
+
       <div class="cross-group-only" style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; display:none !important;">
           <label style="font-weight: 800; color: #c084fc; font-size: 13px; display:block; margin-bottom:10px;">تحكم الجروب 👑</label>
           <select id="globalGroupSelect" style="margin-bottom:0; max-width: 300px; border-color:#c084fc; color:#c084fc;" onchange="changeGlobalGroup(this.value)"></select>
       </div>
-    </div>
+
+  </div>
 
     <div id="view-scanner" class="view-section active">
       <div style="max-width: 500px; margin: auto;">
         <h3 style="color:var(--electric-blue); text-align:center; font-size:24px; font-weight:800; margin-bottom:20px;">المسح الضوئي للحضور</h3>
         <select id="cameraSelection"><option value="">جاري البحث عن كاميرات...</option></select>
+        
         <button class="btn-primary" onclick="startLiveCamera()" style="width: 100%; display: flex; justify-content: center;">🎥 تفعيل المسح الذكي</button>
+        
         <input type="file" id="qr-input-file" accept="image/*" capture="environment" style="display:none;">
         <button class="btn-secondary" onclick="document.getElementById('qr-input-file').click()" style="margin-bottom:0;">📸 التقاط صورة للـ QR</button>
+        
         <div id="reader" style="width: 100%; border-radius: 20px; overflow: hidden; display: none; border: 3px dashed var(--accent); margin-top: 15px; background: rgba(0,0,0,0.05); padding: 10px;"></div>
         <button class="btn-danger" id="stopCamBtn" style="display:none; margin-top:15px; width: 100%; justify-content: center;" onclick="stopLiveCamera()">إيقاف الكاميرا</button>
       </div>
@@ -298,7 +340,7 @@
     <div id="view-manual" class="view-section">
       <div style="max-width: 500px; margin: auto;">
         <h3 style="color:var(--electric-blue); text-align:center; font-size:24px; font-weight:800; margin-bottom:20px;">التسجيل اليدوي السريع</h3>
-        <p style="font-size: 14px; color: var(--text-muted); text-align:center; margin-bottom: 20px;">أدخل <b>رقم الطالب فقط</b> (يدعم الأرقام العربية ١٢٣).</p>
+        <p style="font-size: 13px; color: var(--text-muted); text-align:center; margin-bottom: 20px;">أدخل <b>رقم الطالب فقط</b> (يدعم الأرقام العربية ١٢٣).</p>
         <input type="text" id="manualCode" placeholder="مثال: 15 أو ١٥" style="text-align:center; font-size:24px; letter-spacing:4px; font-weight:900;">
         <button class="btn-primary" onclick="submitManualCode()">تسجيل الحضور 📥</button>
       </div>
@@ -306,7 +348,7 @@
 
     <div id="view-dashboard" class="view-section manager-only">
       <div class="dashboard-header">
-        <span style="font-weight: 800; color: var(--primary); font-size:16px;">مؤشر الحضور الحي:</span>
+        <span style="font-weight: 800; color: var(--primary); font-size:16px;">الطلاب الحاضرين:</span>
         <span class="count-badge" id="dashCount">0</span>
       </div>
       <div class="search-box" style="position: relative;">
@@ -328,13 +370,13 @@
     <div id="view-analytics" class="view-section manager-only">
       <div style="max-width: 600px; margin: auto;">
         <h3 style="color:var(--electric-blue); text-align:center; font-size:24px; font-weight:800; margin-bottom:20px;">📊 الإحصائيات والتحليلات</h3>
-        <div class="owner-only flex-container" style="gap: 15px; margin-bottom: 25px; background: rgba(255,255,255,0.5); padding: 15px; border-radius: 16px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 6px rgba(0,0,0,0.02); max-width: 600px; margin-left: auto; margin-right: auto;">
-          <button class="btn-primary btn-small" style="flex:1; margin:0; padding:12px; font-size:14px;" onclick="loadAnalytics('all')">مقارنة شاملة 🌐</button>
-          <button class="btn-secondary btn-small" style="flex:1; margin:0; padding:12px; font-size:14px;" onclick="loadAnalytics('group')">تحليل الجروب 📈</button>
+        <div class="owner-only" style="display:flex; gap:10px; margin-bottom: 20px;">
+          <button class="btn-primary btn-small" style="flex:1; margin:0; padding:12px;" onclick="loadAnalytics('all')">مقارنة شاملة 🌐</button>
+          <button class="btn-secondary btn-small" style="flex:1; margin:0; padding:12px;" onclick="loadAnalytics('group')">تحليل الجروب 📈</button>
         </div>
         <p id="analyticsDesc" style="font-size: 13px; color: var(--text-muted); text-align:center;"></p>
         <div class="chart-container"><canvas id="attendanceChart"></canvas></div>
-        <button class="btn-secondary" style="margin-top: 15px;" onclick="loadAnalytics()">🔄 تحديث البيانات</button>
+        <button class="btn-secondary" style="margin-top: 15px;" onclick="loadAnalytics()">تحديث البيانات 🔄</button>
       </div>
     </div>
 
@@ -345,7 +387,7 @@
           <input type="text" id="newUserName" placeholder="الاسم بالكامل">
           <input type="email" id="newUserEmail" placeholder="البريد الإلكتروني الرسمي">
           <input type="password" id="newUserPass" placeholder="كلمة مرور الدخول">
-          <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
             <select id="newUserRole" style="margin-bottom: 0;">
               <option value="Cadre">مسجل (Cadre)</option>
               <option value="Coordinator">مراقب (Coordinator)</option>
@@ -369,35 +411,39 @@
     <div id="view-login" class="view-section">
       <div class="form-wrapper">
         <div style="text-align: center; margin-bottom: 30px;">
-          <div class="atom-logo"><div class="atom-ring"></div><div class="atom-ring"></div><div class="atom-ring"></div><div class="atom-core"></div></div>
+          
+          <img src="https://aawyndbhkgiombfqinyf.supabase.co/storage/v1/object/public/new/BIM%20sesion%20(2).png" alt="Eduneers Logo" class="logo-light">
+          
+          <img src="https://aawyndbhkgiombfqinyf.supabase.co/storage/v1/object/public/new/BIM%20sesion%20(4).png" alt="Eduneers Logo" class="logo-dark">
+          
           <h2 style="color:var(--primary); margin-top:0; font-size: 28px; font-weight: 800; letter-spacing: 1px;">تسجيل الدخول</h2>
           <p style="color: var(--text-muted); font-size: 15px; font-weight: 600;"> Attendance System | Eduneers </p>
         </div>
+        
         <input type="email" id="loginEmail" placeholder="البريد الإلكتروني...">
         <input type="password" id="loginPassword" placeholder="كلمة المرور...">
         <button class="btn-primary" onclick="handleManualLogin()">دخول آمن 🔐</button>
+        
         <div class="divider"><hr><span>أو باستخدام</span></div>
-        <div class="google-btn-container">
-          <div id="g_id_onload" data-client_id="841979425871-4frlmc9t57ahvui609v35ksv8rvnvo0b.apps.googleusercontent.com" data-context="signin" data-ux_mode="popup" data-callback="handleGoogleLogin" data-auto_prompt="false"></div>
-          <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="filled_black" data-text="signin_with" data-size="large" data-logo_alignment="left"></div>
-        </div>
+        
+       <div class="google-btn-container" id="googleBtnWrapper"></div>
       </div>
     </div>
 
   </div>
 
   <script>
-    const ATTENDANCE_API_URL = "https://script.google.com/macros/s/AKfycbxa-cJWpe21h39eHHYxj8J203gfpvhWwJpNCcPnEUp2ywWddDNLUgXI777GOJD__VN_/exec"; 
+    const ATTEND_API = "https://script.google.com/macros/s/AKfycbzrLXNuxcAM5A1euSqtbqt-3L2sqAPXGb0A3JF7hiCaJ5giW86c51bs45ISAPANa4PP/exec"; 
+    const ATTENDANCE_API_URL = ATTEND_API; 
     const LOGIN_API_URL = "https://script.google.com/macros/s/AKfycbw-oytOWrgERm2yXu-NagMlyS14HlUGeAlsWqrZl2SwRJIi0IDL1AH2VduQvsmIIkNgFA/exec";
 
     let html5QrCode; let allAttendees = []; 
     let currentView = localStorage.getItem('savedView') || 'login';
-    let attendanceChartInstance = null;
+    let attendanceChartInstance = null; let myChart = null;
     let lastSyncTime = 0; const SYNC_COOLDOWN = 60000;
     
     let offlineQueue = JSON.parse(localStorage.getItem('offlineQueue')) || [];
 
-    // 🔴 دالة تحويل الأرقام العربية إلى إنجليزية
     function convertNumerals(str) {
       if(!str) return "";
       const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
@@ -406,18 +452,18 @@
 
     let loaderInterval;
     function showProgress(message="جاري العمل...") {
-        const l = document.getElementById('electricLoader');
-        document.getElementById('loaderMessage').innerText = message;
+        const l = document.getElementById('loader');
+        document.getElementById('loaderMsg').innerText = message;
         l.style.display = 'flex';
-        let p=0; document.getElementById('loaderPercent').innerText = p + '%'; document.getElementById('progressBarFill').style.width = p + '%';
+        let p=0; document.getElementById('percent').innerText = p + '%'; document.getElementById('barFill').style.width = p + '%';
         clearInterval(loaderInterval);
-        loaderInterval = setInterval(()=>{ p+=Math.floor(Math.random()*10)+1; if(p>90)p=90; document.getElementById('progressBarFill').style.width=p+'%'; document.getElementById('loaderPercent').innerText=p+'%'; }, 100);
+        loaderInterval = setInterval(()=>{ p+=Math.floor(Math.random()*10)+1; if(p>90)p=90; document.getElementById('barFill').style.width=p+'%'; document.getElementById('percent').innerText=p+'%'; }, 100);
     }
 
     function completeProgress() {
         clearInterval(loaderInterval);
-        document.getElementById('progressBarFill').style.width='100%'; document.getElementById('loaderPercent').innerText='100%';
-        setTimeout(() => { document.getElementById('electricLoader').style.display = 'none'; document.getElementById('progressBarFill').style.width='0%'; }, 300);
+        document.getElementById('barFill').style.width='100%'; document.getElementById('percent').innerText='100%';
+        setTimeout(() => { document.getElementById('loader').style.display = 'none'; document.getElementById('barFill').style.width='0%'; }, 300);
     }
 
     function showToast(text, type="success") {
@@ -448,8 +494,7 @@
 
     function toggleDarkMode() {
       document.body.classList.toggle('dark-mode'); const isDark = document.body.classList.contains('dark-mode');
-      localStorage.setItem('darkMode', isDark);
-      document.getElementById('themeToggle').innerText = isDark ? '🌙' : '☀️';
+      localStorage.setItem('darkMode', isDark); 
       if(currentView === 'analytics' && attendanceChartInstance) { loadAnalytics('group'); }
     }
 
@@ -457,15 +502,13 @@
       const badge = document.getElementById('offlineBadge'); const countSpan = document.getElementById('offlineCount');
       if (offlineQueue.length > 0) {
         badge.style.display = 'block'; countSpan.innerText = offlineQueue.length;
-        if (navigator.onLine) badge.style.backgroundColor = '#f39c12'; 
-        else badge.style.backgroundColor = '#ef4444'; 
+        badge.style.backgroundColor = navigator.onLine ? '#f39c12' : '#ef4444'; 
       } else { badge.style.display = 'none'; }
     }
 
     function syncOfflineData() {
-      if (!navigator.onLine) return alert("الإنترنت ما زال مقطوعاً. تأكد من الاتصال أولاً.");
+      if (!navigator.onLine) return alert("الإنترنت مقطوع. تأكد من الاتصال.");
       if (offlineQueue.length === 0) return;
-      
       showProgress("جاري رفع البيانات المتأخرة للسيرفر...");
       let successCount = 0;
       function uploadNext(index) {
@@ -476,7 +519,7 @@
         fetch(`${ATTENDANCE_API_URL}?action=scan&qrCode=${encodeURIComponent(record.code)}&lectureNum=${encodeURIComponent(record.lecture)}&group=${encodeURIComponent(record.group)}${getAuthParams()}`)
           .then(res => res.json()).then(data => { if (data.status === "success" || data.status === "already") successCount++; uploadNext(index + 1);
           }).catch(err => {
-             offlineQueue = offlineQueue.slice(index); localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue)); updateOfflineBadge(); completeProgress(); showToast("❌ انقطع الاتصال أثناء المزامنة. حاول مجدداً.", "error");
+             offlineQueue = offlineQueue.slice(index); localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue)); updateOfflineBadge(); completeProgress(); showToast("❌ انقطع الاتصال أثناء المزامنة.", "error");
           });
       }
       uploadNext(0);
@@ -484,11 +527,7 @@
 
     window.onload = function() {
       try {
-        if (localStorage.getItem('darkMode') === 'true') {
-          document.body.classList.add('dark-mode');
-          document.getElementById('themeToggle').innerText = '🌙';
-        }
-        
+        if (localStorage.getItem('darkMode') === 'true') { document.body.classList.add('dark-mode'); document.getElementById('themeToggle').innerText = '🌙'; }
         updateOfflineBadge(); window.addEventListener('online', updateOfflineBadge); window.addEventListener('offline', updateOfflineBadge);
 
         fillGroupSelects();
@@ -517,22 +556,19 @@
           }).catch(err => console.log("Cam warning:", err));
         }
 
-        // إعداد زر تسجيل الدخول الخاص بجوجل
+        // برمجة زرار جوجل عشان يشتغل على الموبايل بدون مشاكل
         if (typeof google !== 'undefined' && google.accounts) {
           google.accounts.id.initialize({
-            client_id: "841979425871-4frlmc9t57ahvui609v35ksv8rvnvo0b.apps.googleusercontent.com", // استخدم الـ Client ID الجديد بتاعك هنا لو اتغير
+            client_id: "841979425871-4frlmc9t57ahvui609v35ksv8rvnvo0b.apps.googleusercontent.com", 
             callback: handleGoogleLogin,
             cancel_on_tap_outside: false
           });
           google.accounts.id.renderButton(
-            document.getElementById("g_id_signin"), 
+            document.getElementById("googleBtnWrapper"),
             { theme: "filled_black", size: "large", shape: "pill", text: "signin_with" }
           );
-          
-          // 🔴 إلغاء التسجيل التلقائي عشان تظهر شاشة اختيار الحساب
-          google.accounts.id.disableAutoSelect(); 
-        }
-
+        } 
+        
       } catch (error) {
         console.error("System Error:", error);
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
@@ -540,7 +576,6 @@
         showToast("❌ حدث خطأ أثناء تهيئة النظام.", "error");
       }
     };
-
     function handleManualLogin() {
       const email = document.getElementById('loginEmail').value; const pass = document.getElementById('loginPassword').value;
       if(!email || !pass) return alert("الرجاء إدخال الإيميل وكلمة المرور.");
@@ -631,21 +666,7 @@
       }
     }
 
-    // 🔴 تعديل دالة الخروج لمسح ارتباط حساب جوجل
-    function logout() { 
-      const email = localStorage.getItem('userEmail');
-      if (email && typeof google !== 'undefined' && google.accounts) {
-          google.accounts.id.revoke(email, () => {
-              google.accounts.id.disableAutoSelect();
-              localStorage.clear(); 
-              window.location.reload();
-          });
-      } else {
-          localStorage.clear(); 
-          window.location.reload(); 
-      }
-    }
-    
+    function logout() { localStorage.clear(); toggleSidebar(); checkAuth(); location.reload(); }
     function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('show'); }
 
     function switchView(viewId, el) {
@@ -681,15 +702,14 @@
           }
       }
       
-      if(viewId === 'dashboard') loadDashboard(); if(viewId === 'users') loadUsers(); 
-      if(viewId === 'analytics') { fetchAnalyticsData(); }
+      if(viewId === 'dashboard') loadDashboard(); if(viewId === 'users') loadUsers(); if(viewId === 'analytics') loadAnalytics('group'); 
     }
 
     function changeGlobalGroup(newGroup) {
       localStorage.setItem('userGroup', newGroup); 
       const gBadge = document.getElementById('groupBadge');
       if(gBadge) gBadge.innerText = newGroup;
-      if(currentView === 'dashboard') loadDashboard(); if(currentView === 'analytics') fetchAnalyticsData();
+      if(currentView === 'dashboard') loadDashboard(); if(currentView === 'analytics') loadAnalytics('group');
     }
 
     function startLiveCamera() {
@@ -730,10 +750,14 @@
       document.getElementById('manualCode').value = ""; 
     }
 
+    // 🔴 الدالة المعدلة لإظهار اسم الطالب في حالة النجاح
     function sendDataToAPI(studentCode) {
       if(!studentCode) return; 
       studentCode = studentCode.toUpperCase();
-      if (!studentCode.endsWith("EDUR9")) { studentCode = studentCode + "EDUR9"; }
+      
+      if (!studentCode.endsWith("EDUR9")) {
+          studentCode = studentCode + "EDUR9";
+      }
 
       const role = localStorage.getItem('userRole').toUpperCase();
       if (role === 'OWNER' || role === 'CO-FOUNDER' || role === 'TEAM MANAGER' || role === 'ADMIN') {
@@ -757,9 +781,11 @@
       .then(res => res.json()).then(data => {
           completeProgress();
           if (data.status === "success") { 
+            // 👈 التعديل هنا: قراءة الاسم وعرضه
             let studentName = data.name || data.studentName || data.student_name;
-            let successMsg = studentName ? `✅ تم تسجيل ${studentName} بنجاح` : (data.message || "✅ تم التسجيل بنجاح");
-            showToast(successMsg, "success"); playBeep('success'); 
+            let successMsg = studentName ? `✅ تم تسجيل (${studentName}) بنجاح` : (data.message || "✅ تم التسجيل بنجاح");
+            showToast(successMsg, "success"); 
+            playBeep('success'); 
           } 
           else { showToast(data.message, "error"); playBeep('error'); }
       }).catch(err => { 
@@ -806,91 +832,28 @@
       link.href = URL.createObjectURL(blob); link.download = `Report_${group}_Lec_${lec}.csv`; link.click(); showToast("✅ تم التصدير", "success");
     }
 
-    function fetchAnalyticsData(type = 'group') {
-      showProgress("تحليل البيانات وبناء الرسوم... 📈");
-      const group = localStorage.getItem('userGroup') || "Group A"; 
-      const lec = document.getElementById('lecture').value || "1"; 
-      const role = (localStorage.getItem('userRole') || "").toUpperCase();
-      
-      let url = ""; 
-      let chartTitle = "";
-      
+    function loadAnalytics(type = 'group') {
+      showProgress("تحليل البيانات...");
+      const group = localStorage.getItem('userGroup') || "Group A"; const lec = document.getElementById('lecture').value; const role = localStorage.getItem('userRole').toUpperCase();
+      let url = ""; let chartTitle = "";
       if (type === 'all' && (role === 'OWNER' || role === 'CO-FOUNDER')) {
          url = `${ATTENDANCE_API_URL}?action=getOwnerAnalytics&lectureNum=${encodeURIComponent(lec)}${getAuthParams()}`;
-         document.getElementById('analyticsDesc').innerText = `📊 مقارنة حية لحضور كافة الجروبات - محاضرة ${lec}`; 
-         chartTitle = 'حضور الجروبات';
+         document.getElementById('analyticsDesc').innerText = `📊 مقارنة حية لحضور كافة الجروبات - محاضرة ${lec}`; chartTitle = 'حضور الجروبات';
       } else {
          url = `${ATTENDANCE_API_URL}?action=getAnalytics&group=${encodeURIComponent(group)}${getAuthParams()}`;
-         document.getElementById('analyticsDesc').innerText = `📈 تتبع كفاءة الحضور لـ ${group} على مدار الكورس`; 
-         chartTitle = 'كثافة الحضور';
+         document.getElementById('analyticsDesc').innerText = `📈 تتبع كفاءة الحضور لـ ${group} على مدار الكورس`; chartTitle = 'كثافة الحضور';
       }
-
-      fetch(url)
-        .then(res => res.text())
-        .then(text => {
-            completeProgress();
-            try {
-                const data = JSON.parse(text);
-                if (data.status === "success") { 
-                    if(data.labels && data.labels.length > 0) {
-                        document.getElementById('analyticsDesc').style.display = 'block';
-                        renderAnalyticsChart(data.labels, data.data, chartTitle); 
-                    } else {
-                        showToast("⚠️ لا توجد بيانات حضور كافية للرسم البياني حتى الآن.", "warning");
-                        if(attendanceChartInstance) { attendanceChartInstance.destroy(); }
-                    }
-                } else { 
-                    showToast(data.message || "حدث خطأ في جلب البيانات من السيرفر", "error"); 
-                }
-            } catch(e) {
-                console.error("Server Error Response:", text);
-                showToast("❌ خطأ في الاستجابة من السيرفر الرئيسي.", "error");
-            }
-        })
-        .catch(err => { 
-            completeProgress(); 
-            showToast("❌ فشل في الاتصال بالإنترنت أو قاعدة البيانات.", "error"); 
-        });
-    }
-
-    function loadAnalytics(type = 'group') {
-        fetchAnalyticsData(type);
+      fetch(url).then(res => res.json()).then(data => {
+          completeProgress();
+          if (data.status === "success") { document.getElementById('message').style.display = 'none'; renderAnalyticsChart(data.labels, data.data, chartTitle); } else { showToast(data.message, "error"); }
+        }).catch(err => { completeProgress(); showToast("❌ فشل في الرسوم البيانية.", "error"); });
     }
 
     function renderAnalyticsChart(labelsArray, dataArray, labelTitle) {
-      const canvas = document.getElementById('attendanceChart');
-      const ctx = canvas.getContext('2d');
-      if (attendanceChartInstance) { attendanceChartInstance.destroy(); }
-      
-      const isDark = document.body.classList.contains('dark-mode'); 
-      const chartColor = isDark ? '#00d2ff' : '#0f172a'; 
-      const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
-
-      attendanceChartInstance = new Chart(ctx, { 
-          type: 'bar', 
-          data: { 
-              labels: labelsArray, 
-              datasets: [{ 
-                  label: labelTitle, 
-                  data: dataArray, 
-                  backgroundColor: chartColor, 
-                  borderColor: '#f5b041', 
-                  borderWidth: 2, 
-                  borderRadius: 12, 
-                  hoverBackgroundColor: '#f5b041' 
-              }] 
-          }, 
-          options: { 
-              responsive: true, 
-              maintainAspectRatio: false, 
-              scales: { 
-                  x: { grid: { display: false }, ticks: { color: isDark ? '#fff' : '#334155', font: {family: 'Cairo', weight: 'bold'} } }, 
-                  y: { beginAtZero: true, ticks: { stepSize: 1, color: isDark ? '#fff' : '#334155' }, grid: { color: gridColor, borderDash: [4, 4] } } 
-              }, 
-              plugins: { legend: { display: false } }, 
-              animation: { duration: 1500, easing: 'easeOutQuart' } 
-          } 
-      });
+      const ctx = document.getElementById('attendanceChart').getContext('2d');
+      if (attendanceChartInstance) attendanceChartInstance.destroy();
+      const isDark = document.body.classList.contains('dark-mode'); const chartColor = isDark ? '#00d2ff' : '#0f172a'; const gridColor = isDark ? '#334155' : '#e2e8f0';
+      attendanceChartInstance = new Chart(ctx, { type: 'bar', data: { labels: labelsArray, datasets: [{ label: labelTitle, data: dataArray, backgroundColor: chartColor, borderColor: '#f5b041', borderWidth: 2, borderRadius: 12, hoverBackgroundColor: '#f5b041' }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { grid: { display: false }, ticks: { color: isDark ? '#cbd5e1' : '#64748b' } }, y: { beginAtZero: true, ticks: { stepSize: 5, color: isDark ? '#cbd5e1' : '#64748b' }, grid: { color: gridColor, borderDash: [4, 4] } } }, plugins: { legend: { display: false } }, animation: { duration: 1500, easing: 'easeOutQuart' } } });
     }
 
     function loadUsers() {
