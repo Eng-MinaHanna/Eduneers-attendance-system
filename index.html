@@ -412,10 +412,7 @@
         
         <div class="divider"><hr><span>أو باستخدام</span></div>
         
-        <div class="google-btn-container">
-          <div id="g_id_onload" data-client_id="199540075185-0s74k90bdpodvtnao1ce7euec2o0vr31.apps.googleusercontent.com" data-context="signin" data-ux_mode="popup" data-callback="handleGoogleLogin" data-auto_prompt="false"></div>
-          <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="filled_black" data-text="signin_with" data-size="large" data-logo_alignment="left"></div>
-        </div>
+       <div class="google-btn-container" id="googleBtnWrapper"></div>
       </div>
     </div>
 
@@ -546,7 +543,18 @@
             }
           }).catch(err => console.log("Cam warning:", err));
         }
-
+        
+  if (typeof google !== 'undefined' && google.accounts) {
+          google.accounts.id.initialize({
+            client_id: "حط_هنا_الـ_Client_ID_بتاعك_الجديد.apps.googleusercontent.com", // 👈 غير ده
+            callback: handleGoogleLogin,
+            cancel_on_tap_outside: false
+          });
+          google.accounts.id.renderButton(
+            document.getElementById("googleBtnWrapper"),
+            { theme: "filled_black", size: "large", shape: "pill", text: "signin_with" }
+          );
+    
       } catch (error) {
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
         const loginView = document.getElementById('view-login'); if(loginView) loginView.classList.add('active');
