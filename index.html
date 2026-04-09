@@ -513,7 +513,7 @@
       uploadNext(0);
     }
 
-    window.onload = function() {
+window.onload = function() {
       try {
         if (localStorage.getItem('darkMode') === 'true') { document.body.classList.add('dark-mode'); document.getElementById('themeToggle').innerText = '🌙'; }
         updateOfflineBadge(); window.addEventListener('online', updateOfflineBadge); window.addEventListener('offline', updateOfflineBadge);
@@ -543,8 +543,9 @@
             }
           }).catch(err => console.log("Cam warning:", err));
         }
-        
-  if (typeof google !== 'undefined' && google.accounts) {
+
+        // برمجة زرار جوجل عشان يشتغل على الموبايل بدون مشاكل
+        if (typeof google !== 'undefined' && google.accounts) {
           google.accounts.id.initialize({
             client_id: "حط_هنا_الـ_Client_ID_بتاعك_الجديد.apps.googleusercontent.com", // 👈 غير ده
             callback: handleGoogleLogin,
@@ -554,14 +555,15 @@
             document.getElementById("googleBtnWrapper"),
             { theme: "filled_black", size: "large", shape: "pill", text: "signin_with" }
           );
-    
+        } // 👈 القفلة دي كانت ناقصة
+        
       } catch (error) {
+        console.error("System Error:", error);
         document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
         const loginView = document.getElementById('view-login'); if(loginView) loginView.classList.add('active');
         showToast("❌ حدث خطأ أثناء تهيئة النظام.", "error");
       }
     };
-
     function handleManualLogin() {
       const email = document.getElementById('loginEmail').value; const pass = document.getElementById('loginPassword').value;
       if(!email || !pass) return alert("الرجاء إدخال الإيميل وكلمة المرور.");
