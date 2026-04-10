@@ -478,19 +478,35 @@
       reader.readAsDataURL(file);
     }
 
-    canvas.onclick = (e) => {
+    let isDragging = false;
+    canvas.onmousedown = (e) => { isDragging = true; updatePos(e); };
+    canvas.onmousemove = (e) => { if(isDragging) updatePos(e); };
+    canvas.onmouseup = () => { isDragging = false; };
+    canvas.onmouseleave = () => { isDragging = false; };
+
+    function updatePos(e) {
       if (!templateImg) return;
       const rect = canvas.getBoundingClientRect(), sx = canvas.width/rect.width, sy = canvas.height/rect.height;
-      nameX = (e.clientX - rect.left) * sx; nameY = (e.clientY - rect.top) * sy; updatePreview();
-    };
+      nameX = (e.clientX - rect.left) * sx; nameY = (e.clientY - rect.top) * sy; 
+      updatePreview();
+    }
 
     function updatePreview() {
       if (!templateImg) return;
       ctx.drawImage(templateImg, 0, 0);
+      
+      // رسم خط السنتر العمودي (Vertical Guide)
+      ctx.setLineDash([10, 10]); ctx.strokeStyle = "rgba(0, 210, 255, 0.4)";
+      ctx.beginPath(); ctx.moveTo(canvas.width/2, 0); ctx.lineTo(canvas.width/2, canvas.height); ctx.stroke();
+      ctx.setLineDash([]); 
+
       const fs = document.getElementById('fontSize').value, col = document.getElementById('textColor').value, ff = document.getElementById('fontFamily').value, fw = document.getElementById('fontWeight').value;
       ctx.fillStyle = col; ctx.font = `${fw} ${fs}px ${ff}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText("الاسم هنا", nameX, nameY);
-      ctx.strokeStyle = 'rgba(255,0,0,0.5)'; ctx.strokeRect(nameX-10, nameY-10, 20, 20);
+      
+      // علامة التحديد حول النص
+      ctx.strokeStyle = 'rgba(245, 176, 65, 0.6)'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.arc(nameX, nameY, 5, 0, Math.PI*2); ctx.stroke();
     }
 
     function parseInput() {
