@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title> Templates System | Eduneers </title>
+  <title> Eduneers | Enterprise Certificates </title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
@@ -14,317 +14,269 @@
     :root {
       --primary: #0f172a; --primary-light: #1e293b; --accent: #f5b041; --accent-glow: rgba(245, 176, 65, 0.6);
       --electric-blue: #00d2ff; --electric-glow: rgba(0, 210, 255, 0.5); --bg-gradient: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-      --text-main: #334155; --text-muted: #64748b; --card-bg: rgba(255, 255, 255, 0.9); --border-radius: 24px;
+      --text-main: #334155; --text-muted: #64748b; --card-bg: rgba(255, 255, 255, 0.9); --border-radius: 20px;
     }
 
     body.dark-mode {
       --primary: #f8fafc; --bg-gradient: radial-gradient(circle at top right, #1e293b 0%, #0f172a 100%);
-      --text-main: #f8fafc; --text-muted: #cbd5e1; --card-bg: rgba(15, 23, 42, 0.9);
+      --text-main: #f8fafc; --text-muted: #cbd5e1; --card-bg: rgba(15, 23, 42, 0.95);
     }
 
-    body { font-family: 'Cairo', sans-serif; background: var(--bg-gradient); margin: 0; color: var(--text-main); min-height: 100vh; transition: 0.5s; overflow-x: hidden; }
-    .circuit-bg { position: fixed; inset: -5%; width: 110vw; height: 110vh; z-index: -1; pointer-events: none; background-image: radial-gradient(circle at 50% 50%, rgba(245, 176, 65, 0.05) 2px, transparent 2px); background-size: 40px 40px; }
-    body.dark-mode .circuit-bg { background-image: radial-gradient(circle at 50% 50%, rgba(0, 210, 255, 0.1) 2px, transparent 3px); }
+    body { font-family: 'Cairo', sans-serif; background: var(--bg-gradient); margin: 0; color: var(--text-main); min-height: 100vh; overflow-x: hidden; transition: 0.3s; }
+    .circuit-bg { position: fixed; inset: 0; z-index: -1; opacity: 0.1; background-image: radial-gradient(var(--accent) 1px, transparent 1px); background-size: 30px 30px; }
 
-    .navbar { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(16px); color: white; padding: 12px 0; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3); position: sticky; top: 0; z-index: 1000; }
-    .nav-content { max-width: 1200px; margin: 0 auto; padding: 0 15px; display: flex; justify-content: space-between; align-items: center; }
-    .brand-text { background: linear-gradient(to left, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
+    .navbar { background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(10px); color: white; padding: 15px 0; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+    .nav-content { max-width: 1200px; margin: 0 auto; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; }
 
-    .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 350px; gap: 25px; }
+    .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; display: grid; grid-template-columns: 1fr 380px; gap: 20px; }
     @media (max-width: 992px) { .container { grid-template-columns: 1fr; } }
 
-    .glass-card { background: var(--card-bg); backdrop-filter: blur(15px); border-radius: var(--border-radius); padding: 25px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05); margin-bottom: 25px; }
-    .card-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; color: var(--primary); }
-    body.dark-mode .card-title { color: var(--electric-blue); }
+    .glass-card { background: var(--card-bg); border-radius: var(--border-radius); padding: 25px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+    .card-title { font-size: 1.25rem; font-weight: 800; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
 
-    .designer-canvas-container { width: 100%; background: #000; border-radius: 15px; overflow: hidden; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 4px solid var(--primary-light); cursor: crosshair; }
+    .designer-box { width: 100%; background: #000; border-radius: 15px; position: relative; overflow: hidden; border: 3px solid var(--primary-light); cursor: crosshair; }
     canvas { width: 100%; display: block; }
+
+    .manager-only { display: none; }
+    body.role-admin .manager-only, body.role-co-founder .manager-only, body.role-owner .manager-only { display: block !important; }
+
+    input, select, textarea { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); background: rgba(0,0,0,0.02); color: var(--text-main); font-family: 'Cairo'; font-weight: 700; outline: none; transition: 0.3s; box-sizing: border-box; }
+    body.dark-mode input, body.dark-mode select, body.dark-mode textarea { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+    input:focus { border-color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
 
     .btn { padding: 12px 20px; border-radius: 12px; border: none; font-family: 'Cairo'; font-weight: 800; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .btn-primary { background: var(--accent); color: #0f172a; }
-    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 8px 15px var(--accent-glow); }
-    .btn-drive { background: linear-gradient(135deg, #4285f4, #34a853); color: white; }
-    .btn-email { background: #ea4335; color: white; }
     .btn-outline { background: transparent; border: 2px solid var(--accent); color: var(--text-main); }
+    .btn-drive { background: #34a853; color: white; }
+    .btn-email { background: #ea4335; color: white; }
 
-    .manager-only { display: none; }
-    body.role-admin .manager-only, 
-    body.role-co-founder .manager-only, 
-    body.role-owner .manager-only { display: block !important; }
-
-    select, input, textarea { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); background: rgba(0,0,0,0.03); font-family: 'Cairo'; font-weight: 700; outline: none; transition: 0.3s; color: var(--text-main); }
-    body.dark-mode select, body.dark-mode input, body.dark-mode textarea { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+    .status-monitor { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; display: none; align-items: center; justify-content: center; }
+    .monitor-card { width: 90%; max-width: 500px; background: var(--card-bg); border-radius: 25px; padding: 30px; }
     
-    .status-badge { padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 900; }
-    .status-pending { background: rgba(0,0,0,0.05); color: #64748b; }
-    .status-success { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+    .loading-spinner { width: 24px; height: 24px; border: 3px solid rgba(255,255,255,0.3); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .monitor-modal { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.9); z-index: 10001; display: none; align-items: center; justify-content: center; }
-    .monitor-content { width: 90%; max-width: 500px; background: var(--card-bg); border-radius: 24px; padding: 25px; }
-
-    /* 🛡️ Template Selection UI */
-    .template-selector { display: flex; gap: 10px; margin-bottom: 20px; }
+    .lock-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); backdrop-filter: blur(2px); display: none; align-items: center; justify-content: center; color: white; font-weight: 900; pointer-events: none; z-index: 5; }
   </style>
 </head>
 
 <body class="dark-mode">
   <div class="circuit-bg"></div>
 
-  <div class="monitor-modal" id="sendMonitor">
-    <div class="monitor-content">
-      <div class="card-title">🚀 <span id="monitorTitle">جاري المعالجة...</span></div>
-      <div id="monitorList" style="max-height: 300px; overflow-y: auto; margin-top: 15px;"></div>
-      <button class="btn btn-primary" style="margin-top: 20px; width: 100%;" onclick="closeMonitor()">إغلاق</button>
+  <div class="status-monitor" id="monitor">
+    <div class="monitor-card">
+      <div class="card-title">🚀 <span id="mTitle">جاري المعالجة...</span></div>
+      <div id="mList" style="max-height: 300px; overflow-y: auto; font-size: 13px;"></div>
+      <button class="btn btn-primary" style="width: 100%; margin-top: 20px;" onclick="closeMonitor()">إغلاق</button>
     </div>
   </div>
 
   <nav class="navbar">
     <div class="nav-content">
-      <div class="nav-brand">
-        <h2>⚡ <span class="brand-text">Eduneers Templates</span></h2>
-      </div>
-      <div class="nav-actions">
-        <a href="index.html" class="btn btn-outline" style="padding: 8px 15px;">🏠 الرئيسية</a>
-      </div>
+      <div style="font-size: 1.4rem; font-weight: 900;">🎓 <span style="color:var(--accent)">EDuneers</span> | Certificates</div>
+      <a href="index.html" class="btn btn-outline" style="padding: 6px 15px; font-size: 13px;">🏠 الرئيسية</a>
     </div>
   </nav>
 
   <div class="container">
     <main>
-      <!-- 🖼️ Designer Section -->
       <section class="glass-card">
-        <div class="card-title"><span>🎨</span> مصمم الشهادات الذكي</div>
+        <div class="card-title">🎨 مصمم القوالب الذكي</div>
         
-        <!-- Selection for all users -->
-        <div class="template-selector">
-          <select id="templateSelect" onchange="loadSavedTemplate(this.value)">
-            <option value="">-- اختر قالباً جاهزاً --</option>
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+          <select id="templateSelect" onchange="loadTemplate(this.value)">
+            <option value="">-- اختر قالباً جاهزاً من الشيت --</option>
           </select>
-          <button class="btn btn-outline" onclick="fetchTemplates()">🔄 تحديث</button>
+          <button class="btn btn-outline" onclick="fetchTemplates()" title="تحديث القوالب">🔄</button>
         </div>
 
-        <!-- Designer controls for Managers -->
-        <div class="manager-only" style="border-top: 1px solid rgba(0,0,0,0.1); padding-top: 15px; margin-bottom: 20px;">
-          <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: end;">
-            <div>
-              <label style="font-size: 11px; font-weight: 800; opacity: 0.7;">اسم القالب الجديد:</label>
-              <input type="text" id="newTemplateName" placeholder="مثلاً: شهادة الدورة الأساسية">
-            </div>
-            <button class="btn btn-primary" onclick="saveCurrentTemplate()">💾 حفظ كقالب</button>
+        <div class="manager-only" style="margin-bottom: 20px; border: 1px dashed var(--accent); padding: 15px; border-radius: 15px; background: rgba(245, 176, 65, 0.05);">
+          <div style="display: grid; grid-template-columns: 1fr auto; gap: 10px;">
+            <input type="text" id="tplName" placeholder="اسم القالب الجديد (مثلاً: دفعة مارس)">
+            <button class="btn btn-primary" onclick="saveTemplate()">💾 حفظ كقالب جديد</button>
           </div>
-          <div style="margin-top: 15px;">
-            <label for="templateUpload" class="btn btn-outline" style="cursor: pointer; font-size: 13px;">📤 ارفع خلفية جديدة للمصمم</label>
-            <input type="file" id="templateUpload" accept="image/*" style="display: none;" onchange="handleManualUpload(this)">
-          </div>
+          <label for="tplFile" class="btn btn-outline" style="margin-top: 10px; width: 100%; cursor: pointer;">📤 ارفع صورة خلفية للشهادة</label>
+          <input type="file" id="tplFile" accept="image/*" style="display:none" onchange="previewFile(this)">
         </div>
 
-        <div class="designer-canvas-container">
-          <canvas id="certCanvas"></canvas>
-          <div id="lockOverlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.05); display: none; align-items: center; justify-content: center; color: white; font-weight: 800; pointer-events: none;">🔐 التصميم مقفل من المدير</div>
+        <div class="designer-box">
+          <canvas id="canvas"></canvas>
+          <div class="lock-overlay" id="lock">🔐 القالب مقفل من الإدارة</div>
         </div>
 
-        <!-- Coordinates & Tools -->
-        <div class="controls-grid manager-only" style="margin-top: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-          <div><label style="font-size: 11px;">حجم الخط</label><input type="number" id="fontSize" value="60" oninput="updatePreview()"></div>
-          <div><label style="font-size: 11px;">اللون</label><input type="color" id="textColor" value="#000000" oninput="updatePreview()"></div>
+        <div class="manager-only" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+          <div><label style="font-size:11px">حجم الخط</label><input type="number" id="fSize" value="60" oninput="draw()"></div>
+          <div><label style="font-size:11px">لون الخط</label><input type="color" id="fColor" value="#000000" oninput="draw()"></div>
         </div>
       </section>
 
-      <section class="glass-card" id="resultsSection" style="display: none;">
+      <section class="glass-card" id="resultsBox" style="display:none">
         <div class="card-title">✨ الشهادات المولدة</div>
-        <div id="resultsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px,1fr)); gap: 10px;"></div>
+        <div id="grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px;"></div>
         <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
-          <button class="btn btn-primary" onclick="downloadAllZip()">📥 تحميل الكل (ZIP)</button>
-          <button class="btn btn-drive" onclick="uploadAllToDrive()">📁 رفع للدرايف</button>
-          <button class="btn btn-email" onclick="sendAllEmails()">📧 إرسال إيميل</button>
+          <button class="btn btn-primary" onclick="zipIt()">📥 تحميل ZIP</button>
+          <button class="btn btn-drive" onclick="bulkDrive()">📁 رفع للدرايف</button>
+          <button class="btn btn-email" onclick="bulkEmail()">📧 إرسال إيميل</button>
         </div>
       </section>
     </main>
 
     <aside>
       <section class="glass-card">
-        <div class="card-title">📋 إدخال البيانات</div>
-        <textarea id="dataInput" rows="12" placeholder="الكود | الاسم | رابط المجلد" oninput="parseInput()"></textarea>
-        <button class="btn btn-primary" style="width: 100%; margin-top: 15px;" onclick="generateAll()">⚡ إنشاء الشهادات</button>
-        <div id="parsedCount" style="text-align:center; font-weight: 900; margin-top: 10px; color: var(--accent);">0 متدربين</div>
+        <div class="card-title">📋 بيانات المتدربين</div>
+        <p style="font-size: 11px; color: var(--text-muted);">لصق: الكود | الاسم | رابط المجلد</p>
+        <textarea id="input" rows="15" placeholder="الصق هنا..." oninput="parse()"></textarea>
+        <div id="count" style="text-align: center; font-weight: 800; margin: 10px 0; color: var(--accent);">0 طلاب</div>
+        <button class="btn btn-primary" style="width: 100%;" onclick="run()">⚡ ابدأ الإنشاء</button>
       </section>
     </aside>
   </div>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbwwLDQEcelF9n5p9x4klo-q2y8XwaA3JBSLrZZsKpvqgdqhv4gpi9OqjX2Og8EQ-jQvqw/exec";
-    let templateImg = null, nameX = 0, nameY = 0, students = [], generatedCerts = [], savedTemplates = [];
-    const canvas = document.getElementById('certCanvas'), ctx = canvas.getContext('2d');
+    const API = "https://script.google.com/macros/s/AKfycbyrWS8X3nzSZee23xrAWqtISRm8wZttvVaHZHVSv0mpU0RJ7lvEQBlMiLbVyFhnfagBRw/exec";
+    let bg = null, nX = 0, nY = 0, data = [], certs = [], tpls = [];
+    const cvs = document.getElementById('canvas'), ctx = cvs.getContext('2d');
 
-    // 🛡️ Role Detection & Sync with index.html logic
-    function applyRoles() {
-      const userRole = localStorage.getItem('userRole');
-      document.body.className = document.body.classList.contains('dark-mode') ? 'dark-mode ' : '';
+    // 🔒 Permissions
+    const checkRoles = () => {
+      const r = localStorage.getItem('userRole');
+      const isM = (r === 'Owner' || r === 'CO-Founder' || r === 'Team Manager' || r === 'Admin');
+      document.body.className = `dark-mode role-${isM ? 'admin' : 'manager'}`;
+      document.getElementById('lock').style.display = isM ? 'none' : 'flex';
+    };
 
-      // Match logic from index.html
-      const isManagerPlus = (userRole === 'Owner' || userRole === 'CO-Founder' || userRole === 'Team Manager' || userRole === 'Admin');
-      
-      if (userRole === 'Owner') { document.body.classList.add('role-owner'); }
-      else if (userRole === 'CO-Founder') { document.body.classList.add('role-co-founder'); }
-      else if (userRole === 'Team Manager' || userRole === 'Admin') { document.body.classList.add('role-admin'); }
-      else if (userRole === 'Coordinator' || userRole === 'Manager') { document.body.classList.add('role-manager'); }
-      else { document.body.classList.add('role-user'); }
-
-      // Management is locked for Coordinators/Managers and below
-      if (!isManagerPlus) {
-        document.getElementById('lockOverlay').style.display = 'flex';
-        document.getElementById('newTemplateName').disabled = true;
-      } else {
-        document.getElementById('lockOverlay').style.display = 'none';
-      }
-    }
-
+    // 🌐 Templates Logic
     async function fetchTemplates() {
       try {
-        const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "getTemplates" }) });
-        const d = await res.json();
-        if (d.status === 'success') {
-          savedTemplates = d.templates;
-          const sel = document.getElementById('templateSelect');
-          sel.innerHTML = '<option value="">-- اختر قالباً جاهزاً --</option>';
-          savedTemplates.forEach((t, i) => sel.innerHTML += `<option value="${i}">${t.name}</option>`);
-        }
-      } catch(e) { console.error("Fetch Error:", e); }
+        const r = await fetch(API, { method: "POST", body: JSON.stringify({ action: "getTemplates" }) });
+        const d = await r.json(); tpls = d.templates;
+        const s = document.getElementById('templateSelect');
+        s.innerHTML = '<option value="">-- اختر قالباً جاهزاً من الشيت --</option>';
+        tpls.forEach((t, i) => s.innerHTML += `<option value="${i}">${t.name}</option>`);
+      } catch(e) { console.error(e); }
     }
 
-    function loadSavedTemplate(idx) {
-      if (idx === "") return;
-      const t = savedTemplates[idx].settings;
-      document.getElementById('fontSize').value = t.fontSize;
-      document.getElementById('textColor').value = t.textColor;
-      nameX = t.nameX; nameY = t.nameY;
+    function loadTemplate(idx) {
+      if (idx==="") return; 
+      const t = tpls[idx];
+      document.getElementById('fSize').value = t.settings.fSize;
+      document.getElementById('fColor').value = t.settings.fColor;
+      nX = t.settings.nX; nY = t.settings.nY;
       
-      templateImg = new Image();
-      templateImg.onload = () => {
-        canvas.width = templateImg.width; canvas.height = templateImg.height;
-        updatePreview();
-      };
-      templateImg.src = t.imageData;
+      bg = new Image(); bg.crossOrigin = "anonymous";
+      // تحويل رابط الدرايف لرابط مباشر للصورة للتحميل في الكانفاس
+      const fileId = t.fileId;
+      bg.onload = () => { cvs.width = bg.width; cvs.height = bg.height; draw(); };
+      bg.src = `https://lh3.googleusercontent.com/u/0/d/${fileId}=w2000`;
     }
 
-    async function saveCurrentTemplate() {
-      const name = document.getElementById('newTemplateName').value.trim();
-      if (!name || !templateImg) return alert("يرجى إدخال اسم القالب ورفع صورة أولاً");
+    async function saveTemplate() {
+      const name = document.getElementById('tplName').value.trim();
+      if (!name || !bg) return alert("الاسم والصورة مطلوبان");
       
-      const settings = {
-        nameX, nameY,
-        fontSize: document.getElementById('fontSize').value,
-        textColor: document.getElementById('textColor').value,
-        imageData: templateImg.src // Base64
-      };
+      const set = { nX, nY, fSize: document.getElementById('fSize').value, fColor: document.getElementById('fColor').value };
+      showMonitor("جاري حفظ القالب ورفعه للدرايف ⏳...");
 
       try {
-        const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "saveTemplate", name, settings }) });
-        const d = await res.json();
-        if (d.status === 'success') { alert("✅ تم حفظ القالب بنجاح!"); fetchTemplates(); }
-      } catch(e) { alert("❌ خطأ أثناء الحفظ"); }
+        const r = await fetch(API, { method: "POST", body: JSON.stringify({ action: "saveTemplate", name, settings: set, imageData: bg.src.split(',')[1] }) });
+        const d = await r.json();
+        if(d.status === 'success') { alert("✅ تم الحفظ بنجاح!"); fetchTemplates(); }
+        else alert("❌ خطأ: " + d.message);
+      } catch(e) { alert("❌ خطأ اتصال"); }
+      closeMonitor();
     }
 
-    // --- Interactive Logic ---
-    let isDragging = false;
-    canvas.onmousedown = (e) => { if(!document.body.classList.contains('role-coordinator')) { isDragging = true; updatePos(e); } };
-    canvas.onmousemove = (e) => { if(isDragging) updatePos(e); };
-    canvas.onmouseup = () => { isDragging = false; };
+    // 🖌️ Canvas Interaction
+    let drag = false;
+    cvs.onmousedown = (e) => { if(document.body.classList.contains('role-admin')) { drag = true; pos(e); } };
+    cvs.onmousemove = (e) => { if(drag) pos(e); };
+    cvs.onmouseup = () => drag = false;
 
-    function updatePos(e) {
-      const rect = canvas.getBoundingClientRect(), sx = canvas.width/rect.width, sy = canvas.height/rect.height;
-      nameX = (e.clientX - rect.left) * sx; nameY = (e.clientY - rect.top) * sy; updatePreview();
+    function pos(e) {
+      const r = cvs.getBoundingClientRect(), sx = cvs.width/r.width, sy = cvs.height/r.height;
+      nX = (e.clientX - r.left) * sx; nY = (e.clientY - r.top) * sy; draw();
     }
 
-    function updatePreview() {
-      if (!templateImg) return;
-      ctx.drawImage(templateImg, 0, 0);
-      
-      // Vertical Line for center
-      ctx.setLineDash([5, 5]); ctx.strokeStyle = "rgba(0, 210, 255, 0.4)";
-      ctx.beginPath(); ctx.moveTo(canvas.width/2, 0); ctx.lineTo(canvas.width/2, canvas.height); ctx.stroke();
-      ctx.setLineDash([]);
-
-      ctx.fillStyle = document.getElementById('textColor').value;
-      const fs = document.getElementById('fontSize').value;
+    function draw() {
+      if(!bg) return;
+      ctx.drawImage(bg, 0, 0);
+      ctx.setLineDash([5, 5]); ctx.strokeStyle = "rgba(0,210,255,0.4)";
+      ctx.beginPath(); ctx.moveTo(cvs.width/2, 0); ctx.lineTo(cvs.width/2, cvs.height); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = document.getElementById('fColor').value;
+      const fs = document.getElementById('fSize').value;
       ctx.font = `bold ${fs}px Cairo`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText("الاسم الافتراضي", nameX, nameY);
+      ctx.fillText("اسم المتدرب هنا", nX, nY);
     }
 
-    function handleManualUpload(input) {
-      const file = input.files[0]; if (!file) return;
+    function previewFile(i) {
+      const f = i.files[0]; if(!f) return;
       const r = new FileReader();
       r.onload = (e) => {
-        templateImg = new Image();
-        templateImg.onload = () => { canvas.width = templateImg.width; canvas.height = templateImg.height; nameX = canvas.width/2; nameY = canvas.height/2; updatePreview(); };
-        templateImg.src = e.target.result;
+        bg = new Image();
+        bg.onload = () => { cvs.width = bg.width; cvs.height = bg.height; nX = cvs.width/2; nY = cvs.height/2; draw(); };
+        bg.src = e.target.result;
       };
-      r.readAsDataURL(file);
+      r.readAsDataURL(f);
     }
 
-    // --- Data Processing ---
-    function parseInput() {
-      const lines = document.getElementById('dataInput').value.trim().split('\n').filter(l => l.trim());
-      students = lines.map(line => {
-        const p = line.split(/[,\t]/);
-        if (p.length >= 4) return { code: p[1].trim(), name: p[2].trim(), driveLink: p[3].trim() };
-        if (p.length === 3) return { code: p[0].trim(), name: p[1].trim(), driveLink: p[2].trim() };
-        return { code: "N/A", name: p[0].trim(), driveLink: p[1] || "" };
+    // ⚡ Logic
+    function parse() {
+      const l = document.getElementById('input').value.trim().split('\n').filter(x => x.trim());
+      data = l.map(row => {
+        const p = row.split(/[,\t]/);
+        if (p.length >= 4) return { code: p[1].trim(), name: p[2].trim(), link: p[3].trim() };
+        if (p.length === 3) return { code: p[0].trim(), name: p[1].trim(), link: p[2].trim() };
+        return { code: "N/A", name: p[0].trim(), link: p[1] || "" };
       });
-      document.getElementById('parsedCount').innerText = `${students.length} متدربين`;
+      document.getElementById('count').innerText = `${data.length} طلاب`;
     }
 
-    async function generateAll() {
-      if(!templateImg) return alert("اختر قلباً أو ارفع خلفية");
-      generatedCerts = []; 
-      const grid = document.getElementById('resultsGrid'); grid.innerHTML = "";
-      document.getElementById('resultsSection').style.display = 'block';
-      const fs = document.getElementById('fontSize').value, col = document.getElementById('textColor').value;
+    async function run() {
+      if(!bg) return alert("اختر قلباً أولاً");
+      certs = []; 
+      const g = document.getElementById('grid'); g.innerHTML = "";
+      document.getElementById('resultsBox').style.display = 'block';
+      const fs = document.getElementById('fSize').value, col = document.getElementById('fColor').value;
 
-      for (let i = 0; i < students.length; i++) {
-        const s = students[i], off = document.createElement('canvas');
-        off.width = templateImg.width; off.height = templateImg.height;
-        const octx = off.getContext('2d');
-        octx.drawImage(templateImg, 0, 0); octx.fillStyle = col; octx.font = `bold ${fs}px Cairo`; octx.textAlign = 'center'; octx.textBaseline = 'middle';
-        octx.fillText(s.name, nameX, nameY);
-        const url = off.toDataURL('image/jpeg', 0.9);
-        generatedCerts.push({ ...s, dataUrl: url });
-        grid.innerHTML += `<div style="text-align:center"><img src="${url}" style="width:100%; border-radius:10px;"><br><small style="font-size:10px">${s.name}</small></div>`;
-      }
+      data.forEach(s => {
+        const o = document.createElement('canvas'); o.width = bg.width; o.height = bg.height;
+        const ox = o.getContext('2d'); ox.drawImage(bg, 0, 0); ox.fillStyle = col; ox.font = `bold ${fs}px Cairo`; ox.textAlign = 'center'; ox.textBaseline = 'middle';
+        ox.fillText(s.name, nX, nY);
+        const url = o.toDataURL('image/jpeg', 0.9);
+        certs.push({ ...s, url });
+        g.innerHTML += `<div style="text-align:center"><img src="${url}" style="width:100%; border-radius:10px;"><br><span style="font-size:9px">${s.name}</span></div>`;
+      });
     }
 
-    // --- Bulk Actions ---
-    async function uploadAllToDrive() {
-      document.getElementById('sendMonitor').style.display = 'flex';
-      const list = document.getElementById('monitorList'); list.innerHTML = "";
-      for (let i = 0; i < generatedCerts.length; i++) {
-        const c = generatedCerts[i];
-        list.innerHTML += `<div style="padding:5px; border-bottom:1px solid rgba(0,0,0,0.05); font-size:12px;">📤 جاري رفع: ${c.name} <span id="st-${i}" class="status-badge status-pending">...</span></div>`;
-        const folderId = c.driveLink.match(/[-\w]{25,}/) ? c.driveLink.match(/[-\w]{25,}/)[0] : null;
+    async function bulkDrive() {
+      showMonitor("جاري الرفع الشخصي للدرايف 📁...");
+      const list = document.getElementById('mList'); list.innerHTML = "";
+      for (let i = 0; i < certs.length; i++) {
+        const c = certs[i];
+        const folderId = c.link.match(/[-\w]{25,}/) ? c.link.match(/[-\w]{25,}/)[0] : null;
         if(folderId) {
           try {
-            const res = await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "uploadToDrive", folderId, filename: `${c.code}.jpg`, fileData: c.dataUrl.split(',')[1] }) });
-            const d = await res.json();
-            document.getElementById(`st-${i}`).className = "status-badge status-success";
-            document.getElementById(`st-${i}`).innerText = "نجاح";
-          } catch(e) { document.getElementById(`st-${i}`).innerText = "خطأ"; }
-        } else { document.getElementById(`st-${i}`).innerText = "الرابط خطأ"; }
+            await fetch(API, { method: "POST", body: JSON.stringify({ action: "uploadToDrive", folderId, filename: `${c.code}.jpg`, fileData: c.url.split(',')[1] }) });
+            list.innerHTML += `<div>✅ ${c.name} - تم الرفع</div>`;
+          } catch(e) { list.innerHTML += `<div style="color:red">❌ ${c.name} - فشل</div>`; }
+        }
       }
-      document.getElementById('monitorTitle').innerText = "تمت عملية الرفع!";
+      document.getElementById('mTitle').innerText = "اكتمل الرفع!";
     }
 
-    function downloadAllZip() {
-      const zip = new JSZip();
-      generatedCerts.forEach(c => {
-        const b = atob(c.dataUrl.split(',')[1]), a = new Uint8Array(b.length);
+    function zipIt() {
+      const z = new JSZip();
+      certs.forEach(c => {
+        const b = atob(c.url.split(',')[1]), a = new Uint8Array(b.length);
         for(let i=0; i<b.length; i++) a[i]=b.charCodeAt(i);
-        zip.file(`${c.code}.jpg`, new Blob([a], {type:'image/jpeg'}));
+        z.file(`${c.code}.jpg`, new Blob([a], {type:'image/jpeg'}));
       });
-      zip.generateAsync({type:"blob"}).then(b => saveAs(b, "Certificates.zip"));
+      z.generateAsync({type:"blob"}).then(b => saveAs(b, "Eduneers_Certs.zip"));
     }
 
-    function closeMonitor() { document.getElementById('sendMonitor').style.display = 'none'; }
-    window.onload = () => { applyRoles(); fetchTemplates(); };
+    function showMonitor(t) { document.getElementById('monitor').style.display = 'flex'; document.getElementById('mTitle').innerText=t; }
+    function closeMonitor() { document.getElementById('monitor').style.display = 'none'; }
+    window.onload = () => { checkRoles(); fetchTemplates(); };
   </script>
 </body>
 </html>
