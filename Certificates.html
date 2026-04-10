@@ -48,7 +48,9 @@
     .btn-outline { background: transparent; border: 2px solid var(--accent); color: var(--text-main); }
 
     .manager-only { display: none; }
-    body.role-admin .manager-only, body.role-manager .manager-only, body.role-owner .manager-only { display: block !important; }
+    body.role-admin .manager-only, 
+    body.role-co-founder .manager-only, 
+    body.role-owner .manager-only { display: block !important; }
 
     select, input, textarea { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); background: rgba(0,0,0,0.03); font-family: 'Cairo'; font-weight: 700; outline: none; transition: 0.3s; color: var(--text-main); }
     body.dark-mode select, body.dark-mode input, body.dark-mode textarea { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
@@ -154,12 +156,26 @@
     let templateImg = null, nameX = 0, nameY = 0, students = [], generatedCerts = [], savedTemplates = [];
     const canvas = document.getElementById('certCanvas'), ctx = canvas.getContext('2d');
 
-    // 🔒 Role Detection
+    // 🛡️ Role Detection & Sync with index.html logic
     function applyRoles() {
-      const role = localStorage.getItem('userRole') || 'coordinator';
-      document.body.className = `dark-mode role-${role}`;
-      if (role === 'coordinator') {
+      const userRole = localStorage.getItem('userRole');
+      document.body.className = document.body.classList.contains('dark-mode') ? 'dark-mode ' : '';
+
+      // Match logic from index.html
+      const isManagerPlus = (userRole === 'Owner' || userRole === 'CO-Founder' || userRole === 'Team Manager' || userRole === 'Admin');
+      
+      if (userRole === 'Owner') { document.body.classList.add('role-owner'); }
+      else if (userRole === 'CO-Founder') { document.body.classList.add('role-co-founder'); }
+      else if (userRole === 'Team Manager' || userRole === 'Admin') { document.body.classList.add('role-admin'); }
+      else if (userRole === 'Coordinator' || userRole === 'Manager') { document.body.classList.add('role-manager'); }
+      else { document.body.classList.add('role-user'); }
+
+      // Management is locked for Coordinators/Managers and below
+      if (!isManagerPlus) {
         document.getElementById('lockOverlay').style.display = 'flex';
+        document.getElementById('newTemplateName').disabled = true;
+      } else {
+        document.getElementById('lockOverlay').style.display = 'none';
       }
     }
 
