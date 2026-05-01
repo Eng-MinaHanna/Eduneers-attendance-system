@@ -6,7 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title> Eduneers | Grades System </title>
     <link rel="manifest" href="manifest.json">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/chart.js" as="script">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
@@ -60,7 +63,17 @@
             background-image: radial-gradient(circle at 50% 50%, rgba(0, 210, 255, 0.1) 2px, transparent 3px);
         }
 
-        @keyframes pulseCircuit { 0% { opacity: 0.3; transform: scale(1); } 100% { opacity: 0.8; transform: scale(1.05); } }
+        @keyframes pulseCircuit {
+            0% {
+                opacity: 0.3;
+                transform: scale(1);
+            }
+
+            100% {
+                opacity: 0.8;
+                transform: scale(1.05);
+            }
+        }
 
         /* 💎 Navbar */
         .navbar {
@@ -125,6 +138,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            flex-shrink: 0;
             transition: 0.3s;
             font-size: 1.1rem;
         }
@@ -140,13 +154,17 @@
             top: 0;
             right: -300px;
             width: 280px;
-            height: 100%;
+            height: 100vh;
+            height: 100dvh;
             background: var(--card-bg);
             backdrop-filter: blur(25px);
             z-index: 2000;
             transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             text-align: right;
             padding-top: 60px;
+            padding-bottom: 120px;
+            overflow-y: auto;
+            overflow-x: hidden;
             box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
             border-left: 1px solid rgba(255, 255, 255, 0.1);
         }
@@ -237,8 +255,17 @@
         }
 
         @keyframes slideUpFade {
-            0% { opacity: 0; transform: translateY(40px) scale(0.96); filter: blur(5px); } 
-            100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } 
+            0% {
+                opacity: 0;
+                transform: translateY(40px) scale(0.96);
+                filter: blur(5px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
         }
 
         /* Inputs & Toggles */
@@ -608,6 +635,15 @@
             display: flex !important;
         }
 
+        body.role-cadre-leader :not(.view-section).manager-only,
+        body.role-cadre-leader :not(.view-section).cross-group-only {
+            display: block !important;
+        }
+
+        body.role-cadre-leader a.manager-only {
+            display: flex !important;
+        }
+
         body.role-co-founder :not(.view-section).manager-only,
         body.role-co-founder :not(.view-section).admin-only,
         body.role-co-founder :not(.view-section).cross-group-only {
@@ -625,6 +661,13 @@
             display: block !important;
         }
 
+        body.role-admin #groupBadge,
+        body.role-cadre-leader #groupBadge,
+        body.role-co-founder #groupBadge,
+        body.role-owner #groupBadge {
+            display: none !important;
+        }
+
         body.role-owner a.manager-only,
         body.role-owner a.admin-only {
             display: flex !important;
@@ -638,30 +681,144 @@
 
         /* 📐 استجابة الشاشات (Responsive Design) */
         @media (min-width: 1024px) {
-            .container { max-width: 1200px; padding: 40px 20px; }
-            .view-section > div { max-width: 800px !important; margin: auto; }
-            .view-section { padding: 40px 50px; }
-            .view-section:hover { transform: translateY(-4px); box-shadow: 0 35px 60px rgba(0,0,0,0.08); }
-            body.dark-mode .view-section:hover { box-shadow: 0 35px 60px rgba(0,210,255,0.05); border-color: rgba(0,210,255,0.2); }
-            input, select { padding: 18px; font-size: 16px; margin-bottom: 20px; transition: 0.4s ease; }
-            .btn-submit { padding: 18px; font-size: 1.1rem; border-radius: 18px; }
-            .chart-container { height: 450px; }
-            .leader-card { padding: 25px; }
-            .leader-name { font-size: 1.3rem; }
+            .container {
+                max-width: 1200px;
+                padding: 40px 20px;
+            }
+
+            .view-section>div {
+                max-width: 800px !important;
+                margin: auto;
+            }
+
+            .view-section {
+                padding: 40px 50px;
+            }
+
+            .view-section:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 35px 60px rgba(0, 0, 0, 0.08);
+            }
+
+            body.dark-mode .view-section:hover {
+                box-shadow: 0 35px 60px rgba(0, 210, 255, 0.05);
+                border-color: rgba(0, 210, 255, 0.2);
+            }
+
+            input,
+            select {
+                padding: 18px;
+                font-size: 16px;
+                margin-bottom: 20px;
+                transition: 0.4s ease;
+            }
+
+            .btn-submit {
+                padding: 18px;
+                font-size: 1.1rem;
+                border-radius: 18px;
+            }
+
+            .chart-container {
+                height: 450px;
+            }
+
+            .leader-card {
+                padding: 25px;
+            }
+
+            .leader-name {
+                font-size: 1.3rem;
+            }
         }
 
         @media (max-width: 650px) {
-            .nav-brand h2 { font-size: 1.1rem; gap: 4px; }
-            .nav-brand span#welcomeName { display: none; } 
-            .view-section { padding: 20px 15px; }
-            h2, h3 { font-size: 1.2rem !important; }
-            input, select, .btn-submit { font-size: 14px; padding: 12px; }
+            .nav-brand h2 {
+                font-size: 1.1rem;
+                gap: 4px;
+            }
+
+            .nav-brand span#welcomeName {
+                display: none;
+            }
+
+            .view-section {
+                padding: 20px 15px;
+            }
+
+            h2,
+            h3 {
+                font-size: 1.2rem !important;
+            }
+
+            input,
+            select,
+            .btn-submit {
+                font-size: 14px;
+                padding: 12px;
+            }
         }
+        /* --- DYNAMIC ALIVE EFFECTS --- */
+        .glass-panel, .action-btn, .dashboard-card {
+            transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease !important;
+        }
+        
+        .glass-panel:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px var(--electric-glow) !important;
+            border-color: rgba(0, 210, 255, 0.4) !important;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 25px var(--electric-glow), 0 0 15px var(--accent-glow) !important;
+        }
+
+        .pulse-glow {
+            animation: neonPulse 2s infinite alternate;
+        }
+
+        @keyframes neonPulse {
+            0% { box-shadow: 0 0 15px var(--electric-glow), 0 0 30px var(--accent-glow); }
+            100% { box-shadow: 0 0 30px var(--electric-glow), 0 0 50px var(--accent-glow); }
+        }
+    /* --- MAGNETIC CURSOR GLOW --- */
+    .cursor-glow {
+      position: fixed;
+      top: 0; left: 0;
+      width: 40px; height: 40px;
+      margin-top: -20px; margin-left: -20px;
+      border-radius: 50%;
+      border: 2px solid rgba(0, 210, 255, 0.5);
+      background: radial-gradient(circle, rgba(0, 210, 255, 0.2) 0%, transparent 70%);
+      box-shadow: 0 0 15px rgba(0, 210, 255, 0.6), inset 0 0 15px rgba(0, 210, 255, 0.4);
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate3d(-100px, -100px, 0);
+      transition: width 0.3s ease, height 0.3s ease, background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, margin 0.3s ease;
+      will-change: transform, width, height;
+      mix-blend-mode: screen;
+    }
+    
+    body.hovering .cursor-glow {
+      width: 70px; height: 70px;
+      margin-top: -35px; margin-left: -35px;
+      background: radial-gradient(circle, rgba(245, 176, 65, 0.25) 0%, transparent 70%);
+      border-color: rgba(245, 176, 65, 0.8);
+      box-shadow: 0 0 25px rgba(245, 176, 65, 0.8), inset 0 0 20px rgba(245, 176, 65, 0.5);
+    }
+    
+    /* Hide default cursor only if not on touch device */
+    @media (pointer: fine) {
+      body { cursor: none; }
+      a, button, input, select, .glass-panel, .dashboard-card { cursor: none; }
+    }
     </style>
 </head>
 
 <body class="dark-mode">
 
+    <div id="particles-js" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:-2; pointer-events:none;"></div>
     <div class="circuit-bg"></div>
 
     <div id="loader">
@@ -697,8 +854,10 @@
                         style="font-size: 11px; opacity:0.7;"></span></h2>
             </div>
             <div class="nav-actions">
-                <span id="groupBadge"
-                    style="font-size: 11px; font-weight: 800; background: rgba(0, 210, 255, 0.1); color: var(--electric-blue); padding: 5px 10px; border-radius: 8px; border: 1px solid rgba(0, 210, 255, 0.3); display: none;"></span>
+                <select id="globalGroupSelect" class="cross-group-only" style="background: rgba(192, 132, 252, 0.1); border: 1px solid rgba(192, 132, 252, 0.4); color: #c084fc; border-radius: 8px; padding: 0 10px; height: 28px; font-size: 11px; font-weight: 800; cursor: pointer; outline: none; margin: 0 5px; display: none; box-sizing: border-box; align-self: center; flex-shrink: 0;" onchange="changeGlobalGroup(this.value)"></select>
+                <span id="groupBadge" class="nav-badge group-badge"
+                    style="font-size: 11px; font-weight: 800; background: rgba(0, 210, 255, 0.1); color: var(--electric-blue); padding: 5px 10px; border-radius: 8px; border: 1px solid rgba(0, 210, 255, 0.3); display: none; white-space: nowrap; flex-shrink: 0;"></span>
+                <span id="roleBadge" class="nav-badge role-badge" style="font-size: 11px; font-weight: 800; background: rgba(245, 176, 65, 0.1); color: var(--accent); padding: 5px 10px; border-radius: 8px; border: 1px solid rgba(245, 176, 65, 0.3); display: none; white-space: nowrap; flex-shrink: 0;"></span>
                 <button class="nav-btn" onclick="toggleDarkMode()">🌓</button>
                 <button class="nav-btn" onclick="toggleSidebar()">☰</button>
             </div>
@@ -708,43 +867,62 @@
     <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
     <div class="sidebar" id="sidebar">
         <button class="close-btn" onclick="toggleSidebar()">×</button>
-        <div
-            style="padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 10px;">
-            <div style="font-weight: 900; color: var(--electric-blue); font-size: 1.3rem;">نظام التقييم المركزي</div>
-            <div id="sideRole"
-                style="font-size: 10px; opacity: 0.7; margin-top: 5px; text-transform: uppercase; background: rgba(255,255,255,0.1); display: inline-block; padding: 4px 10px; border-radius: 8px;">
+        <div style="padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 10px;">
+            <div style="font-weight: 900; color: var(--electric-blue); font-size: 1.3rem;">Eduneers System</div>
+            <div id="sideRole" style="font-size: 10px; opacity: 0.7; margin-top: 5px; text-transform: uppercase; background: rgba(255,255,255,0.1); display: inline-block; padding: 4px 10px; border-radius: 8px;"></div>
+        </div>
+
+        <!-- Attendance Section -->
+        <div style="margin: 10px 15px; border-radius: 12px; border: 1px solid rgba(0, 210, 255, 0.3); box-shadow: 0 0 15px rgba(0, 210, 255, 0.05); overflow: hidden;">
+            <div style="background: rgba(0, 210, 255, 0.1); padding: 8px 15px; font-weight: 900; color: #00d2ff; font-size: 12px; letter-spacing: 1px; border-bottom: 1px solid rgba(0, 210, 255, 0.1);">📷 قسم الحضور</div>
+            <div style="padding: 5px 0;">
+                <a href="#" onclick="gotoView('index.html', 'scanner')" id="nav-scanner"><span>📷</span> <span>مسح الـ QR</span></a>
+                <a href="#" onclick="gotoView('index.html', 'manual')" id="nav-manual"><span>✍️</span> <span>التسجيل اليدوي السريع</span></a>
+                <a href="#" onclick="gotoView('index.html', 'dashboard')" id="nav-dashboard"><span>📊</span> <span>لوحة الحضور</span></a>
+                <a href="#" onclick="gotoView('index.html', 'analytics')" id="nav-analytics" class="manager-only"><span>📈</span> <span>إحصائيات الجروبات</span></a>
+                <a href="#" onclick="gotoView('index.html', 'mail')" id="nav-mail" class="manager-only"><span>📧</span> <span>الإعلانات والبريد</span></a>
             </div>
         </div>
 
-        <a href="#" class="active" onclick="switchView('grading'); toggleSidebar();" id="nav-grading">
-            <span>📝</span> <span>رصد الدرجات</span>
-        </a>
-        <a href="#" onclick="switchView('searchView'); toggleSidebar();" id="nav-searchView">
-            <span>🔍</span> <span>استعلام عن طالب</span>
-        </a>
-        <a href="#" class="manager-only" onclick="switchView('topView'); toggleSidebar();" id="nav-topView">
-            <span>🏆</span> <span>لوحة الشرف Top 5</span>
-        </a>
-        <a href="#" class="manager-only" onclick="switchView('settings'); toggleSidebar();" id="nav-settings">
-            <span>⚙️</span> <span>إعدادات النظام</span>
-        </a>
+        <!-- Grades Section -->
+        <div style="margin: 15px 15px; border-radius: 12px; border: 1px solid rgba(192, 132, 252, 0.3); box-shadow: 0 0 15px rgba(192, 132, 252, 0.05); overflow: hidden;">
+            <div style="background: rgba(192, 132, 252, 0.1); padding: 8px 15px; font-weight: 900; color: #c084fc; font-size: 12px; letter-spacing: 1px; border-bottom: 1px solid rgba(192, 132, 252, 0.1);">🎯 قسم الدرجات والتقييم</div>
+            <div style="padding: 5px 0;">
+                <a href="#" onclick="gotoView('grades.html', 'grading')" id="nav-grading"><span>📝</span> <span>رصد الدرجات</span></a>
+                <a href="#" onclick="gotoView('grades.html', 'searchView')" id="nav-searchView"><span>🔍</span> <span>استعلام عن طالب</span></a>
+                <a href="#" onclick="gotoView('grades.html', 'topView')" id="nav-topView" class="manager-only"><span>🏆</span> <span>لوحة الشرف Top 5</span></a>
+                <a href="#" onclick="gotoView('grades.html', 'settings')" id="nav-settings" class="manager-only"><span>⚙️</span> <span>إعدادات النظام</span></a>
+            </div>
+        </div>
 
-        <div style="height: 1px; background: rgba(255,255,255,0.1); margin: 15px 25px;"></div>
-        <a href="index.html" style="color: var(--accent);"><span>🏠</span> <span>نظام الحضور</span></a>
-        <a href="#" onclick="logout()" style="color: #ef4444; margin-top: 10px;"><span>🚪</span> <span>تسجيل
-                الخروج</span></a>
+        <!-- Admin Section -->
+        <div class="admin-only" style="margin: 15px 15px; border-radius: 12px; border: 1px solid rgba(245, 176, 65, 0.3); box-shadow: 0 0 15px rgba(245, 176, 65, 0.05); overflow: hidden;">
+            <div style="background: rgba(245, 176, 65, 0.1); padding: 8px 15px; font-weight: 900; color: #f5b041; font-size: 12px; letter-spacing: 1px; border-bottom: 1px solid rgba(245, 176, 65, 0.1);">⚙️ الإدارة العليا</div>
+            <div style="padding: 5px 0;">
+                <a href="#" onclick="gotoView('index.html', 'users')" id="nav-users" class="admin-only"><span>👥</span> <span>إدارة المستخدمين</span></a>
+            </div>
+        </div>
+
+        <a href="#" onclick="logout()" style="color: #ef4444; margin: 15px; background: rgba(239, 68, 68, 0.1); border-radius: 12px; text-align: center; justify-content: center;"><span>🚪</span> <span>تسجيل الخروج</span></a>
+        <div style="height: 100px; flex-shrink: 0;"></div>
     </div>
 
     <div class="container">
         <div id="toast"></div>
 
-        <div class="cross-group-only"
-            style="background: var(--card-bg); padding: 15px; border-radius: 16px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); text-align:center; box-shadow: 0 10px 20px rgba(0,0,0,0.05);">
-            <label style="font-weight: 800; color: #c084fc; font-size: 13px; display:block; margin-bottom:10px;">تحكم
-                الجروب 👑</label>
-            <select id="globalGroupSelect"
-                style="margin-bottom:0; max-width: 300px; border-color:#c084fc; color:#c084fc;"
-                onchange="changeGlobalGroup(this.value)"></select>
+        <div class="manager-only">
+            <script>
+                // Added global gotoView for unified sidebar navigation
+                function gotoView(page, view) {
+                    localStorage.setItem('savedView', view);
+                    if (window.location.pathname.endsWith(page)) {
+                        switchView(view);
+                        toggleSidebar();
+                    } else {
+                        window.location.href = page;
+                    }
+                }
+            </script>
         </div>
 
         <div id="view-grading" class="view-section active">
@@ -850,7 +1028,9 @@
                     onclick="extractLeaderboard()">استخراج ترتيب الجروب 🚀</button>
 
                 <div class="search-box" style="position:relative; margin-top:20px;">
-                    <input type="text" id="searchLeaderInput" placeholder="بحث بالاسم أو الكود للفلترة السريعة..." onkeyup="filterLeaderboard()" style="margin:0; padding:15px; padding-right:45px; box-sizing:border-box; width:100%; text-align: right;">
+                    <input type="text" id="searchLeaderInput" placeholder="بحث بالاسم أو الكود للفلترة السريعة..."
+                        onkeyup="filterLeaderboard()"
+                        style="margin:0; padding:15px; padding-right:45px; box-sizing:border-box; width:100%; text-align: right;">
                     <span style="position:absolute; right:15px; top:17px; opacity:0.5;">🔍</span>
                 </div>
 
@@ -864,22 +1044,68 @@
 
         <div id="view-settings" class="view-section manager-only">
             <div style="max-width: 500px; margin: auto;">
-                <h3 style="text-align:center; font-size:24px; font-weight:900; margin-bottom:20px; color:var(--electric-blue);">⚙️ إعدادات النظام</h3>
-                
-                <div style="background: rgba(0,0,0,0.1); padding: 20px; border-radius: 16px; margin-bottom: 25px; border: 1px dashed var(--accent);">
-                    <h4 style="margin-top:0; color:var(--accent);">🔗 إعداد الربط الفردي</h4>
-                    <p style="font-size: 11px; opacity:0.8; margin-bottom: 15px;">ضع رابط الـ API للرفع على الشيتات الفردية لكل استعلام.</p>
-                    <input type="text" id="personalApiInput" placeholder="ضع رابط السكربت هنا..." style="font-size:11px; margin-bottom:10px; border:1px solid rgba(255,176,65,0.4);">
-                    <button class="btn-submit" style="background: var(--accent); color:#000; font-size:14px; padding: 10px; margin-top:0;" onclick="savePersonalApi()">حفظ الرابط 🔗</button>
+                <h3
+                    style="text-align:center; font-size:24px; font-weight:900; margin-bottom:20px; color:var(--electric-blue);">
+                    ⚙️ إعدادات وتوجيه النظام</h3>
+
+                <div
+                    style="background: rgba(0,0,0,0.1); padding: 20px; border-radius: 16px; margin-bottom: 25px; border: 1px dashed var(--accent);">
+                    <h4 style="margin-top:0; color:var(--accent);">🔗 إدارة روابط الدبلومة والجروبات</h4>
+                    <p style="font-size: 11px; opacity:0.8; margin-bottom: 15px;">قم بربط API الخاص بشيت الجروب المركزي.
+                    </p>
+
+                    <label
+                        style="font-size:12px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:5px;">رابط
+                        شيت الجروب الأساسي (Group Scope)</label>
+                    <input type="text" id="groupApiInput" placeholder="ضع رابط سكربت הדبلومة للجروب هنا..."
+                        style="font-size:11px; margin-bottom:15px; border:1px solid rgba(245, 176, 65, 0.4);">
+
+                    <button class="btn-submit"
+                        style="background: var(--accent); color:#000; font-size:14px; padding: 10px; margin-top:0;"
+                        onclick="saveGroupApi()">حفظ رابط الجروب 🚀</button>
+
+                    <button class="btn-submit"
+                        style="background: #ef4444; color:#fff; font-size:14px; padding: 10px; margin-top:10px;"
+                        onclick="resetGroupApi()">إرجاع الجروب للرابط الافتراضي 🔄</button>
                 </div>
 
-                <div class="admin-only" style="background: rgba(0,0,0,0.05); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
+                <div
+                    style="background: rgba(0,0,0,0.1); padding: 20px; border-radius: 16px; margin-bottom: 25px; border: 1px dashed var(--electric-blue);">
+                    <h4 style="margin-top:0; color:var(--electric-blue);">🔗 إعداد الربط الفردي (استعلام الطلاب)</h4>
+                    <p style="font-size: 11px; opacity:0.8; margin-bottom: 15px;">اربط الكود الخاص بكل طالب بالـ API
+                        المنفصل الخاص به (للشيتات الفردية 6 صفوف).</p>
+
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="targetStudentCode" placeholder="مثال: K1EDUR9"
+                            style="flex:1; font-size:12px; margin-bottom:10px; border:1px solid rgba(0, 210, 255, 0.4);">
+                    </div>
+                    <input type="text" id="personalApiInput" placeholder="ضع رابط الـ API الفردي هنا..."
+                        style="font-size:11px; margin-bottom:10px; border:1px solid rgba(0, 210, 255, 0.4);">
+
+                    <button class="btn-submit"
+                        style="background: var(--electric-blue); color:#000; font-size:14px; padding: 10px; margin-top:0;"
+                        onclick="savePersonalApi()">ربط الطالب 🔗</button>
+
+                    <div
+                        style="margin-top: 15px; max-height: 150px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px;">
+                        <div
+                            style="font-size:11px; font-weight:bold; color:#fff; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px; margin-bottom:5px;">
+                            قائمة الطلاب المربوطين حالياً:</div>
+                        <div id="mappedLinksMonitor" style="font-size:10px; opacity:0.8; word-break: break-all;">جاري
+                            التحميل...</div>
+                    </div>
+                </div>
+
+                <div class="admin-only"
+                    style="background: rgba(0,0,0,0.05); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05);">
                     <h4 style="margin-top:0; color:var(--text-main);">🎯 إعدادات نهايات الكويز العظمى</h4>
-                    <label style="font-size:13px; font-weight:bold; color:var(--text-muted);">رقم الكويز المستهدف:</label>
+                    <label style="font-size:13px; font-weight:bold; color:var(--text-muted);">رقم الكويز
+                        المستهدف:</label>
                     <select id="setQNum" onchange="loadSettingMax()">
                         <script>for (let i = 1; i <= 20; i++) document.write(`<option value="${i}">Quiz ${i}</option>`);</script>
                     </select>
-                    <label style="font-size:13px; font-weight:bold; color:var(--text-muted);">درجة النهاية العظمى:</label>
+                    <label style="font-size:13px; font-weight:bold; color:var(--text-muted);">درجة النهاية
+                        العظمى:</label>
                     <input type="number" id="setQMax" placeholder="مثلاً: 15">
                     <button class="btn-submit" style="background:var(--text-main); color:var(--card-bg);"
                         onclick="saveMaxConfig()">تثبيت الدرجة 🔒</button>
@@ -890,12 +1116,91 @@
     </div>
 
     <script>
-        const GRADES_API = "https://script.google.com/macros/s/AKfycbx715VQ1MfNK_yLaX6m2rrNaGrJANjIGss9ysM4Sv8z6npcjVJOdnGZZDbJL74-oxDu/exec";
-        const QUIZ_API = "https://script.google.com/macros/s/AKfycbwne4ufHfwjbcS6p39pfslPsTtPsQn8n24zapV4ytou5L4sacK0Y8KHYq_vx64PiYOVMQ/exec";
-        const ATTEND_API = "https://script.google.com/macros/s/AKfycbyQlZlxpCyr68rjjsxGmXrPcLk0X7agsGEpG6YaGGNZwTvPY3sSbx2td5blRPP6oqbfhg/exec";
-        const EXTRA_API = "https://script.google.com/macros/s/AKfycbw6jcjRGj-08bLUez0S311RIjPZLdpHwXs4BflMRnsKlplaGfipTRCLpHloDnIlo4S5cg/exec";
+        const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2tK_F3G_ndN-b5URC-PQOxaT63rLPExzCNyV6p9-UKGpKELVnJbc2LA/exec";
+
+        // Single API for all operations - Grade Sheet handles scan/saveGrade/saveQuiz/saveExtra/getTop
+        let GRADES_API = "https://script.google.com/macros/s/AKfycbyATAge8KOnxJorTSRBKhp01ZNC292S0ScLyUGqyAO8WIJaDbNJi_8htuQhoRNooHrI/exec";
+
+        // 🔗 دالة اختيار الـ API المناسب (الافتراضي أو المخصص للجروب)
+        function getEffectiveApi(originalUrl) {
+            const currentGroup = localStorage.getItem('userGroup') || "Group A";
+            const groupOverride = localStorage.getItem(`GROUP_API_${currentGroup}`);
+            // إذا وجد رابط للجروب، نستخدمه لجميع العمليات بدلاً من الروابط الافتراضية
+            return groupOverride || originalUrl;
+        }
+
+        // 🔗 دالة جلب رابط الطالب الفردي
+        function getPersonalApi(studentCode) {
+            let linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
+            return linksMap[studentCode] || localStorage.getItem('PERSONAL_API') || "";
+        }
 
         let myChart = null;
+
+        // Smart caching system for grades
+        const GRADES_CACHE = {
+            leaderboard: { data: null, timestamp: 0, params: '' },
+            search: { data: null, timestamp: 0, code: '' }
+        };
+        const GRADES_CACHE_TTL = 20000; // 20 seconds
+
+        // Prefetch system for grades - loads data in background
+        const GRADES_PREFETCH = {
+            enabled: true,
+            idleTime: 4000,
+            timeout: null,
+
+            start: function () {
+                if (!this.enabled || this.timeout) return;
+                this.timeout = setTimeout(() => this.prefetchData(), this.idleTime);
+            },
+
+            cancel: function () {
+                if (this.timeout) {
+                    clearTimeout(this.timeout);
+                    this.timeout = null;
+                }
+            },
+
+            prefetchData: function () {
+                this.enabled = false;
+
+                const auth = getAuthParams();
+                const group = localStorage.getItem('userGroup') || "Group A";
+
+                // Fire and forget prefetch for common ranges
+                fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&fromTask=1&toTask=5${auth}`, { method: 'HEAD' })
+                    .catch(() => { });
+                fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&fromLec=1&toLec=5${auth}`, { method: 'HEAD' })
+                    .catch(() => { });
+            }
+        };
+
+        // Track activity to trigger prefetch
+        ['click', 'keydown', 'scroll'].forEach(evt => {
+            document.addEventListener(evt, () => GRADES_PREFETCH.start(), { passive: true });
+        });
+
+        function getGradesCached(key) {
+            const cache = GRADES_CACHE[key];
+            if (cache && cache.data && (Date.now() - cache.timestamp < GRADES_CACHE_TTL)) {
+                return cache.data;
+            }
+            return null;
+        }
+
+        function setGradesCache(key, data, extra = '') {
+            GRADES_CACHE[key] = { data, timestamp: Date.now(), params: extra };
+        }
+
+        function clearGradesCache(key) {
+            if (key) {
+                GRADES_CACHE[key] = { data: null, timestamp: 0, params: '' };
+            } else {
+                GRADES_CACHE.leaderboard = { data: null, timestamp: 0, params: '' };
+                GRADES_CACHE.search = { data: null, timestamp: 0, code: '' };
+            }
+        }
 
         // 🔴 دالة تحويل الأرقام العربية إلى إنجليزية
         function convertNumerals(str) {
@@ -914,6 +1219,12 @@
             document.getElementById('welcomeName').innerText = `| ${name}`;
             document.getElementById('sideRole').innerText = rawRole;
 
+            const rBadge = document.getElementById('roleBadge');
+            if (rBadge) {
+                rBadge.innerText = (role === 'OWNER') ? 'المالك 👑' : (role === 'CO-FOUNDER') ? 'CO-Founder 🌟' : (role === 'TEAM MANAGER' || role === 'ADMIN') ? 'Team Manager' : (role === 'CADRE LEADER') ? 'Cadre Leader 🌟' : (role === 'COORDINATOR' || role === 'MANAGER') ? 'Coordinator' : 'Cadre';
+                rBadge.style.display = 'inline-block';
+            }
+
             const groupVal = localStorage.getItem('userGroup') || "Group A";
             document.getElementById('groupBadge').innerText = groupVal;
             document.getElementById('groupBadge').style.display = "inline-block";
@@ -921,20 +1232,154 @@
             if (role === 'OWNER') document.body.classList.add('role-owner');
             else if (role === 'CO-FOUNDER') document.body.classList.add('role-co-founder');
             else if (role === 'TEAM MANAGER' || role === 'ADMIN') document.body.classList.add('role-admin');
+            else if (role === 'CADRE LEADER') {
+                document.body.classList.add('role-cadre-leader');
+            }
             else if (role === 'COORDINATOR' || role === 'MANAGER') document.body.classList.add('role-manager');
             else document.body.classList.add('role-user');
 
             fillGroupSelects();
-            
-            if(document.getElementById('personalApiInput')) {
-                document.getElementById('personalApiInput').value = localStorage.getItem('PERSONAL_API') || "";
-            }
+            loadLinksDatabase();
+
+            // 🚀 Background Prefetch: sılently load data so views are instant
+            setTimeout(() => prefetchGroupData(), 2000);
         };
+
+        // Cache storage for prefetched data
+        let _prefetchCache = {};
+        let _prefetchDone = false;
+
+        async function prefetchGroupData() {
+            const auth = getAuthParams();
+            const fl = 1, tl = 20;
+            try {
+                const [rTasks, rQuizzes, rAttend, rExtra] = await Promise.all([
+                    fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&fromTask=${fl}&toTask=${tl}${auth}`).then(r => r.json()).catch(() => ({})),
+                    fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&fromQuiz=${fl}&toQuiz=${tl}${auth}`).then(r => r.json()).catch(() => ({})),
+                    fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&fromLec=${fl}&toLec=${tl}&weight=15${auth}`).then(r => r.json()).catch(() => ({})),
+                    fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&extraOnly=1&fromLec=${fl}&toLec=${tl}${auth}`).then(r => r.json()).catch(() => ({}))
+                ]);
+                _prefetchCache = { tasks: rTasks, quizzes: rQuizzes, attendance: rAttend, extras: rExtra, params: `fl=${fl}&tl=${tl}` };
+                _prefetchDone = true;
+                console.log("✅ Background prefetch complete");
+            } catch (e) {
+                console.log("Prefetch skipped:", e);
+            }
+        }
+
+        function loadLinksDatabase() {
+            fetch(`${CENTRAL_LINKS_API}?action=getAllLinks`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === "success") {
+                        // Update Groups Cache
+                        for (let g in data.groups) {
+                            localStorage.setItem(`GROUP_API_${g}`, data.groups[g]);
+                        }
+                        // Update Individuals Cache
+                        localStorage.setItem('PERSONAL_LINKS_MAP', JSON.stringify(data.individuals));
+
+                        // refresh UI if on settings view
+                        if (document.getElementById('groupApiInput')) {
+                            const currentGroup = localStorage.getItem('userGroup') || "Group A";
+                            document.getElementById('groupApiInput').value = localStorage.getItem(`GROUP_API_${currentGroup}`) || "";
+                        }
+                        refreshLinksMonitor();
+                    }
+                }).catch(e => console.error("Error loading links DB", e));
+        }
+
+        function saveGroupApi() {
+            const url = document.getElementById('groupApiInput').value.trim();
+            const currentGroup = localStorage.getItem('userGroup') || "Group A";
+            if (!url) return showToast("❌ יرجى إدخال الرابط أولاً", "error");
+
+            showToast("⏳ جاري الحفظ في الـ Database المركزية...", "info");
+            fetch(`${CENTRAL_LINKS_API}?action=saveGroup&group=${encodeURIComponent(currentGroup)}&url=${encodeURIComponent(url)}`)
+                .then(r => r.json())
+                .then(res => {
+                    localStorage.setItem(`GROUP_API_${currentGroup}`, url);
+                    showToast(`✅ تم حفظ رابط الجروب لـ ${currentGroup}! 🚀`, "success");
+                }).catch(e => showToast("❌ خطأ في الاتصال بالشبكة", "error"));
+        }
+
+        function resetGroupApi() {
+            const currentGroup = localStorage.getItem('userGroup') || "Group A";
+            showToast("⏳ جاري الحذف من الـ Database...", "info");
+            fetch(`${CENTRAL_LINKS_API}?action=removeGroup&group=${encodeURIComponent(currentGroup)}`)
+                .then(r => r.json())
+                .then(res => {
+                    localStorage.removeItem(`GROUP_API_${currentGroup}`);
+                    document.getElementById('groupApiInput').value = "";
+                    showToast(`🔄 تم إرجاع ${currentGroup} للرابط الافتراضي`, "success");
+                }).catch(e => showToast("❌ خطأ في الاتصال بالشبكة", "error"));
+        }
 
         function savePersonalApi() {
             const url = document.getElementById('personalApiInput').value.trim();
-            localStorage.setItem('PERSONAL_API', url);
-            showToast("✅ تم حفظ الرابط وسيطبق من الآن! 🔗", "success");
+            let code = document.getElementById('targetStudentCode').value.trim().toUpperCase();
+            const currentGroup = localStorage.getItem('userGroup') || "Group A";
+
+            if (!code || !url) return showToast("❌ يرجى إدخال الكود والرابط معاً", "error");
+            // If they just typed "K1", append standard suffix
+            if (!code.includes("EDUR")) code = code + "EDUR9";
+
+            const groupLetter = currentGroup.replace("Group ", "").trim();
+            if (!code.startsWith(groupLetter)) {
+                return showToast("❌ لا تملك صلاحية التعديل على جروب آخر!", "error");
+            }
+
+            showToast("⏳ جاري الحفظ في الـ Database المركزية...", "info");
+            fetch(`${CENTRAL_LINKS_API}?action=saveIndividual&code=${encodeURIComponent(code)}&url=${encodeURIComponent(url)}&group=${encodeURIComponent(currentGroup)}`)
+                .then(r => r.json())
+                .then(res => {
+                    let linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
+                    linksMap[code] = url;
+                    localStorage.setItem('PERSONAL_LINKS_MAP', JSON.stringify(linksMap));
+
+                    showToast(`✅ تم بنجاح ربط الطالب ${code} 🔗`, "success");
+                    document.getElementById('targetStudentCode').value = "";
+                    document.getElementById('personalApiInput').value = "";
+                    refreshLinksMonitor();
+                }).catch(e => showToast("❌ خطأ في الاتصال", "error"));
+        }
+
+        function refreshLinksMonitor() {
+            const monitor = document.getElementById('mappedLinksMonitor');
+            if (!monitor) return;
+            let linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
+            const currentGroup = localStorage.getItem('userGroup') || "Group A";
+            const groupLetter = currentGroup.replace("Group ", "").trim();
+
+            let html = "";
+            for (let code in linksMap) {
+                if (!code.startsWith(groupLetter)) continue;
+                html += `<div style="border-bottom:1px solid rgba(255,255,255,0.05); padding:4px 0; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">
+                            <span style="color:var(--electric-blue); font-weight:bold;">${code}</span>
+                            <span style="opacity:0.6; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%; margin:0 10px;">${linksMap[code]}</span>
+                            <button onclick="removePersonalLink('${code}')" style="background:none; border:none; color:#ef4444; cursor:pointer;" title="حذف">🗑️</button>
+                         </div>`;
+            }
+            monitor.innerHTML = html || "<div style='text-align:center; opacity:0.5;'>لا يوجد روابط مسجلة حالياً لهذا الجروب...</div>";
+        }
+
+        function removePersonalLink(code) {
+            const currentGroup = localStorage.getItem('userGroup') || "Group A";
+            const groupLetter = currentGroup.replace("Group ", "").trim();
+            if (!code.startsWith(groupLetter)) {
+                return showToast("❌ غير مصرح لك بحذف كود من جروب آخر!", "error");
+            }
+
+            showToast("⏳ جاري الحذف من الـ Database...", "info");
+            fetch(`${CENTRAL_LINKS_API}?action=removeIndividual&code=${encodeURIComponent(code)}`)
+                .then(r => r.json())
+                .then(res => {
+                    let linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
+                    delete linksMap[code];
+                    localStorage.setItem('PERSONAL_LINKS_MAP', JSON.stringify(linksMap));
+                    refreshLinksMonitor();
+                    showToast("🗑️ تم حذف الربط بنجاح", "success");
+                }).catch(e => showToast("❌ خطأ في الاتصال", "error"));
         }
 
         function switchView(viewId) {
@@ -953,7 +1398,26 @@
         }
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('show'); }
-        function logout() { localStorage.clear(); window.location.href = 'index.html'; }
+        function logout() {
+            // مسح بيانات الجلسة فقط والحفاظ على الإعدادات
+            const keysToKeep = ['darkMode', 'PERSONAL_LINKS_MAP', 'PERSONAL_API'];
+            // نحتفظ أيضاً بروابط الجروبات
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('GROUP_API_')) keysToKeep.push(key);
+            }
+
+            const backup = {};
+            keysToKeep.forEach(k => backup[k] = localStorage.getItem(k));
+
+            localStorage.clear();
+
+            Object.keys(backup).forEach(k => {
+                if (backup[k] !== null) localStorage.setItem(k, backup[k]);
+            });
+
+            window.location.href = 'index.html';
+        }
 
         function fillGroupSelects() {
             let options = ''; const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -962,7 +1426,36 @@
             if (gSelect) { gSelect.innerHTML = options; gSelect.value = localStorage.getItem('userGroup') || 'Group A'; }
         }
 
-        function changeGlobalGroup(val) { localStorage.setItem('userGroup', val); document.getElementById('groupBadge').innerText = val; }
+        function changeGlobalGroup(val) {
+            localStorage.setItem('userGroup', val);
+            const groupBadge = document.getElementById('groupBadge');
+            if(groupBadge) groupBadge.innerText = val;
+
+            // Refresh API input field for new group selection
+            if (document.getElementById('groupApiInput')) {
+                document.getElementById('groupApiInput').value = localStorage.getItem(`GROUP_API_${val}`) || "";
+            }
+
+            // Auto-refresh active views
+            const activeTab = document.querySelector('.view-section.active');
+            if (activeTab) {
+                if (activeTab.id === 'view-settings') {
+                    if (typeof loadLinksDatabase === 'function') loadLinksDatabase();
+                    if (typeof refreshLinksMonitor === 'function') refreshLinksMonitor();
+                } else if (activeTab.id === 'view-topView') {
+                    if (typeof extractLeaderboard === 'function') extractLeaderboard(false);
+                } else if (activeTab.id === 'view-grading') {
+                    const gradeTable = document.getElementById('gradeTable');
+                    const res = document.getElementById('result');
+                    if(gradeTable) gradeTable.style.display = 'none';
+                    if(res) res.style.display = 'none';
+                    if (typeof prefetchGroupData === 'function') prefetchGroupData();
+                } else if (activeTab.id === 'view-searchView') {
+                    const searchRes = document.getElementById('searchResult');
+                    if(searchRes) searchRes.style.display = 'none';
+                }
+            }
+        }
 
         function showLoader(show, msg = "جاري العمل...") {
             const l = document.getElementById('loader');
@@ -987,52 +1480,113 @@
             return `&email=${encodeURIComponent(localStorage.getItem('userEmail'))}&token=${encodeURIComponent(localStorage.getItem('sessionToken'))}&group=${encodeURIComponent(localStorage.getItem('userGroup'))}`;
         }
 
+        let _isSubmitting = false;
+
         function submitData() {
+            if (_isSubmitting) return;
+
             let numRaw = document.getElementById('studentCode').value.trim();
             if (!numRaw) return showToast("❌ برجاء إدخال رقم كود الطالب", "error");
 
-            let num = convertNumerals(numRaw); 
+            let num = convertNumerals(numRaw);
             const groupLetter = localStorage.getItem('userGroup').replace("Group ", "").trim();
             const code = groupLetter + num + "EDUR9";
             const lec = document.getElementById('currentLecNum').value;
             const auth = getAuthParams();
 
-            let p = [];
-            let taskNameCol = "TASK " + lec; 
-            let personalApiUrl = localStorage.getItem('PERSONAL_API') || "";
-            
+            _isSubmitting = true;
+
+            // Use single central API endpoint
+            const centralApi = getEffectiveApi(GRADES_API);
+            let promises = [];
+            let taskName = "TASK " + lec;
+
+            // 1. Save Attendance (scan) - Central
             if (document.getElementById('attBtn').classList.contains('active-att')) {
-                p.push(fetch(`${ATTEND_API}?action=scan&qrCode=${code}&lectureNum=${lec}&weight=15${auth}`).then(r=>r.json()).catch(e=>({})));
-                if(personalApiUrl) p.push(fetch(`${personalApiUrl}?action=update&qrCode=${code}&taskName=${taskNameCol}&category=attendance .15&val=15`).catch(e=>({})));
+                promises.push(fetch(`${centralApi}?action=scan&qrCode=${code}&lectureNum=${lec}&weight=15${auth}`).then(r => r.json()).catch(e => ({})));
             }
-            
+
+            // 2. Save Main Task Grade - Central
             let taskVal = convertNumerals(document.getElementById('valTask').value);
             if (taskVal) {
-                p.push(fetch(`${GRADES_API}?action=saveGrade&qrCode=${code}&taskNum=${lec}&val=${taskVal}${auth}`).then(r=>r.json()).catch(e=>({})));
-                if(personalApiUrl) p.push(fetch(`${personalApiUrl}?action=update&qrCode=${code}&taskName=${taskNameCol}&category=Main task. 70&val=${taskVal}`).catch(e=>({})));
+                promises.push(fetch(`${centralApi}?action=saveGrade&qrCode=${code}&taskNum=${lec}&val=${taskVal}${auth}`).then(r => r.json()).catch(e => ({})));
             }
 
+            // 3. Save Quiz Grade - Central  
             let quizVal = convertNumerals(document.getElementById('valQuiz').value);
             if (quizVal) {
-                p.push(fetch(`${QUIZ_API}?action=saveQuiz&qrCode=${code}&quizNum=${lec}&val=${quizVal}${auth}`).then(r=>r.json()).catch(e=>({})));
-                if(personalApiUrl) p.push(fetch(`${personalApiUrl}?action=update&qrCode=${code}&taskName=${taskNameCol}&category=online quize 25&val=${quizVal}`).catch(e=>({})));
+                promises.push(fetch(`${centralApi}?action=saveQuiz&qrCode=${code}&quizNum=${lec}&val=${quizVal}${auth}`).then(r => r.json()).catch(e => ({})));
             }
 
+            // 4. Save Extra (feedback, attitude, bonus) - Central
             let f = document.getElementById('feedBtn').classList.contains('active-feed') ? 1 : 0;
             let a = document.getElementById('attitBtn').classList.contains('active-attit') ? 5 : 0;
             let b = convertNumerals(document.getElementById('valBonus').value) || 0;
 
             if (f || a || b != 0) {
-                p.push(fetch(`${EXTRA_API}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=${f}&attitude=${a}&bonus=${b}${auth}`).then(r=>r.json()).catch(e=>({})));
-                if(personalApiUrl && a) p.push(fetch(`${personalApiUrl}?action=update&qrCode=${code}&taskName=${taskNameCol}&category=attitude .10&val=${a}`).catch(e=>({})));
-                if(personalApiUrl && b) p.push(fetch(`${personalApiUrl}?action=update&qrCode=${code}&taskName=${taskNameCol}&category=bonus&val=${b}`).catch(e=>({})));
+                promises.push(fetch(`${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=${f}&attitude=${a}&bonus=${b}${auth}`).then(r => r.json()).catch(e => ({})));
             }
 
-            if (p.length === 0) {
+            // === SYNC to Individual Student Sheet ===
+            let personalApi = getPersonalApi(code);
+            if (personalApi) {
+                console.log("Syncing to personal sheet:", personalApi);
+
+                // Attendance
+                if (document.getElementById('attBtn').classList.contains('active-att')) {
+                    promises.push(
+                        fetch(`${personalApi}?action=update&qrCode=${code}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('attendance .15')}&val=15`)
+                            .then(r => r.json()).then(res => console.log("Sync Attendance:", res)).catch(e => console.error("Sync Error:", e))
+                    );
+                }
+
+                // Main Task
+                if (taskVal) {
+                    promises.push(
+                        fetch(`${personalApi}?action=update&qrCode=${code}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('Main task. 70')}&val=${taskVal}`)
+                            .then(r => r.json()).then(res => console.log("Sync Task:", res)).catch(e => console.error("Sync Error:", e))
+                    );
+                }
+
+                // Quiz
+                if (quizVal) {
+                    promises.push(
+                        fetch(`${personalApi}?action=update&qrCode=${code}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('online quize 25')}&val=${quizVal}`)
+                            .then(r => r.json()).then(res => console.log("Sync Quiz:", res)).catch(e => console.error("Sync Error:", e))
+                    );
+                }
+
+                // Extra (attitude + feedback)
+                let combinedAtt = 0;
+                if (f) combinedAtt += 5;  // feedback = 5
+                if (a) combinedAtt += 5;  // attitude = 5
+
+                if (combinedAtt > 0) {
+                    promises.push(
+                        fetch(`${personalApi}?action=update&qrCode=${code}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('attitude .10')}&val=${combinedAtt}`)
+                            .then(r => r.json()).then(res => console.log("Sync Attitude:", res)).catch(e => console.error("Sync Error:", e))
+                    );
+                }
+
+                // Bonus
+                if (b) {
+                    promises.push(
+                        fetch(`${personalApi}?action=update&qrCode=${code}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('bonus')}&val=${b}`)
+                            .then(r => r.json()).then(res => console.log("Sync Bonus:", res)).catch(e => console.error("Sync Error:", e))
+                    );
+                }
+            } else {
+                console.log("No personal API found for:", code);
+            }
+
+            if (promises.length === 0) {
+                _isSubmitting = false;
                 return showToast("⚠️ لم يتم إدخال أي تقييم لإرساله!", "error");
             }
 
-            // الإفراغ التلقائي السريع لمواصلة الرصد دون انتظار
+            _isSubmitting = false;
+
+            // Auto-clear for quick continuous entry
             document.getElementById('studentCode').value = "";
             document.getElementById('valTask').value = "";
             document.getElementById('valQuiz').value = "";
@@ -1044,19 +1598,19 @@
 
             showToast("⏳ جاري التسجيل...", "success");
 
-            Promise.all(p).then(results => {
+            Promise.all(promises).then(results => {
                 let studentName = "";
-                for(let res of results) {
-                    if(!res) continue;
-                    if(res.name) { studentName = res.name; break; }
-                    if(res.studentName) { studentName = res.studentName; break; }
-                    if(res.message && res.message.includes("الطالب")) { 
+                for (let res of results) {
+                    if (!res) continue;
+                    if (res.name) { studentName = res.name; break; }
+                    if (res.studentName) { studentName = res.studentName; break; }
+                    if (res.message && res.message.includes("الطالب")) {
                         let parts = res.message.split("الطالب");
-                        if(parts.length>1) { studentName = parts[1].replace(':', '').trim(); break; }
+                        if (parts.length > 1) { studentName = parts[1].replace(':', '').trim(); break; }
                     }
-                    if(res.message && res.message.includes("-")) { 
+                    if (res.message && res.message.includes("-")) {
                         let parts = res.message.split("-");
-                        if(parts.length>1) { studentName = parts[1].trim(); break; }
+                        if (parts.length > 1) { studentName = parts[1].trim(); break; }
                     }
                 }
                 let displayName = studentName || (groupLetter + num);
@@ -1070,21 +1624,27 @@
             let numRaw = document.getElementById('searchCode').value.trim();
             if (!numRaw) return showToast("❌ برجاء إدخال رقم الطالب", "error");
 
-            let num = convertNumerals(numRaw); // 🔴 تحويل الأرقام للعربي
+            let num = convertNumerals(numRaw);
             let fl = document.getElementById('sfL').value, tl = document.getElementById('stL').value;
             if (parseInt(fl) > parseInt(tl)) return showToast("❌ نطاق المحاضرات غير صحيح", "error");
 
             const group = localStorage.getItem('userGroup');
             const code = group.replace("Group ", "").trim() + num + "EDUR9";
-            const auth = getAuthParams() + `&fromLec=${fl}&toLec=${tl}&fromTask=${fl}&toTask=${tl}&fromQuiz=${fl}&toQuiz=${tl}`;
 
             showLoader(true, "جاري استرجاع سجلات الطالب 🔍...");
             try {
-                const [rA, rX, rT, rQ] = await Promise.all([
-                    fetch(`${ATTEND_API}?action=getTop&weight=15${auth}`).then(r => r.json()),
-                    fetch(`${EXTRA_API}?action=getTop${auth}`).then(r => r.json()),
-                    fetch(`${GRADES_API}?action=getTop${auth}`).then(r => r.json()),
-                    fetch(`${QUIZ_API}?action=getTop${auth}`).then(r => r.json())
+                const auth = getAuthParams();
+
+                // Fetch each category separately with correct parameters
+                const [rAttend, rTasks, rQuizzes, rExtra] = await Promise.all([
+                    // Attendance: uses fromLec/toLec (no task or quiz params)
+                    fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&fromLec=${fl}&toLec=${tl}&weight=15${auth}`).then(r => r.json()),
+                    // Main Tasks: uses fromTask/toTask
+                    fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&fromTask=${fl}&toTask=${tl}${auth}`).then(r => r.json()),
+                    // Quizzes: uses fromQuiz/toQuiz  
+                    fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&fromQuiz=${fl}&toQuiz=${tl}${auth}`).then(r => r.json()),
+                    // Extra (feedback + attitude + bonus): uses extraOnly
+                    fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&extraOnly=1&fromLec=${fl}&toLec=${tl}${auth}`).then(r => r.json())
                 ]);
 
                 let total = 0; let html = "";
@@ -1097,37 +1657,60 @@
                 };
 
                 document.getElementById('resName').innerText = "لم يتم العثور على اسم";
-                addRow(rA, "إجمالي الحضور");
-                addRow(rX, "إجمالي (الفيدباك + السلوك + البونص)");
-                addRow(rT, "إجمالي التاسكات");
-                addRow(rQ, "إجمالي الكويزات");
+
+                // Each API returns its own category data
+                addRow(rAttend, "إجمالي الحضور");
+                addRow(rTasks, "إجمالي التاسكات");
+                addRow(rQuizzes, "إجمالي الكويزات");
+                addRow(rExtra, "إجمالي (الفيدباك + السلوك + البونص)");
 
                 document.getElementById('searchResult').style.display = 'block';
                 document.getElementById('resDetails').innerHTML = html;
                 document.getElementById('resTotal').innerText = total;
                 showLoader(false);
 
-            } catch (e) { showLoader(false); showToast("❌ خطأ في جلب البيانات", "error"); }
+            } catch (e) {
+                console.error(e);
+                showLoader(false);
+                showToast("❌ خطأ في جلب البيانات", "error");
+            }
         }
 
         let fullLeaderboard = [];
-        async function extractLeaderboard() {
+        async function extractLeaderboard(useCache = true) {
             let fl = document.getElementById('fL').value, tl = document.getElementById('tL').value;
             if (parseInt(fl) > parseInt(tl)) return showToast("❌ نطاق المحاضرات غير صحيح", "error");
 
-            const auth = getAuthParams() + `&fromLec=${fl}&toLec=${tl}&fromTask=${fl}&toTask=${tl}&fromQuiz=${fl}&toQuiz=${tl}`;
+            // Check cache first
+            const cacheParams = `fl=${fl}&tl=${tl}`;
+            if (useCache) {
+                const cached = getGradesCached('leaderboard');
+                if (cached && GRADES_CACHE.leaderboard.params === cacheParams) {
+                    fullLeaderboard = cached;
+                    renderLeaderboard(fullLeaderboard);
+                    if (fullLeaderboard.length > 0) {
+                        document.getElementById('chartWrapper').style.display = 'block';
+                        let top5 = fullLeaderboard.slice(0, 5);
+                        renderChart(top5.map(x => (x.n || "").split(" ")[0]), top5.map(x => x.t));
+                    }
+                    return;
+                }
+            }
 
             showLoader(true, "جاري تحليل بيانات الجروب لاستخراج الترتيب 🏆...");
             try {
-                const [rT, rQ, rA, rX] = await Promise.all([
-                    fetch(`${GRADES_API}?action=getTop${auth}`).then(r => r.json()),
-                    fetch(`${QUIZ_API}?action=getTop${auth}`).then(r => r.json()),
-                    fetch(`${ATTEND_API}?action=getTop&weight=15${auth}`).then(r => r.json()),
-                    fetch(`${EXTRA_API}?action=getTop${auth}`).then(r => r.json())
+                const auth = getAuthParams();
+
+                // Fetch each category separately
+                const [rTasks, rQuizzes, rAttend, rExtra] = await Promise.all([
+                    fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&fromTask=${fl}&toTask=${tl}${auth}`).then(r => r.json()),
+                    fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&fromQuiz=${fl}&toQuiz=${tl}${auth}`).then(r => r.json()),
+                    fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&fromLec=${fl}&toLec=${tl}&weight=15${auth}`).then(r => r.json()),
+                    fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&extraOnly=1&fromLec=${fl}&toLec=${tl}${auth}`).then(r => r.json())
                 ]);
 
                 let m = {};
-                const col = (d) => {
+                const col = (d, weight = 1) => {
                     if (d.status === 'success') {
                         d.scores.forEach(s => {
                             let val = parseFloat(s.total);
@@ -1139,8 +1722,8 @@
                     }
                 };
 
-                col(rT); col(rQ); col(rA); col(rX);
-                
+                col(rTasks); col(rQuizzes); col(rAttend); col(rExtra);
+
                 fullLeaderboard = Object.values(m).sort((a, b) => b.t - a.t);
                 fullLeaderboard.forEach((s, idx) => s.rank = idx + 1);
 
@@ -1157,13 +1740,20 @@
                 let top5 = fullLeaderboard.slice(0, 5);
                 renderChart(top5.map(x => (x.n || "").split(" ")[0]), top5.map(x => x.t));
 
-            } catch (e) { showLoader(false); showToast("❌ فشل استخراج الترتيب", "error"); }
+                // Save to cache
+                setGradesCache('leaderboard', fullLeaderboard, cacheParams);
+
+            } catch (e) {
+                console.error(e);
+                showLoader(false);
+                showToast("❌ فشل استخراج الترتيب", "error");
+            }
         }
 
         function renderLeaderboard(dataArray) {
             let listHtml = "";
             if (dataArray.length === 0) {
-                 document.getElementById('leaderboard').innerHTML = "<div style='text-align:center; padding:20px;'>لا توجد نتائج متطابقة للبحث</div>"; return;
+                document.getElementById('leaderboard').innerHTML = "<div style='text-align:center; padding:20px;'>لا توجد نتائج متطابقة للبحث</div>"; return;
             }
             dataArray.forEach(s => {
                 let rankClass = s.rank <= 3 ? `rank-${s.rank}` : `rank-other`;
@@ -1200,6 +1790,68 @@
         function loadSettingMax() { }
         function saveMaxConfig() { showToast("✅ تم حفظ الإعدادات بنجاح"); }
     </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof particlesJS !== 'undefined') {
+                particlesJS('particles-js', {
+                    "particles": {
+                        "number": { "value": 80, "density": { "enable": true, "value_area": 800 } },
+                        "color": { "value": ["#00d2ff", "#f5b041", "#ffffff"] },
+                        "shape": { "type": "circle" },
+                        "opacity": { "value": 0.8, "random": true, "anim": { "enable": true, "speed": 10, "opacity_min": 0.1, "sync": false } },
+                        "size": { "value": 2, "random": true },
+                        "line_linked": { "enable": true, "distance": 120, "color": "#00d2ff", "opacity": 0.6, "width": 1.5 },
+                        "move": { "enable": true, "speed": 5, "direction": "none", "random": true, "out_mode": "out", "bounce": false, "attract": { "enable": true, "rotateX": 600, "rotateY": 1200 } }
+                    },
+                    "interactivity": {
+                        "detect_on": "window",
+                        "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "repulse" }, "resize": true },
+                        "modes": { "grab": { "distance": 250, "line_linked": { "opacity": 1 } }, "repulse": { "distance": 200, "duration": 0.4 } }
+                    },
+                    "retina_detect": true
+                });
+            }
+        });
+    </script>
+  </script>
+  <script>
+    // --- MAGNETIC CURSOR LOGIC ---
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.matchMedia("(pointer: fine)").matches) {
+        const cursorGlow = document.createElement('div');
+        cursorGlow.classList.add('cursor-glow');
+        document.body.appendChild(cursorGlow);
+
+        let mouseX = -100, mouseY = -100;
+        let cursorX = -100, cursorY = -100;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        function animateCursor() {
+            cursorX += (mouseX - cursorX) * 0.15;
+            cursorY += (mouseY - cursorY) * 0.15;
+            cursorGlow.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0)`;
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+
+        const addHoverListeners = () => {
+            document.querySelectorAll('button, a, input, select, .glass-panel, .dashboard-card').forEach(el => {
+                if(!el.dataset.hasCursorHover) {
+                    el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+                    el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+                    el.dataset.hasCursorHover = "true";
+                }
+            });
+        };
+        addHoverListeners();
+        setInterval(addHoverListeners, 2000);
+      }
+    });
+  </script>
 </body>
 
 </html>
