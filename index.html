@@ -9,6 +9,7 @@
   <script src="https://unpkg.com/html5-qrcode"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
@@ -155,28 +156,48 @@
 
     /* ⚡ Success Flash Overlay */
     #successFlash {
-      position: fixed; inset: 0; z-index: 99999;
-      display: flex; align-items: center; justify-content: center;
-      flex-direction: column; gap: 12px;
-      pointer-events: none; opacity: 0;
-      background: radial-gradient(circle, rgba(16,185,129,0.25) 0%, transparent 70%);
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+      pointer-events: none;
+      opacity: 0;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, transparent 70%);
       transition: opacity 0.15s ease;
     }
-    #successFlash.active { opacity: 1; }
+
+    #successFlash.active {
+      opacity: 1;
+    }
+
     #successFlash .flash-icon {
       font-size: 80px;
-      animation: flashBounce 0.4s cubic-bezier(0.175,0.885,0.32,1.275);
-      filter: drop-shadow(0 0 30px rgba(16,185,129,0.8));
+      animation: flashBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      filter: drop-shadow(0 0 30px rgba(16, 185, 129, 0.8));
     }
+
     #successFlash .flash-name {
-      font-size: 22px; font-weight: 900;
+      font-size: 22px;
+      font-weight: 900;
       color: #10b981;
-      text-shadow: 0 0 20px rgba(16,185,129,0.6);
-      animation: flashBounce 0.4s cubic-bezier(0.175,0.885,0.32,1.275) 0.05s both;
+      text-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+      animation: flashBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.05s both;
     }
+
     @keyframes flashBounce {
-      0% { transform: scale(0); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
+      0% {
+        transform: scale(0);
+        opacity: 0;
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
     }
 
     /* أزرار البار العلوي (Navbar Buttons) */
@@ -191,6 +212,7 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      flex-shrink: 0;
       transition: 0.3s;
       font-size: 1.1rem;
       padding: 0;
@@ -221,13 +243,17 @@
       top: 0;
       right: -300px;
       width: 280px;
-      height: 100%;
+      height: 100vh;
+      height: 100dvh;
       background: var(--card-bg);
       backdrop-filter: blur(25px);
       z-index: 2000;
       transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       text-align: right;
       padding-top: 60px;
+      padding-bottom: 120px;
+      overflow-y: auto;
+      overflow-x: hidden;
       box-shadow: -10px 0 30px rgba(0, 0, 0, 0.2);
       border-left: 1px solid rgba(255, 255, 255, 0.1);
     }
@@ -579,6 +605,8 @@
     .nav-badge {
       font-size: 11px;
       font-weight: 800;
+      white-space: nowrap;
+      flex-shrink: 0;
       padding: 5px 10px;
       border-radius: 8px;
       letter-spacing: 0.5px;
@@ -941,6 +969,8 @@
     }
 
     body.role-manager .manager-only:not(.view-section),
+    body.role-cadre-leader .manager-only:not(.view-section),
+    body.role-cadre-leader .cross-group-only:not(.view-section),
     body.role-admin .manager-only:not(.view-section),
     body.role-admin .admin-only:not(.view-section),
     body.role-admin .cross-group-only:not(.view-section),
@@ -951,6 +981,24 @@
     body.role-owner .admin-only:not(.view-section),
     body.role-owner .cross-group-only:not(.view-section) {
       display: block !important;
+    }
+
+    body.role-admin #groupBadge,
+    body.role-cadre-leader #groupBadge,
+    body.role-co-founder #groupBadge,
+    body.role-owner #groupBadge {
+      display: none !important;
+    }
+    
+    body.role-manager a.manager-only,
+    body.role-cadre-leader a.manager-only,
+    body.role-admin a.manager-only,
+    body.role-admin a.admin-only,
+    body.role-co-founder a.manager-only,
+    body.role-co-founder a.admin-only,
+    body.role-owner a.manager-only,
+    body.role-owner a.admin-only {
+        display: flex !important;
     }
 
     .view-section.active {
@@ -1128,12 +1176,68 @@
         padding: 12px;
       }
     }
+    /* --- DYNAMIC ALIVE EFFECTS --- */
+    .glass-panel, .action-btn, .dashboard-card {
+      transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease !important;
+    }
+    
+    .glass-panel:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px var(--electric-glow) !important;
+      border-color: rgba(0, 210, 255, 0.4) !important;
+    }
+    
+    .action-btn:hover {
+      transform: translateY(-5px) scale(1.05);
+      box-shadow: 0 10px 25px var(--electric-glow), 0 0 15px var(--accent-glow) !important;
+    }
+
+    .pulse-glow {
+      animation: neonPulse 2s infinite alternate;
+    }
+
+    @keyframes neonPulse {
+      0% { box-shadow: 0 0 15px var(--electric-glow), 0 0 30px var(--accent-glow); }
+      100% { box-shadow: 0 0 30px var(--electric-glow), 0 0 50px var(--accent-glow); }
+    }
+    /* --- MAGNETIC CURSOR GLOW --- */
+    .cursor-glow {
+      position: fixed;
+      top: 0; left: 0;
+      width: 40px; height: 40px;
+      margin-top: -20px; margin-left: -20px;
+      border-radius: 50%;
+      border: 2px solid rgba(0, 210, 255, 0.5);
+      background: radial-gradient(circle, rgba(0, 210, 255, 0.2) 0%, transparent 70%);
+      box-shadow: 0 0 15px rgba(0, 210, 255, 0.6), inset 0 0 15px rgba(0, 210, 255, 0.4);
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate3d(-100px, -100px, 0);
+      transition: width 0.3s ease, height 0.3s ease, background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, margin 0.3s ease;
+      will-change: transform, width, height;
+      mix-blend-mode: screen;
+    }
+    
+    body.hovering .cursor-glow {
+      width: 70px; height: 70px;
+      margin-top: -35px; margin-left: -35px;
+      background: radial-gradient(circle, rgba(245, 176, 65, 0.25) 0%, transparent 70%);
+      border-color: rgba(245, 176, 65, 0.8);
+      box-shadow: 0 0 25px rgba(245, 176, 65, 0.8), inset 0 0 20px rgba(245, 176, 65, 0.5);
+    }
+    
+    /* Hide default cursor only if not on touch device */
+    @media (pointer: fine) {
+      body { cursor: none; }
+      a, button, input, select, .glass-panel, .dashboard-card { cursor: none; }
+    }
   </style>
 
 </head>
 
 <body class="dark-mode">
 
+  <div id="particles-js" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:-2; pointer-events:none;"></div>
   <div class="circuit-bg"></div>
 
 
@@ -1151,13 +1255,11 @@
         <h2>⚡ <span class="brand-text">Eduneers</span> <span id="welcomeName"></span></h2>
       </div>
       <div class="nav-actions">
+        <select id="globalGroupSelect" class="cross-group-only" style="background: rgba(192, 132, 252, 0.1); border: 1px solid rgba(192, 132, 252, 0.4); color: #c084fc; border-radius: 8px; padding: 0 10px; height: 28px; font-size: 11px; font-weight: 800; cursor: pointer; outline: none; margin: 0 5px; display: none; box-sizing: border-box; align-self: center;" onchange="changeGlobalGroup(this.value)"></select>
         <span id="groupBadge" class="nav-badge group-badge" style="display: none;"></span>
         <span id="roleBadge" class="nav-badge role-badge" style="display: none;"></span>
         <button class="nav-btn" id="themeToggle" onclick="toggleDarkMode()">☀️</button>
-
-        <button class="nav-btn manager-only" onclick="window.location.href='grades.html'"
-          title="نظام الدرجات والتقييم">🎯</button>
-        <button class="nav-btn" id="menuBtn" onclick="toggleSidebar()" style="display:none;">☰</button>
+        <button class="nav-btn" id="menuBtn" onclick="toggleSidebar()">☰</button>
       </div>
     </div>
   </div>
@@ -1165,41 +1267,44 @@
   <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
   <div class="sidebar" id="sidebar">
     <button class="close-btn" onclick="toggleSidebar()">×</button>
-    <div
-      style="padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 10px;">
-      <div style="font-weight: 900; color: var(--electric-blue); font-size: 1.3rem;">نظام الحضور المركزي</div>
-      <div id="sideRole"
-        style="font-size: 10px; opacity: 0.7; margin-top: 5px; text-transform: uppercase; background: rgba(255,255,255,0.1); display: inline-block; padding: 4px 10px; border-radius: 8px;">
-      </div>
+    <div style="padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 10px;">
+      <div style="font-weight: 900; color: var(--electric-blue); font-size: 1.3rem;">Eduneers System</div>
+      <div id="sideRole" style="font-size: 10px; opacity: 0.7; margin-top: 5px; text-transform: uppercase; background: rgba(255,255,255,0.1); display: inline-block; padding: 4px 10px; border-radius: 8px;"></div>
     </div>
 
-    <a href="#" class="active" onclick="switchView('scanner'); toggleSidebar();" id="nav-scanner">
-      <span>📷</span> <span>مسح الـ QR</span>
-    </a>
-    <a href="#" onclick="switchView('manual'); toggleSidebar();" id="nav-manual">
-      <span>✍️</span> <span>التسجيل اليدوي السريع</span>
-    </a>
-
-    <a href="grades.html" class="manager-only" style="color: var(--accent);">
-      <span>🎯</span> <span>نظام رصد الدرجات</span>
-    </a>
-
-    <div class="sidebar-heading">متابعة الحضور</div>
-    <a href="#" onclick="switchView('dashboard'); toggleSidebar();" id="nav-dashboard">
-      <span>📊</span> <span>لوحة الحضور</span>
-    </a>
-    <a href="#" onclick="switchView('analytics'); toggleSidebar();" id="nav-analytics" class="manager-only">
-      <span>📈</span> <span>إحصائيات الجروبات</span>
-    </a>
-
-    <div class="sidebar-heading admin-only">إدارة النظام</div>
-    <a href="#" onclick="switchView('users'); toggleSidebar();" id="nav-users" class="admin-only">
-      <span>👥</span> <span>إدارة المستخدمين</span>
-    </a>
-
-    <div style="margin-top: 40px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-      <a href="#" onclick="logout();" style="color: #ef4444;">🚪 تسجيل الخروج</a>
+    <!-- Attendance Section -->
+    <div style="margin: 10px 15px; border-radius: 12px; border: 1px solid rgba(0, 210, 255, 0.3); box-shadow: 0 0 15px rgba(0, 210, 255, 0.05); overflow: hidden;">
+        <div style="background: rgba(0, 210, 255, 0.1); padding: 8px 15px; font-weight: 900; color: #00d2ff; font-size: 12px; letter-spacing: 1px; border-bottom: 1px solid rgba(0, 210, 255, 0.1);">📷 قسم الحضور</div>
+        <div style="padding: 5px 0;">
+            <a href="#" onclick="gotoView('index.html', 'scanner')" id="nav-scanner"><span>📷</span> <span>مسح الـ QR</span></a>
+            <a href="#" onclick="gotoView('index.html', 'manual')" id="nav-manual"><span>✍️</span> <span>التسجيل اليدوي السريع</span></a>
+            <a href="#" onclick="gotoView('index.html', 'dashboard')" id="nav-dashboard"><span>📊</span> <span>لوحة الحضور</span></a>
+            <a href="#" onclick="gotoView('index.html', 'analytics')" id="nav-analytics" class="manager-only"><span>📈</span> <span>إحصائيات الجروبات</span></a>
+            <a href="#" onclick="gotoView('index.html', 'mail')" id="nav-mail" class="manager-only"><span>📧</span> <span>الإعلانات والبريد</span></a>
+        </div>
     </div>
+
+    <!-- Grades Section -->
+    <div style="margin: 15px 15px; border-radius: 12px; border: 1px solid rgba(192, 132, 252, 0.3); box-shadow: 0 0 15px rgba(192, 132, 252, 0.05); overflow: hidden;">
+        <div style="background: rgba(192, 132, 252, 0.1); padding: 8px 15px; font-weight: 900; color: #c084fc; font-size: 12px; letter-spacing: 1px; border-bottom: 1px solid rgba(192, 132, 252, 0.1);">🎯 قسم الدرجات والتقييم</div>
+        <div style="padding: 5px 0;">
+            <a href="#" onclick="gotoView('grades.html', 'grading')" id="nav-grading"><span>📝</span> <span>رصد الدرجات</span></a>
+            <a href="#" onclick="gotoView('grades.html', 'searchView')" id="nav-searchView"><span>🔍</span> <span>استعلام عن طالب</span></a>
+            <a href="#" onclick="gotoView('grades.html', 'topView')" id="nav-topView" class="manager-only"><span>🏆</span> <span>لوحة الشرف Top 5</span></a>
+            <a href="#" onclick="gotoView('grades.html', 'settings')" id="nav-settings" class="manager-only"><span>⚙️</span> <span>إعدادات النظام</span></a>
+        </div>
+    </div>
+
+    <!-- Admin Section -->
+    <div class="admin-only" style="margin: 15px 15px; border-radius: 12px; border: 1px solid rgba(245, 176, 65, 0.3); box-shadow: 0 0 15px rgba(245, 176, 65, 0.05); overflow: hidden;">
+        <div style="background: rgba(245, 176, 65, 0.1); padding: 8px 15px; font-weight: 900; color: #f5b041; font-size: 12px; letter-spacing: 1px; border-bottom: 1px solid rgba(245, 176, 65, 0.1);">⚙️ الإدارة العليا</div>
+        <div style="padding: 5px 0;">
+            <a href="#" onclick="gotoView('index.html', 'users')" id="nav-users" class="admin-only"><span>👥</span> <span>إدارة المستخدمين</span></a>
+        </div>
+    </div>
+
+    <a href="#" onclick="logout()" style="color: #ef4444; margin: 15px; background: rgba(239, 68, 68, 0.1); border-radius: 12px; text-align: center; justify-content: center;"><span>🚪</span> <span>تسجيل الخروج</span></a>
+    <div style="height: 100px; flex-shrink: 0;"></div>
   </div>
 
   <div class="tabs-container" id="appTabs" style="display:none;">
@@ -1229,12 +1334,20 @@
           <script>for (let i = 1; i <= 20; i++) document.write(`<option value="${i}">المحاضرة ${i}</option>`);</script>
         </select>
       </div>
-      <div class="manager-only cross-group-only"
-        style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;">
-        <label style="font-weight: 800; color: #c084fc; font-size: 13px; display:block; margin-bottom:10px;">تحكم الجروب
-          👑</label>
-        <select id="globalGroupSelect" style="margin-bottom:0; max-width: 300px; border-color:#c084fc; color:#c084fc;"
-          onchange="changeGlobalGroup(this.value)"></select>
+      <div class="manager-only"
+        style="padding-top: 10px;">
+        <script>
+          // Added global gotoView for unified sidebar navigation
+          function gotoView(page, view) {
+            localStorage.setItem('savedView', view);
+            if (window.location.pathname.endsWith(page)) {
+                switchView(view);
+                toggleSidebar();
+            } else {
+                window.location.href = page;
+            }
+          }
+        </script>
       </div>
 
     </div>
@@ -1842,8 +1955,17 @@
   </div>
 
   <script>
-    const ATTENDANCE_API_URL = "https://script.google.com/macros/s/AKfycbyJEb3_K7ORGnidD1GT6AjDS3kGgHjBMMAZ7iKT7tkI4JKR7pfRknMl-UumqqWW_5Hk3Q/exec";
-    const LOGIN_API_URL = "https://script.google.com/macros/s/AKfycbw-oytOWrgERm2yXu-NagMlyS14HlUGeAlsWqrZl2SwRJIi0IDL1AH2VduQvsmIIkNgFA/exec";
+    const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2tK_F3G_ndN-b5URC-PQOxaT63rLPExzCNyV6p9-UKGpKELVnJbc2LA/exec";
+
+    let ATTENDANCE_API_URL = "https://script.google.com/macros/s/AKfycbw6v50o3s8mR5_D4-L9wE8j6D7eM8lO7fE2zK_O5I8S71577H3T4F9M49D6B8o/exec";
+    let LOGIN_API_URL = "https://script.google.com/macros/s/AKfycbw-oytOWrgERm2yXu-NagMlyS14HlUGeAlsWqrZl2SwRJIi0IDL1AH2VduQvsmIIkNgFA/exec";
+
+    // 🔗 دالة اختيار الـ API المناسب المخصص للجروب
+    function getEffectiveApi(originalUrl) {
+      const currentGroup = localStorage.getItem('userGroup') || "Group A";
+      const groupOverride = localStorage.getItem(`GROUP_API_${currentGroup}`);
+      return groupOverride || originalUrl;
+    }
 
     let html5QrCode; let allAttendees = [];
     let currentView = localStorage.getItem('savedView') || 'login';
@@ -1927,7 +2049,7 @@
           offlineQueue = []; localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue)); updateOfflineBadge(); completeProgress(); showToast(`✅ تمت مزامنة ${successCount} سجلات بنجاح!`, "success"); return;
         }
         let record = offlineQueue[index];
-        fetch(`${ATTENDANCE_API_URL}?action=scan&qrCode=${encodeURIComponent(record.code)}&lectureNum=${encodeURIComponent(record.lecture)}&group=${encodeURIComponent(record.group)}${getAuthParams()}`)
+        fetch(`${getEffectiveApi(ATTENDANCE_API_URL)}?action=scan&qrCode=${encodeURIComponent(record.code)}&lectureNum=${encodeURIComponent(record.lecture)}&group=${encodeURIComponent(record.group)}${getAuthParams()}`)
           .then(res => res.json()).then(data => {
             if (data.status === "success" || data.status === "already") successCount++; uploadNext(index + 1);
           }).catch(err => {
@@ -1943,6 +2065,15 @@
         updateOfflineBadge(); window.addEventListener('online', updateOfflineBadge); window.addEventListener('offline', updateOfflineBadge);
 
         fillGroupSelects();
+
+        // Fetch Central Links DB once async to ensure system has overrides
+        fetch(`${CENTRAL_LINKS_API}?action=getAllLinks`).then(r => r.json()).then(data => {
+          if (data.status === "success") {
+            for (let g in data.groups) localStorage.setItem(`GROUP_API_${g}`, data.groups[g]);
+            localStorage.setItem('PERSONAL_LINKS_MAP', JSON.stringify(data.individuals));
+          }
+        }).catch(e => console.log("Central link grab error", e));
+
         let savedLecture = localStorage.getItem('savedLecture') || '1';
         let lectureElement = document.getElementById('lecture');
         if (lectureElement) {
@@ -2048,7 +2179,7 @@
       const roleBadge = document.getElementById('roleBadge'); const groupBadge = document.getElementById('groupBadge');
 
       if (roleBadge) {
-        roleBadge.innerText = (userRole === 'Owner') ? 'المالك 👑' : (userRole === 'CO-Founder') ? 'CO-Founder ✨' : (userRole === 'Team Manager' || userRole === 'Admin') ? 'Team Manager' : (userRole === 'Coordinator' || userRole === 'Manager') ? 'Coordinator' : 'Cadre';
+        roleBadge.innerText = (userRole === 'Owner') ? 'المالك 👑' : (userRole === 'CO-Founder') ? 'CO-Founder ✨' : (userRole === 'Team Manager' || userRole === 'Admin') ? 'Team Manager' : (userRole === 'Cadre Leader') ? 'Cadre Leader 🌟' : (userRole === 'Coordinator' || userRole === 'Manager') ? 'Coordinator' : 'Cadre';
         roleBadge.style.display = 'flex';
       }
       if (groupBadge) { groupBadge.innerText = userGroup; groupBadge.style.display = 'flex'; }
@@ -2058,6 +2189,7 @@
       if (userRole === 'Owner') { document.body.classList.add('role-owner'); }
       else if (userRole === 'CO-Founder') { document.body.classList.add('role-co-founder'); }
       else if (userRole === 'Team Manager' || userRole === 'Admin') { document.body.classList.add('role-admin'); }
+      else if (userRole === 'Cadre Leader') { document.body.classList.add('role-cadre-leader'); }
       else if (userRole === 'Coordinator' || userRole === 'Manager') { document.body.classList.add('role-manager'); }
       else { document.body.classList.add('role-user'); }
 
@@ -2189,11 +2321,17 @@
       if (!studentCode.endsWith("EDUR9")) { studentCode = studentCode + "EDUR9"; }
 
       const role = localStorage.getItem('userRole').toUpperCase();
-      if (role === 'OWNER' || role === 'CO-FOUNDER' || role === 'TEAM MANAGER' || role === 'ADMIN') {
+      if (role === 'OWNER' || role === 'CO-FOUNDER' || role === 'TEAM MANAGER' || role === 'CADRE LEADER' || role === 'ADMIN') {
         const match = studentCode.match(/^[A-Z]+/);
         if (match) {
           const detectedGroup = "Group " + match[0]; changeGlobalGroup(detectedGroup);
           const ggs = document.getElementById('globalGroupSelect'); if (ggs) ggs.value = detectedGroup;
+        }
+      } else {
+        const currentGroupLetter = (localStorage.getItem('userGroup') || "Group A").replace("Group ", "").trim();
+        if (!studentCode.startsWith(currentGroupLetter)) {
+          showToast("❌ غير مسموح لك بتسجيل حضور لمتدرب من جروب آخر!", "error");
+          return playBeep('error');
         }
       }
 
@@ -2205,7 +2343,8 @@
         updateOfflineBadge(); showToast("⚠️ تم الحفظ محلياً لعدم توفر إنترنت", "warning"); playBeep('success'); return;
       }
 
-      fetch(`${ATTENDANCE_API_URL}?action=scan&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}${getAuthParams()}`)
+      // 1️⃣ إرسال الحضور إلى الشيت المركزي (Diploma Sheets)
+      fetch(`${getEffectiveApi(ATTENDANCE_API_URL)}?action=scan&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}${getAuthParams()}`)
         .then(res => res.json()).then(data => {
           if (data.status === "success") {
             let studentName = data.name || data.studentName || data.student_name;
@@ -2221,13 +2360,29 @@
           localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue));
           updateOfflineBadge(); showToast("⚠️ تم الحفظ محلياً لضعف الشبكة.", "warning"); playBeep('success');
         });
-    }
 
+      // 2️⃣ إرسال 15 درجة حضور إلى شيت الطالب الفردي في نفس اللحظة ⚡
+      let linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
+      let personalApi = linksMap[studentCode];
+
+      if (personalApi) {
+        let taskName = "TASK " + lec; // تحويل رقم المحاضرة لاسم التاسك
+        console.log("Syncing attendance to personal sheet:", personalApi);
+
+        // نستخدم نفس طريقة رصد الدرجات لضمان توافقها 100% مع شيت الطالب
+        fetch(`${personalApi}?action=update&qrCode=${encodeURIComponent(studentCode)}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('attendance .15')}&val=15`)
+          .then(r => r.json())
+          .then(res => console.log("Personal Sheet Synced:", res))
+          .catch(e => console.error("Personal Sheet Sync Error:", e));
+      } else {
+        console.log("No personal API linked for student:", studentCode);
+      }
+    }
     function loadDashboard() {
       const lec = document.getElementById('lecture').value; const group = localStorage.getItem('userGroup') || "Group A";
       const tbody = document.getElementById('attendeesList'); tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 30px;">⏳ المزامنة...</td></tr>`;
       showProgress("سحب بيانات الحضور...");
-      fetch(`${ATTENDANCE_API_URL}?action=getDashboard&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}${getAuthParams()}`)
+      fetch(`${getEffectiveApi(ATTENDANCE_API_URL)}?action=getDashboard&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}${getAuthParams()}`)
         .then(res => res.json()).then(data => {
           completeProgress(); document.getElementById('dashCount').innerText = data.count || 0;
           if (data.status === "success" && data.attendees.length > 0) { allAttendees = data.attendees.map((d, i) => ({ ...d, _originalIdx: i })); renderTable(allAttendees); }
@@ -2299,7 +2454,7 @@
 
       const lec = document.getElementById('lecture').value; const group = localStorage.getItem('userGroup') || "Group A";
 
-      fetch(`${ATTENDANCE_API_URL}?action=deleteAttendance&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}${getAuthParams()}`)
+      fetch(`${getEffectiveApi(ATTENDANCE_API_URL)}?action=deleteAttendance&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}${getAuthParams()}`)
         .then(res => res.json()).then(data => {
           if (data.status === 'success') {
             showToast("✅ تمت إزالة السجل نهائياً", "success");
@@ -2321,51 +2476,66 @@
       link.href = URL.createObjectURL(blob); link.download = `Report_${group}_Lec_${lec}.csv`; link.click(); showToast("✅ تم التصدير", "success");
     }
 
-    function fetchAnalyticsData(type = 'group') {
+    async function fetchAnalyticsData(type = 'group') {
       showProgress("تحليل البيانات وبناء الرسوم... 📈");
-      const group = localStorage.getItem('userGroup') || "Group A";
-      const lec = document.getElementById('lecture').value || "1";
+      const currentGroup = localStorage.getItem('userGroup') || "Group A";
+      const currentLec = parseInt(document.getElementById('lecture').value || "1");
       const role = (localStorage.getItem('userRole') || "").toUpperCase();
 
-      let url = "";
+      const labels = [];
+      const dataPoints = [];
       let chartTitle = "";
 
-      if (type === 'all' && (role === 'OWNER' || role === 'CO-FOUNDER')) {
-        url = `${ATTENDANCE_API_URL}?action=getOwnerAnalytics&lectureNum=${encodeURIComponent(lec)}${getAuthParams()}`;
-        document.getElementById('analyticsDesc').innerText = `📊 مقارنة حية لحضور كافة الجروبات - محاضرة ${lec}`;
-        chartTitle = 'حضور الجروبات';
-      } else {
-        url = `${ATTENDANCE_API_URL}?action=getAnalytics&group=${encodeURIComponent(group)}${getAuthParams()}`;
-        document.getElementById('analyticsDesc').innerText = `📈 تتبع كفاءة الحضور لـ ${group} على مدار الكورس`;
-        chartTitle = 'كثافة الحضور';
-      }
+      try {
+        const promises = [];
 
-      fetch(url)
-        .then(res => res.text())
-        .then(text => {
-          completeProgress();
-          try {
-            const data = JSON.parse(text);
-            if (data.status === "success") {
-              if (data.labels && data.labels.length > 0) {
-                document.getElementById('analyticsDesc').style.display = 'block';
-                renderAnalyticsChart(data.labels, data.data, chartTitle);
-              } else {
-                showToast("⚠️ لا توجد بيانات حضور كافية للرسم البياني حتى الآن.", "warning");
-                if (attendanceChartInstance) { attendanceChartInstance.destroy(); }
-              }
-            } else {
-              showToast(data.message || "حدث خطأ في جلب البيانات من السيرفر", "error");
-            }
-          } catch (e) {
-            console.error("Server Error Response:", text);
-            showToast("❌ خطأ في الاستجابة من السيرفر الرئيسي.", "error");
+        if (type === 'all' && (role === 'OWNER' || role === 'CO-FOUNDER' || role === 'ADMIN')) {
+          document.getElementById('analyticsDesc').innerText = `📊 مقارنة حية لحضور الجروبات - محاضرة ${currentLec}`;
+          chartTitle = 'حضور الجروبات';
+          
+          const groupSelect = document.getElementById('globalGroupSelect');
+          const groups = groupSelect ? Array.from(groupSelect.options).map(opt => opt.value) : ["Group A", "Group B", "Group K"];
+          
+          groups.forEach(g => {
+            labels.push(g);
+            const url = `${getEffectiveApi(ATTENDANCE_API_URL)}?action=getDashboard&lectureNum=${currentLec}&group=${encodeURIComponent(g)}${getAuthParams()}`;
+            promises.push(fetch(url).then(r => r.json()).catch(() => ({count: 0})));
+          });
+
+        } else {
+          document.getElementById('analyticsDesc').innerText = `📈 تتبع كفاءة الحضور لـ ${currentGroup} حتى المحاضرة ${currentLec}`;
+          chartTitle = 'كثافة الحضور';
+          
+          // Fetch from lec 1 to currentLec
+          for (let i = 1; i <= currentLec; i++) {
+            labels.push(`م ${i}`);
+            const url = `${getEffectiveApi(ATTENDANCE_API_URL)}?action=getDashboard&lectureNum=${i}&group=${encodeURIComponent(currentGroup)}${getAuthParams()}`;
+            promises.push(fetch(url).then(r => r.json()).catch(() => ({count: 0})));
           }
-        })
-        .catch(err => {
-          completeProgress();
-          showToast("❌ فشل في الاتصال بالإنترنت أو قاعدة البيانات.", "error");
+        }
+
+        const results = await Promise.all(promises);
+        results.forEach(res => {
+          dataPoints.push(res.count || 0);
         });
+
+        completeProgress();
+        document.getElementById('analyticsDesc').style.display = 'block';
+        
+        // التحقق من وجود بيانات
+        const hasData = dataPoints.some(val => val > 0);
+        if (hasData) {
+            renderAnalyticsChart(labels, dataPoints, chartTitle);
+        } else {
+            showToast("⚠️ لا توجد بيانات حضور كافية للرسم البياني حتى الآن.", "warning");
+            if (attendanceChartInstance) { attendanceChartInstance.destroy(); }
+        }
+
+      } catch (err) {
+        completeProgress();
+        console.error(err);
+        showToast("❌ فشل في الاتصال بالإنترنت أو قاعدة البيانات.", "error");
+      }
     }
 
     function loadAnalytics(type = 'group') {
@@ -2515,7 +2685,7 @@
 
       const group = document.getElementById('globalGroupSelect') ? document.getElementById('globalGroupSelect').value : (localStorage.getItem('userGroup') || "Group A");
 
-      fetch(`${ATTENDANCE_API_URL}?action=getTop&fromLec=1&toLec=1&group=${encodeURIComponent(group)}${getAuthParams()}`)
+      fetch(`${getEffectiveApi(ATTENDANCE_API_URL)}?action=getTop&fromLec=1&toLec=1&group=${encodeURIComponent(group)}${getAuthParams()}`)
         .then(r => r.json())
         .then(data => {
           if (data.status === 'success' && data.scores) {
@@ -2626,7 +2796,7 @@
           };
         }
 
-        fetch(ATTENDANCE_API_URL, {
+        fetch(getEffectiveApi(ATTENDANCE_API_URL), {
           method: "POST",
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify(payload)
@@ -2665,6 +2835,68 @@
   </script>
   <script>
     if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(err => console.log('PWA Error', err)); }); }
+  </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof particlesJS !== 'undefined') {
+        particlesJS('particles-js', {
+          "particles": {
+            "number": { "value": 80, "density": { "enable": true, "value_area": 800 } },
+            "color": { "value": ["#00d2ff", "#f5b041", "#ffffff"] },
+            "shape": { "type": "circle" },
+            "opacity": { "value": 0.8, "random": true, "anim": { "enable": true, "speed": 10, "opacity_min": 0.1, "sync": false } },
+            "size": { "value": 2, "random": true },
+            "line_linked": { "enable": true, "distance": 120, "color": "#00d2ff", "opacity": 0.6, "width": 1.5 },
+            "move": { "enable": true, "speed": 5, "direction": "none", "random": true, "out_mode": "out", "bounce": false, "attract": { "enable": true, "rotateX": 600, "rotateY": 1200 } }
+          },
+          "interactivity": {
+            "detect_on": "window",
+            "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "repulse" }, "resize": true },
+            "modes": { "grab": { "distance": 250, "line_linked": { "opacity": 1 } }, "repulse": { "distance": 200, "duration": 0.4 } }
+          },
+          "retina_detect": true
+        });
+      }
+    });
+  </script>
+  </script>
+  <script>
+    // --- MAGNETIC CURSOR LOGIC ---
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.matchMedia("(pointer: fine)").matches) {
+        const cursorGlow = document.createElement('div');
+        cursorGlow.classList.add('cursor-glow');
+        document.body.appendChild(cursorGlow);
+
+        let mouseX = -100, mouseY = -100;
+        let cursorX = -100, cursorY = -100;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        function animateCursor() {
+            cursorX += (mouseX - cursorX) * 0.15;
+            cursorY += (mouseY - cursorY) * 0.15;
+            cursorGlow.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0)`;
+            requestAnimationFrame(animateCursor);
+        }
+        animateCursor();
+
+        const addHoverListeners = () => {
+            document.querySelectorAll('button, a, input, select, .glass-panel, .dashboard-card').forEach(el => {
+                if(!el.dataset.hasCursorHover) {
+                    el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+                    el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+                    el.dataset.hasCursorHover = "true";
+                }
+            });
+        };
+        addHoverListeners();
+        setInterval(addHoverListeners, 2000);
+      }
+    });
   </script>
 </body>
 
