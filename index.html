@@ -971,6 +971,8 @@
     body.role-manager .manager-only:not(.view-section),
     body.role-cadre-leader .manager-only:not(.view-section),
     body.role-cadre-leader .cross-group-only:not(.view-section),
+    body.role-qc .manager-only:not(.view-section),
+    body.role-qc .cross-group-only:not(.view-section),
     body.role-admin .manager-only:not(.view-section),
     body.role-admin .admin-only:not(.view-section),
     body.role-admin .cross-group-only:not(.view-section),
@@ -985,20 +987,38 @@
 
     body.role-admin #groupBadge,
     body.role-cadre-leader #groupBadge,
+    body.role-qc #groupBadge,
     body.role-co-founder #groupBadge,
     body.role-owner #groupBadge {
       display: none !important;
     }
-    
+
     body.role-manager a.manager-only,
     body.role-cadre-leader a.manager-only,
+    body.role-qc a.manager-only,
     body.role-admin a.manager-only,
     body.role-admin a.admin-only,
     body.role-co-founder a.manager-only,
     body.role-co-founder a.admin-only,
     body.role-owner a.manager-only,
     body.role-owner a.admin-only {
-        display: flex !important;
+      display: flex !important;
+    }
+
+    /* 🚫 QC Read-Only Restriction */
+    body.role-qc .mutator,
+    body.role-qc .btn-danger,
+    body.role-qc .action-btn {
+      pointer-events: none !important;
+      opacity: 0.6 !important;
+      filter: grayscale(1) !important;
+    }
+
+    /* QC also can't start camera because scanning writes data */
+    body.role-qc #view-scanner .btn-primary {
+      pointer-events: none !important;
+      opacity: 0.6 !important;
+      filter: grayscale(1) !important;
     }
 
     .view-section.active {
@@ -1176,17 +1196,20 @@
         padding: 12px;
       }
     }
+
     /* --- DYNAMIC ALIVE EFFECTS --- */
-    .glass-panel, .action-btn, .dashboard-card {
+    .glass-panel,
+    .action-btn,
+    .dashboard-card {
       transition: transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease !important;
     }
-    
+
     .glass-panel:hover {
       transform: translateY(-8px);
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px var(--electric-glow) !important;
       border-color: rgba(0, 210, 255, 0.4) !important;
     }
-    
+
     .action-btn:hover {
       transform: translateY(-5px) scale(1.05);
       box-shadow: 0 10px 25px var(--electric-glow), 0 0 15px var(--accent-glow) !important;
@@ -1197,15 +1220,24 @@
     }
 
     @keyframes neonPulse {
-      0% { box-shadow: 0 0 15px var(--electric-glow), 0 0 30px var(--accent-glow); }
-      100% { box-shadow: 0 0 30px var(--electric-glow), 0 0 50px var(--accent-glow); }
+      0% {
+        box-shadow: 0 0 15px var(--electric-glow), 0 0 30px var(--accent-glow);
+      }
+
+      100% {
+        box-shadow: 0 0 30px var(--electric-glow), 0 0 50px var(--accent-glow);
+      }
     }
+
     /* --- MAGNETIC CURSOR GLOW --- */
     .cursor-glow {
       position: fixed;
-      top: 0; left: 0;
-      width: 40px; height: 40px;
-      margin-top: -20px; margin-left: -20px;
+      top: 0;
+      left: 0;
+      width: 40px;
+      height: 40px;
+      margin-top: -20px;
+      margin-left: -20px;
       border-radius: 50%;
       border: 2px solid rgba(0, 210, 255, 0.5);
       background: radial-gradient(circle, rgba(0, 210, 255, 0.2) 0%, transparent 70%);
@@ -1217,19 +1249,31 @@
       will-change: transform, width, height;
       mix-blend-mode: screen;
     }
-    
+
     body.hovering .cursor-glow {
-      width: 70px; height: 70px;
-      margin-top: -35px; margin-left: -35px;
+      width: 70px;
+      height: 70px;
+      margin-top: -35px;
+      margin-left: -35px;
       background: radial-gradient(circle, rgba(245, 176, 65, 0.25) 0%, transparent 70%);
       border-color: rgba(245, 176, 65, 0.8);
       box-shadow: 0 0 25px rgba(245, 176, 65, 0.8), inset 0 0 20px rgba(245, 176, 65, 0.5);
     }
-    
+
     /* Hide default cursor only if not on touch device */
     @media (pointer: fine) {
-      body { cursor: none; }
-      a, button, input, select, .glass-panel, .dashboard-card { cursor: none; }
+      body {
+        cursor: none;
+      }
+
+      a,
+      button,
+      input,
+      select,
+      .glass-panel,
+      .dashboard-card {
+        cursor: none;
+      }
     }
   </style>
 
@@ -1237,7 +1281,8 @@
 
 <body class="dark-mode">
 
-  <div id="particles-js" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:-2; pointer-events:none;"></div>
+  <div id="particles-js"
+    style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:-2; pointer-events:none;"></div>
   <div class="circuit-bg"></div>
 
 
@@ -1255,7 +1300,9 @@
         <h2>⚡ <span class="brand-text">Eduneers</span> <span id="welcomeName"></span></h2>
       </div>
       <div class="nav-actions">
-        <select id="globalGroupSelect" class="cross-group-only" style="background: rgba(192, 132, 252, 0.1); border: 1px solid rgba(192, 132, 252, 0.4); color: #c084fc; border-radius: 8px; padding: 0 10px; height: 28px; font-size: 11px; font-weight: 800; cursor: pointer; outline: none; margin: 0 5px; display: none; box-sizing: border-box; align-self: center;" onchange="changeGlobalGroup(this.value)"></select>
+        <select id="globalGroupSelect" class="cross-group-only"
+          style="background: rgba(192, 132, 252, 0.1); border: 1px solid rgba(192, 132, 252, 0.4); color: #c084fc; border-radius: 8px; padding: 0 10px; height: 28px; font-size: 11px; font-weight: 800; cursor: pointer; outline: none; margin: 0 5px; display: none; box-sizing: border-box; align-self: center;"
+          onchange="changeGlobalGroup(this.value)"></select>
         <span id="groupBadge" class="nav-badge group-badge" style="display: none;"></span>
         <span id="roleBadge" class="nav-badge role-badge" style="display: none;"></span>
         <button class="nav-btn" id="themeToggle" onclick="toggleDarkMode()">☀️</button>
@@ -1267,43 +1314,67 @@
   <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
   <div class="sidebar" id="sidebar">
     <button class="close-btn" onclick="toggleSidebar()">×</button>
-    <div style="padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 10px;">
+    <div
+      style="padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 10px;">
       <div style="font-weight: 900; color: var(--electric-blue); font-size: 1.3rem;">Eduneers System</div>
-      <div id="sideRole" style="font-size: 10px; opacity: 0.7; margin-top: 5px; text-transform: uppercase; background: rgba(255,255,255,0.1); display: inline-block; padding: 4px 10px; border-radius: 8px;"></div>
+      <div id="sideRole"
+        style="font-size: 10px; opacity: 0.7; margin-top: 5px; text-transform: uppercase; background: rgba(255,255,255,0.1); display: inline-block; padding: 4px 10px; border-radius: 8px;">
+      </div>
     </div>
 
     <!-- Attendance Section -->
-    <div style="margin: 10px 15px; border-radius: 12px; border: 1px solid rgba(0, 210, 255, 0.3); box-shadow: 0 0 15px rgba(0, 210, 255, 0.05); overflow: hidden;">
-        <div style="background: rgba(0, 210, 255, 0.1); padding: 8px 15px; font-weight: 900; color: #00d2ff; font-size: 12px; letter-spacing: 1px; border-bottom: 1px solid rgba(0, 210, 255, 0.1);">📷 قسم الحضور</div>
-        <div style="padding: 5px 0;">
-            <a href="#" onclick="gotoView('index.html', 'scanner')" id="nav-scanner"><span>📷</span> <span>مسح الـ QR</span></a>
-            <a href="#" onclick="gotoView('index.html', 'manual')" id="nav-manual"><span>✍️</span> <span>التسجيل اليدوي السريع</span></a>
-            <a href="#" onclick="gotoView('index.html', 'dashboard')" id="nav-dashboard"><span>📊</span> <span>لوحة الحضور</span></a>
-            <a href="#" onclick="gotoView('index.html', 'analytics')" id="nav-analytics" class="manager-only"><span>📈</span> <span>إحصائيات الجروبات</span></a>
-            <a href="#" onclick="gotoView('index.html', 'mail')" id="nav-mail" class="manager-only"><span>📧</span> <span>الإعلانات والبريد</span></a>
-        </div>
+    <div
+      style="margin: 10px 15px; border-radius: 12px; border: 1px solid rgba(0, 210, 255, 0.3); box-shadow: 0 0 15px rgba(0, 210, 255, 0.05); overflow: hidden;">
+      <div
+        style="background: rgba(0, 210, 255, 0.1); padding: 8px 15px; font-weight: 900; color: #00d2ff; font-size: 12px; letter-spacing: 1px; border-bottom: 1px solid rgba(0, 210, 255, 0.1);">
+        📷 قسم الحضور</div>
+      <div style="padding: 5px 0;">
+        <a href="#" onclick="gotoView('index.html', 'scanner')" id="nav-scanner"><span>📷</span> <span>مسح الـ
+            QR</span></a>
+        <a href="#" onclick="gotoView('index.html', 'manual')" id="nav-manual"><span>✍️</span> <span>التسجيل اليدوي
+            السريع</span></a>
+        <a href="#" onclick="gotoView('index.html', 'dashboard')" id="nav-dashboard"><span>📊</span> <span>لوحة
+            الحضور</span></a>
+        <a href="#" onclick="gotoView('index.html', 'analytics')" id="nav-analytics"
+          class="manager-only"><span>📈</span> <span>إحصائيات الجروبات</span></a>
+        <a href="#" onclick="gotoView('index.html', 'mail')" id="nav-mail" class="manager-only"><span>📧</span>
+          <span>الإعلانات والبريد</span></a>
+      </div>
     </div>
 
     <!-- Grades Section -->
-    <div style="margin: 15px 15px; border-radius: 12px; border: 1px solid rgba(192, 132, 252, 0.3); box-shadow: 0 0 15px rgba(192, 132, 252, 0.05); overflow: hidden;">
-        <div style="background: rgba(192, 132, 252, 0.1); padding: 8px 15px; font-weight: 900; color: #c084fc; font-size: 12px; letter-spacing: 1px; border-bottom: 1px solid rgba(192, 132, 252, 0.1);">🎯 قسم الدرجات والتقييم</div>
-        <div style="padding: 5px 0;">
-            <a href="#" onclick="gotoView('grades.html', 'grading')" id="nav-grading"><span>📝</span> <span>رصد الدرجات</span></a>
-            <a href="#" onclick="gotoView('grades.html', 'searchView')" id="nav-searchView"><span>🔍</span> <span>استعلام عن طالب</span></a>
-            <a href="#" onclick="gotoView('grades.html', 'topView')" id="nav-topView" class="manager-only"><span>🏆</span> <span>لوحة الشرف Top 5</span></a>
-            <a href="#" onclick="gotoView('grades.html', 'settings')" id="nav-settings" class="manager-only"><span>⚙️</span> <span>إعدادات النظام</span></a>
-        </div>
+    <div class="manager-only"
+      style="margin: 15px 15px; border-radius: 12px; border: 1px solid rgba(192, 132, 252, 0.3); box-shadow: 0 0 15px rgba(192, 132, 252, 0.05); overflow: hidden;">
+      <div
+        style="background: rgba(192, 132, 252, 0.1); padding: 8px 15px; font-weight: 900; color: #c084fc; font-size: 12px; letter-spacing: 1px; border-bottom: 1px solid rgba(192, 132, 252, 0.1);">
+        🎯 قسم الدرجات والتقييم</div>
+      <div style="padding: 5px 0;">
+        <a href="#" onclick="gotoView('grades.html', 'grading')" id="nav-grading"><span>📝</span> <span>رصد
+            الدرجات</span></a>
+        <a href="#" onclick="gotoView('grades.html', 'searchView')" id="nav-searchView"><span>🔍</span> <span>استعلام عن
+            طالب</span></a>
+        <a href="#" onclick="gotoView('grades.html', 'topView')" id="nav-topView" class="manager-only"><span>🏆</span>
+          <span>لوحة الشرف Top 5</span></a>
+        <a href="#" onclick="gotoView('grades.html', 'settings')" id="nav-settings" class="manager-only"><span>⚙️</span>
+          <span>إعدادات النظام</span></a>
+      </div>
     </div>
 
     <!-- Admin Section -->
-    <div class="admin-only" style="margin: 15px 15px; border-radius: 12px; border: 1px solid rgba(245, 176, 65, 0.3); box-shadow: 0 0 15px rgba(245, 176, 65, 0.05); overflow: hidden;">
-        <div style="background: rgba(245, 176, 65, 0.1); padding: 8px 15px; font-weight: 900; color: #f5b041; font-size: 12px; letter-spacing: 1px; border-bottom: 1px solid rgba(245, 176, 65, 0.1);">⚙️ الإدارة العليا</div>
-        <div style="padding: 5px 0;">
-            <a href="#" onclick="gotoView('index.html', 'users')" id="nav-users" class="admin-only"><span>👥</span> <span>إدارة المستخدمين</span></a>
-        </div>
+    <div class="admin-only"
+      style="margin: 15px 15px; border-radius: 12px; border: 1px solid rgba(245, 176, 65, 0.3); box-shadow: 0 0 15px rgba(245, 176, 65, 0.05); overflow: hidden;">
+      <div
+        style="background: rgba(245, 176, 65, 0.1); padding: 8px 15px; font-weight: 900; color: #f5b041; font-size: 12px; letter-spacing: 1px; border-bottom: 1px solid rgba(245, 176, 65, 0.1);">
+        ⚙️ الإدارة العليا</div>
+      <div style="padding: 5px 0;">
+        <a href="#" onclick="gotoView('index.html', 'users')" id="nav-users" class="admin-only"><span>👥</span>
+          <span>إدارة المستخدمين</span></a>
+      </div>
     </div>
 
-    <a href="#" onclick="logout()" style="color: #ef4444; margin: 15px; background: rgba(239, 68, 68, 0.1); border-radius: 12px; text-align: center; justify-content: center;"><span>🚪</span> <span>تسجيل الخروج</span></a>
+    <a href="#" onclick="logout()"
+      style="color: #ef4444; margin: 15px; background: rgba(239, 68, 68, 0.1); border-radius: 12px; text-align: center; justify-content: center;"><span>🚪</span>
+      <span>تسجيل الخروج</span></a>
     <div style="height: 100px; flex-shrink: 0;"></div>
   </div>
 
@@ -1334,17 +1405,16 @@
           <script>for (let i = 1; i <= 20; i++) document.write(`<option value="${i}">المحاضرة ${i}</option>`);</script>
         </select>
       </div>
-      <div class="manager-only"
-        style="padding-top: 10px;">
+      <div class="manager-only" style="padding-top: 10px;">
         <script>
           // Added global gotoView for unified sidebar navigation
           function gotoView(page, view) {
             localStorage.setItem('savedView', view);
             if (window.location.pathname.endsWith(page)) {
-                switchView(view);
-                toggleSidebar();
+              switchView(view);
+              toggleSidebar();
             } else {
-                window.location.href = page;
+              window.location.href = page;
             }
           }
         </script>
@@ -1381,7 +1451,7 @@
             فقط</b> (يدعم الأرقام العربية ١٢٣).</p>
         <input type="text" id="manualCode" placeholder="مثال: 15 أو ١٥"
           style="text-align:center; font-size:24px; letter-spacing:4px; font-weight:900;">
-        <button class="btn-primary" onclick="submitManualCode()">تسجيل الحضور 📥</button>
+        <button class="btn-primary mutator" onclick="submitManualCode()">تسجيل الحضور 📥</button>
       </div>
     </div>
 
@@ -1455,13 +1525,15 @@
           <div style="display: flex; gap: 15px; margin-bottom: 20px;">
             <select id="newUserRole" style="margin-bottom: 0;">
               <option value="Cadre">مسجل (Cadre)</option>
+              <option value="Cadre Leader">قائد فني (Cadre Leader)</option>
+              <option value="Quality Control">مراقبة الجودة (Quality Control)</option>
               <option value="Coordinator">مراقب (Coordinator)</option>
               <option value="Team Manager">مدير (Team Manager)</option>
               <option value="CO-Founder">شريك مؤسس ✨</option>
             </select>
             <select id="newUserGroup" style="margin-bottom: 0;"></select>
           </div>
-          <button class="btn-primary" onclick="addUser()">توثيق المستخدم ➕</button>
+          <button class="btn-primary mutator" onclick="addUser()">توثيق المستخدم ➕</button>
         </div>
         <div class="form-wrapper" style="display:flex; gap:10px; margin-bottom:15px;">
           <button class="btn-secondary" style="margin:0; padding:12px; flex:1; gap: 6px;"
@@ -2164,11 +2236,11 @@
           if (data.status === "unauthorized" || data.status === "deleted") { alert("انتهت صلاحية الجلسة أو تم إلغاء حسابك. يرجى تسجيل الدخول مجدداً."); logout(); }
           else if (data.status === "success") {
             const currentSavedRole = localStorage.getItem('userRole'); const currentSavedGroup = localStorage.getItem('userGroup');
-            if (currentSavedRole !== data.role || (currentSavedGroup !== data.group && data.role !== 'Owner' && data.role !== 'CO-Founder' && data.role !== 'Team Manager' && data.role !== 'Admin')) {
+            if (currentSavedRole !== data.role || (currentSavedGroup !== data.group && data.role !== 'Owner' && data.role !== 'CO-Founder' && data.role !== 'Team Manager' && data.role !== 'Admin' && data.role !== 'QUALITY CONTROL' && data.role !== 'QC')) {
               localStorage.setItem('userRole', data.role);
-              if (data.role !== 'Owner' && data.role !== 'CO-Founder' && data.role !== 'Team Manager' && data.role !== 'Admin') localStorage.setItem('userGroup', data.group);
+              if (data.role !== 'Owner' && data.role !== 'CO-Founder' && data.role !== 'Team Manager' && data.role !== 'Admin' && data.role !== 'QUALITY CONTROL' && data.role !== 'QC') localStorage.setItem('userGroup', data.group);
               applyRolesToUI();
-              if (currentView === 'users' && data.role !== 'Team Manager' && data.role !== 'Admin' && data.role !== 'Owner' && data.role !== 'CO-Founder') switchView('scanner');
+              if (currentView === 'users' && data.role !== 'Team Manager' && data.role !== 'Admin' && data.role !== 'Owner' && data.role !== 'CO-Founder' && data.role !== 'QUALITY CONTROL' && data.role !== 'QC') switchView('scanner');
             }
           }
         }).catch(err => console.log("Sync error"));
@@ -2179,7 +2251,12 @@
       const roleBadge = document.getElementById('roleBadge'); const groupBadge = document.getElementById('groupBadge');
 
       if (roleBadge) {
-        roleBadge.innerText = (userRole === 'Owner') ? 'المالك 👑' : (userRole === 'CO-Founder') ? 'CO-Founder ✨' : (userRole === 'Team Manager' || userRole === 'Admin') ? 'Team Manager' : (userRole === 'Cadre Leader') ? 'Cadre Leader 🌟' : (userRole === 'Coordinator' || userRole === 'Manager') ? 'Coordinator' : 'Cadre';
+        roleBadge.innerText = (userRole === 'Owner') ? 'المالك 👑' : 
+                             (userRole === 'CO-Founder') ? 'CO-Founder ✨' : 
+                             (userRole === 'Team Manager' || userRole === 'Admin') ? 'Team Manager' : 
+                             (userRole === 'Cadre Leader') ? 'Cadre Leader 🌟' : 
+                             (userRole === 'Quality Control') ? 'Quality Control 👁️' :
+                             (userRole === 'Coordinator' || userRole === 'Manager') ? 'Coordinator' : 'Cadre';
         roleBadge.style.display = 'flex';
       }
       if (groupBadge) { groupBadge.innerText = userGroup; groupBadge.style.display = 'flex'; }
@@ -2190,6 +2267,7 @@
       else if (userRole === 'CO-Founder') { document.body.classList.add('role-co-founder'); }
       else if (userRole === 'Team Manager' || userRole === 'Admin') { document.body.classList.add('role-admin'); }
       else if (userRole === 'Cadre Leader') { document.body.classList.add('role-cadre-leader'); }
+      else if (userRole === 'Quality Control') { document.body.classList.add('role-qc'); }
       else if (userRole === 'Coordinator' || userRole === 'Manager') { document.body.classList.add('role-manager'); }
       else { document.body.classList.add('role-user'); }
 
@@ -2459,6 +2537,18 @@
           if (data.status === 'success') {
             showToast("✅ تمت إزالة السجل نهائياً", "success");
             allAttendees = allAttendees.filter(a => a.id !== studentCode);
+
+            // ⚡ مزامنة الحذف مع شيت الطالب الفردي
+            let linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
+            let personalApi = linksMap[studentCode];
+            if (personalApi) {
+              let taskName = "TASK " + lec;
+              console.log("Syncing deletion to personal sheet:", personalApi);
+              fetch(`${personalApi}?action=update&qrCode=${encodeURIComponent(studentCode)}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('attendance .15')}&val=0`)
+                .then(r => r.json())
+                .then(res => console.log("Personal Sheet Deletion Synced:", res))
+                .catch(e => console.error("Personal Sheet Deletion Sync Error:", e));
+            }
           } else {
             showToast(data.message, "error"); loadDashboard();
           }
@@ -2492,25 +2582,25 @@
         if (type === 'all' && (role === 'OWNER' || role === 'CO-FOUNDER' || role === 'ADMIN')) {
           document.getElementById('analyticsDesc').innerText = `📊 مقارنة حية لحضور الجروبات - محاضرة ${currentLec}`;
           chartTitle = 'حضور الجروبات';
-          
+
           const groupSelect = document.getElementById('globalGroupSelect');
           const groups = groupSelect ? Array.from(groupSelect.options).map(opt => opt.value) : ["Group A", "Group B", "Group K"];
-          
+
           groups.forEach(g => {
             labels.push(g);
             const url = `${getEffectiveApi(ATTENDANCE_API_URL)}?action=getDashboard&lectureNum=${currentLec}&group=${encodeURIComponent(g)}${getAuthParams()}`;
-            promises.push(fetch(url).then(r => r.json()).catch(() => ({count: 0})));
+            promises.push(fetch(url).then(r => r.json()).catch(() => ({ count: 0 })));
           });
 
         } else {
           document.getElementById('analyticsDesc').innerText = `📈 تتبع كفاءة الحضور لـ ${currentGroup} حتى المحاضرة ${currentLec}`;
           chartTitle = 'كثافة الحضور';
-          
+
           // Fetch from lec 1 to currentLec
           for (let i = 1; i <= currentLec; i++) {
             labels.push(`م ${i}`);
             const url = `${getEffectiveApi(ATTENDANCE_API_URL)}?action=getDashboard&lectureNum=${i}&group=${encodeURIComponent(currentGroup)}${getAuthParams()}`;
-            promises.push(fetch(url).then(r => r.json()).catch(() => ({count: 0})));
+            promises.push(fetch(url).then(r => r.json()).catch(() => ({ count: 0 })));
           }
         }
 
@@ -2521,14 +2611,14 @@
 
         completeProgress();
         document.getElementById('analyticsDesc').style.display = 'block';
-        
+
         // التحقق من وجود بيانات
         const hasData = dataPoints.some(val => val > 0);
         if (hasData) {
-            renderAnalyticsChart(labels, dataPoints, chartTitle);
+          renderAnalyticsChart(labels, dataPoints, chartTitle);
         } else {
-            showToast("⚠️ لا توجد بيانات حضور كافية للرسم البياني حتى الآن.", "warning");
-            if (attendanceChartInstance) { attendanceChartInstance.destroy(); }
+          showToast("⚠️ لا توجد بيانات حضور كافية للرسم البياني حتى الآن.", "warning");
+          if (attendanceChartInstance) { attendanceChartInstance.destroy(); }
         }
 
       } catch (err) {
@@ -2837,7 +2927,7 @@
     if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(err => console.log('PWA Error', err)); }); }
   </script>
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       if (typeof particlesJS !== 'undefined') {
         particlesJS('particles-js', {
           "particles": {
@@ -2872,26 +2962,26 @@
         let cursorX = -100, cursorY = -100;
 
         document.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
+          mouseX = e.clientX;
+          mouseY = e.clientY;
         });
 
         function animateCursor() {
-            cursorX += (mouseX - cursorX) * 0.15;
-            cursorY += (mouseY - cursorY) * 0.15;
-            cursorGlow.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0)`;
-            requestAnimationFrame(animateCursor);
+          cursorX += (mouseX - cursorX) * 0.15;
+          cursorY += (mouseY - cursorY) * 0.15;
+          cursorGlow.style.transform = `translate3d(${cursorX}px, ${cursorY}px, 0)`;
+          requestAnimationFrame(animateCursor);
         }
         animateCursor();
 
         const addHoverListeners = () => {
-            document.querySelectorAll('button, a, input, select, .glass-panel, .dashboard-card').forEach(el => {
-                if(!el.dataset.hasCursorHover) {
-                    el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
-                    el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
-                    el.dataset.hasCursorHover = "true";
-                }
-            });
+          document.querySelectorAll('button, a, input, select, .glass-panel, .dashboard-card').forEach(el => {
+            if (!el.dataset.hasCursorHover) {
+              el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+              el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+              el.dataset.hasCursorHover = "true";
+            }
+          });
         };
         addHoverListeners();
         setInterval(addHoverListeners, 2000);
