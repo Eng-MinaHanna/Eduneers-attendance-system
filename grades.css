@@ -598,6 +598,7 @@
         /* 🛡️ منطق الصلاحيات الاحترافي */
         .manager-only,
         .admin-only,
+        .owner-only,
         .cross-group-only {
             display: none !important;
         }
@@ -611,7 +612,8 @@
         body.role-co-founder .view-section.manager-only.active,
         body.role-co-founder .view-section.admin-only.active,
         body.role-owner .view-section.manager-only.active,
-        body.role-owner .view-section.admin-only.active {
+        body.role-owner .view-section.admin-only.active,
+        body.role-owner .view-section.owner-only.active {
             display: block !important;
             animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
@@ -660,6 +662,7 @@
 
         body.role-owner :not(.view-section).manager-only,
         body.role-owner :not(.view-section).admin-only,
+        body.role-owner :not(.view-section).owner-only,
         body.role-owner :not(.view-section).cross-group-only {
             display: block !important;
         }
@@ -673,7 +676,8 @@
         }
 
         body.role-owner a.manager-only,
-        body.role-owner a.admin-only {
+        body.role-owner a.admin-only,
+        body.role-owner a.owner-only {
             display: flex !important;
         }
 
