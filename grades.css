@@ -605,6 +605,7 @@
 
         /* Explicitly show active view sections for authorized roles */
         body.role-manager .view-section.manager-only.active,
+        body.role-manager .view-section.admin-only.active,
         body.role-cadre-leader .view-section.manager-only.active,
         body.role-qc .view-section.manager-only.active,
         body.role-admin .view-section.manager-only.active,

@@ -2215,10 +2215,12 @@ window.processFeedbackImport = async function() {
 
     const fileInput = document.getElementById('fbFileInput');
     const sheetUrl = document.getElementById('fbSheetUrl').value.trim();
+    const manualCodesEl = document.getElementById('fbManualCodes');
+    const manualCodes = manualCodesEl ? manualCodesEl.value.trim() : '';
     const btn = document.getElementById('fbSubmitBtn');
 
-    if (!fileInput.files.length && !sheetUrl) {
-        return showToast("❌ ارفع ملف Excel أو أدخل رابط Google Sheet", "error");
+    if (!fileInput.files.length && !sheetUrl && !manualCodes) {
+        return showToast("❌ ارفع ملف Excel أو أدخل رابط Google Sheet أو أدخل أكواد يدوياً", "error");
     }
 
     btn.disabled = true;
@@ -2242,6 +2244,12 @@ window.processFeedbackImport = async function() {
             const csvText = await resp.text();
             const rows = csvText.split('\n').map(r => r.split(','));
             codes = extractCodesFromSheet(rows);
+        } else if (manualCodes) {
+            const lines = manualCodes.split('\n');
+            for (const line of lines) {
+                const code = normalizeCode(line);
+                if (code) codes.push(code);
+            }
         }
 
         if (codes.length === 0) {
@@ -2252,63 +2260,55 @@ window.processFeedbackImport = async function() {
 
         showToast(`✅ تم العثور على ${codes.length} كود، جاري تطبيق الفيدباك...`, "success");
 
-        // Group codes by group letter (first char, e.g. K from K2EDUR9)
-        const groups = {};
-        for (const code of codes) {
-            const letter = code.charAt(0);
-            if (!groups[letter]) groups[letter] = [];
-            groups[letter].push(code);
-        }
+        // Use coordinator's own group only
+        const userGroup = localStorage.getItem('userGroup') || 'Group A';
+        const groupLetter = userGroup.replace('Group ', '').trim();
+        const groupName = 'Group ' + groupLetter;
+        const centralApi = getApiForGroup(groupName);
+        const auth = getAuthParamsForGroup(groupName);
 
-        // Fetch attendance for each group for the selected lecture
+        // Fetch attendance for this group
         const attendanceMap = {};
-        for (const [letter] of Object.entries(groups)) {
-            const groupName = 'Group ' + letter;
-            const api = getApiForGroup(groupName);
-            const a = getAuthParamsForGroup(groupName);
-            try {
-                const attResp = await fetch(`${api}?action=getTop&fromLec=${lec}&toLec=${lec}&weight=15${a}`).then(r => r.json());
-                if (attResp && attResp.scores) {
-                    attendanceMap[letter] = {};
-                    for (const s of attResp.scores) {
-                        if (parseFloat(s.total) >= 15) {
-                            attendanceMap[letter][s.id] = true;
-                        }
+        try {
+            const attResp = await fetch(`${centralApi}?action=getTop&fromLec=${lec}&toLec=${lec}&weight=15${auth}`).then(r => r.json());
+            if (attResp && attResp.scores) {
+                for (const s of attResp.scores) {
+                    if (parseFloat(s.total) >= 15) {
+                        attendanceMap[s.id] = true;
                     }
                 }
-            } catch (e) {
-                console.log(`فشل جلب بيانات الحضور لـ ${groupName}، سيتم تطبيق الفيدباك للجميع`);
             }
+        } catch (e) {
+            console.log(`فشل جلب بيانات الحضور لـ ${groupName}`);
         }
 
-        let results = { success: 0, fail: 0, skipped: 0 };
+        let results = { success: 0, fail: 0, skipped: 0, crossed: 0 };
         let logLines = [];
 
-        for (const [letter, groupCodes] of Object.entries(groups)) {
-            const groupName = 'Group ' + letter;
-            const centralApi = getApiForGroup(groupName);
-            const auth = getAuthParamsForGroup(groupName);
-            const groupAttendance = attendanceMap[letter] || {};
-
-            for (const code of groupCodes) {
-                if (!groupAttendance[code]) {
-                    results.skipped++;
-                    logLines.push(`⏭️ [${groupName}] ${code} - لم يحضر المحاضرة ${lec}`);
-                    continue;
-                }
-                try {
-                    const res = await fetch(`${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=1&attitude=0&bonus=0${auth}`).then(r => r.json());
-                    if (res.status === 'success') {
-                        results.success++;
-                        logLines.push(`✅ [${groupName}] ${code} - تم`);
-                    } else {
-                        results.fail++;
-                        logLines.push(`❌ [${groupName}] ${code} - ${res.message || 'خطأ'}`);
-                    }
-                } catch (e) {
+        for (const code of codes) {
+            // Reject codes from other groups
+            if (code.charAt(0) !== groupLetter) {
+                results.crossed++;
+                logLines.push(`❌ ${code} - خارج الصلاحيات (المجموعة ${code.charAt(0)})`);
+                continue;
+            }
+            if (!attendanceMap[code]) {
+                results.skipped++;
+                logLines.push(`⏭️ [${groupName}] ${code} - لم يحضر المحاضرة ${lec}`);
+                continue;
+            }
+            try {
+                const res = await fetch(`${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=1&attitude=0&bonus=0${auth}`).then(r => r.json());
+                if (res.status === 'success') {
+                    results.success++;
+                    logLines.push(`✅ [${groupName}] ${code} - تم`);
+                } else {
                     results.fail++;
-                    logLines.push(`❌ [${groupName}] ${code} - فشل الاتصال`);
+                    logLines.push(`❌ [${groupName}] ${code} - ${res.message || 'خطأ'}`);
                 }
+            } catch (e) {
+                results.fail++;
+                logLines.push(`❌ [${groupName}] ${code} - فشل الاتصال`);
             }
         }
 
@@ -2372,10 +2372,15 @@ function extractCodesFromSheet(rows) {
 function normalizeCode(val) {
     if (!val) return null;
     const trimmed = val.toString().trim().toUpperCase();
-    // Match pattern: letter + digits optionally followed by EDUR9
+    // Full code: K1EDUR9 or K1
     const match = trimmed.match(/^([A-Z]\d+)(EDUR9)?$/);
-    if (match) {
-        return match[1] + 'EDUR9';
+    if (match) return match[1] + 'EDUR9';
+    // Bare number: 1 → get group prefix from localStorage
+    const numMatch = trimmed.match(/^(\d+)$/);
+    if (numMatch) {
+        const group = localStorage.getItem('userGroup') || 'Group A';
+        const letter = group.replace('Group ', '').trim();
+        return letter + numMatch[1] + 'EDUR9';
     }
     return null;
 }
@@ -2386,12 +2391,13 @@ function showResults(results, logLines) {
     const successEl = document.getElementById('fbSuccessCount');
     const skippedEl = document.getElementById('fbSkippedCount');
     const failEl = document.getElementById('fbFailCount');
+    const crossedEl = document.getElementById('fbCrossedCount');
     const logEl = document.getElementById('fbLog');
 
     if (!container) return;
     container.style.display = 'block';
 
-    const total = results.success + results.fail + results.skipped;
+    const total = results.success + results.fail + results.skipped + (results.crossed || 0);
     if (foundEl) foundEl.innerText = `📌 تم العثور على: ${total} كود`;
     if (successEl) successEl.innerText = `✅ تم بنجاح: ${results.success}`;
     if (skippedEl) {
@@ -2400,6 +2406,14 @@ function showResults(results, logLines) {
             skippedEl.innerText = `⏭️ لم يحضر: ${results.skipped}`;
         } else {
             skippedEl.style.display = 'none';
+        }
+    }
+    if (crossedEl) {
+        if (results.crossed) {
+            crossedEl.style.display = 'inline-block';
+            crossedEl.innerText = `🚫 خارج الصلاحيات: ${results.crossed}`;
+        } else {
+            crossedEl.style.display = 'none';
         }
     }
     if (failEl) failEl.innerText = results.fail ? `❌ فشل: ${results.fail}` : '';
