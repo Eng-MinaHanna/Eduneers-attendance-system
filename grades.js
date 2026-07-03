@@ -909,12 +909,16 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
                 promises.push(fetch(`${centralApi}?action=saveQuiz&qrCode=${code}&quizNum=${lec}&val=${quizVal}${auth}`).then(r => r.json()).catch(e => ({})));
             }
 
-            // 4. Save Extra (feedback, attitude, bonus) - Central
-            let f = document.getElementById('feedBtn').classList.contains('active-feed') ? 1 : 0;
-            let a = document.getElementById('attitBtn').classList.contains('active-attit') ? 5 : 0;
+            // 4. Save Extra (attitude auto from attendance, feedback via import) - Central
+            let a = 0;
+            try {
+                const rAtt = await fetch(`${centralApi}?action=getTop&fromLec=${lec}&toLec=${lec}&weight=15${auth}`).then(r => r.json()).catch(e => ({}));
+                const attScore = rAtt && rAtt.scores ? rAtt.scores.find(s => s.id === code) : null;
+                if (attScore && parseFloat(attScore.total) >= 15) a = 5;
+            } catch (e) { a = 0; }
             let b = convertNumerals(document.getElementById('valBonus').value) || 0;
 
-            promises.push(fetch(`${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=${f}&attitude=${a}&bonus=${b}${auth}`).then(r => r.json()).catch(e => ({})));
+            promises.push(fetch(`${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=0&attitude=${a}&bonus=${b}${auth}`).then(r => r.json()).catch(e => ({})));
 
             // === SYNC to Individual Student Sheet ===
             let personalApi = getPersonalApi(code);
@@ -937,9 +941,8 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
                     );
                 }
 
-                // Extra (attitude + feedback)
+                // Extra (attitude auto from attendance)
                 let combinedAtt = 0;
-                if (f) combinedAtt += 5;
                 if (a) combinedAtt += 5;
 
                 promises.push(
@@ -970,8 +973,6 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
             document.getElementById('valTask').value = "";
             document.getElementById('valQuiz').value = "";
             document.getElementById('valBonus').value = "";
-            document.getElementById('feedBtn').classList.remove('active-feed');
-            document.getElementById('attitBtn').classList.remove('active-attit');
             document.getElementById('studentCode').focus();
 
             showToast("⏳ جاري التسجيل...", "success");
@@ -1041,7 +1042,7 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
                 addRow(rAttend, "إجمالي الحضور");
                 addRow(rTasks, "إجمالي التاسكات");
                 addRow(rQuizzes, "إجمالي الكويزات");
-                addRow(rExtra, "إجمالي (الفيدباك + السلوك + البونص)");
+                addRow(rExtra, "إجمالي (البونص)");
 
                 document.getElementById('searchResult').style.display = 'block';
                 document.getElementById('resDetails').innerHTML = html;
@@ -1447,8 +1448,6 @@ window.openDashboardGradeModal = async function(id) {
     
     // Clear styling on toggle buttons
     document.getElementById('dbModalAttBtn').classList.remove('active-att');
-    document.getElementById('dbModalFeedBtn').classList.remove('active-feed');
-    document.getElementById('dbModalAttitBtn').classList.remove('active-attit');
     
     // Show Modal
     const modal = document.getElementById('dbGradeModal');
@@ -1488,22 +1487,18 @@ window.openDashboardGradeModal = async function(id) {
         // Quiz
         document.getElementById('dbModalValQuiz').value = quizVal;
         
-        // Extra points decomposition
-        document.getElementById('dbModalFeedBtn').classList.remove('active-feed');
-        document.getElementById('dbModalAttitBtn').classList.remove('active-attit');
-        document.getElementById('dbModalValBonus').value = "";
-        
-        if (extraVal === 5) {
-            document.getElementById('dbModalFeedBtn').classList.add('active-feed');
-        } else if (extraVal === 10) {
-            document.getElementById('dbModalFeedBtn').classList.add('active-feed');
-            document.getElementById('dbModalAttitBtn').classList.add('active-attit');
-        } else if (extraVal > 0) {
-            let rem = extraVal;
-            if (rem >= 5) { document.getElementById('dbModalFeedBtn').classList.add('active-feed'); rem -= 5; }
-            if (rem >= 5) { document.getElementById('dbModalAttitBtn').classList.add('active-attit'); rem -= 5; }
-            if (rem > 0) { document.getElementById('dbModalValBonus').value = rem; }
-        }
+    // Extra points (bonus only in modal — attitude auto from attendance, feedback via import)
+    document.getElementById('dbModalValBonus').value = "";
+
+    if (extraVal > 0) {
+        let rem = extraVal;
+        // First 5 was feedback (ignored in UI), second 5 was attitude (auto from attendance)
+        // Remaining is bonus
+        rem = extraVal;
+        if (rem >= 5) rem -= 5; // feedback portion (handled via import)
+        if (rem >= 5) rem -= 5; // attitude portion (auto from attendance)
+        if (rem > 0) { document.getElementById('dbModalValBonus').value = rem; }
+    }
         
         setModalInputsLoading(false);
     } catch (e) {
@@ -1519,7 +1514,7 @@ function setModalInputsLoading(loading) {
         if (el) el.disabled = loading;
     });
     
-    const btns = ['dbModalAttBtn', 'dbModalFeedBtn', 'dbModalAttitBtn'];
+    const btns = ['dbModalAttBtn'];
     btns.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
@@ -1581,11 +1576,10 @@ window.saveDashboardStudentGrade = async function() {
         promises.push(fetch(`${centralApi}?action=saveQuiz&qrCode=${code}&quizNum=${lec}&val=${quizVal}${auth}`).then(r => r.json()).catch(e => ({})));
     }
     
-    let f = document.getElementById('dbModalFeedBtn').classList.contains('active-feed') ? 1 : 0;
-    let a = document.getElementById('dbModalAttitBtn').classList.contains('active-attit') ? 5 : 0;
+    let a = document.getElementById('dbModalAttBtn').classList.contains('active-att') ? 5 : 0;
     let b = convertNumerals(document.getElementById('dbModalValBonus').value) || 0;
     
-    promises.push(fetch(`${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=${f}&attitude=${a}&bonus=${b}${auth}`).then(r => r.json()).catch(e => ({})));
+    promises.push(fetch(`${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=0&attitude=${a}&bonus=${b}${auth}`).then(r => r.json()).catch(e => ({})));
     
     // === SYNC to Individual Student Sheet ===
     let personalApi = getPersonalApi(code);
@@ -1609,7 +1603,6 @@ window.saveDashboardStudentGrade = async function() {
             );
         }
         let combinedAtt = 0;
-        if (f) combinedAtt += 5;
         if (a) combinedAtt += 5;
         promises.push(
             fetch(`${personalApi}?action=update&qrCode=${code}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('attitude .10')}&val=${combinedAtt}`)
@@ -1714,11 +1707,11 @@ window.loadExcelDashboardSheet = async function(useCache = true) {
 
     // Ensure roster is loaded
     if (!window.dashboardStudents || window.dashboardStudents.length === 0) {
-        container.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px;">⏳ جاري جلب قائمة المتدربين لتجهيز الشيت...</td></tr>`;
+        container.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px;">⏳ جاري جلب قائمة المتدربين لتجهيز الشيت...</td></tr>`;
         await loadDashboardStudents(true, true);
     }
 
-    container.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px;">⏳ جاري تحميل درجات شيت الإكسيل للمحاضرة ${lec} من السيرفر المركزي...</td></tr>`;
+    container.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px;">⏳ جاري تحميل درجات شيت الإكسيل للمحاضرة ${lec} من السيرفر المركزي...</td></tr>`;
 
     try {
         const auth = getAuthParams();
@@ -1775,7 +1768,7 @@ window.loadExcelDashboardSheet = async function(useCache = true) {
     } catch (e) {
         console.error("Load Excel Dashboard Grades Error:", e);
         showToast("❌ خطأ في تحميل درجات شيت الإكسيل", "error");
-        container.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 40px; color: #ef4444; font-size: 14px;">❌ فشل الاتصال بالسيرفر. يرجى التحقق من الشبكة وإعادة المحاولة.</td></tr>`;
+        container.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 40px; color: #ef4444; font-size: 14px;">❌ فشل الاتصال بالسيرفر. يرجى التحقق من الشبكة وإعادة المحاولة.</td></tr>`;
     }
 };
 
@@ -1820,7 +1813,7 @@ window.renderExcelGrid = function() {
     if (!container) return;
 
     if (!window.dashboardStudents || window.dashboardStudents.length === 0) {
-        container.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px;">🔍 لا يوجد طلاب مسجلين في الجروب حالياً</td></tr>`;
+        container.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px;">🔍 لا يوجد طلاب مسجلين في الجروب حالياً</td></tr>`;
         return;
     }
 
@@ -1829,10 +1822,9 @@ window.renderExcelGrid = function() {
         const g = window.excelGradesMap[s.id] || { attend: 0, task: "", quiz: "", feedback: 0, attitude: 0, bonus: 0 };
         
         const attendChecked = g.attend >= 15 ? "checked" : "";
-        const feedbackChecked = g.feedback >= 5 ? "checked" : "";
-        const attitudeChecked = g.attitude >= 5 ? "checked" : "";
         
-        const sum = (g.attend >= 15 ? 15 : 0) + (parseFloat(g.task) || 0) + (parseFloat(g.quiz) || 0) + (g.feedback >= 5 ? 5 : 0) + (g.attitude >= 5 ? 5 : 0) + (parseFloat(g.bonus) || 0);
+        const autoAttitude = g.attend >= 15 ? 5 : 0;
+        const sum = (g.attend >= 15 ? 15 : 0) + (parseFloat(g.task) || 0) + (parseFloat(g.quiz) || 0) + autoAttitude + (parseFloat(g.bonus) || 0);
 
         // Apply distinct sum colors based on performance
         let sumBg = 'rgba(0, 210, 255, 0.08)';
@@ -1866,16 +1858,6 @@ window.renderExcelGrid = function() {
             <!-- Quiz (25) -->
             <td style="padding: 10px 8px; text-align: center;">
                 <input type="number" value="${g.quiz}" id="excel-quiz-${s.id}" oninput="recalculateExcelSum('${s.id}')" style="width: 70px; text-align: center; border-radius: 6px; padding: 6px 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.4); color: #fff; font-weight: bold; font-size: 13px; outline: none; transition: border-color 0.2s;" min="0" max="25" placeholder="0">
-            </td>
-            
-            <!-- Feedback (5) -->
-            <td style="padding: 10px 8px; text-align: center;">
-                <input type="checkbox" ${feedbackChecked} id="excel-feed-${s.id}" onchange="recalculateExcelSum('${s.id}')" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--electric-blue);">
-            </td>
-            
-            <!-- Attitude (5) -->
-            <td style="padding: 10px 8px; text-align: center;">
-                <input type="checkbox" ${attitudeChecked} id="excel-attit-${s.id}" onchange="recalculateExcelSum('${s.id}')" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--electric-blue);">
             </td>
             
             <!-- Bonus -->
@@ -1916,11 +1898,10 @@ window.recalculateExcelSum = function(id) {
     const att = document.getElementById(`excel-att-${id}`).checked ? 15 : 0;
     const task = parseFloat(document.getElementById(`excel-task-${id}`).value) || 0;
     const quiz = parseFloat(document.getElementById(`excel-quiz-${id}`).value) || 0;
-    const feed = document.getElementById(`excel-feed-${id}`).checked ? 5 : 0;
-    const attit = document.getElementById(`excel-attit-${id}`).checked ? 5 : 0;
+    const autoAttitude = att ? 5 : 0;
     const bonus = parseFloat(document.getElementById(`excel-bonus-${id}`).value) || 0;
 
-    const sum = att + task + quiz + feed + attit + bonus;
+    const sum = att + task + quiz + autoAttitude + bonus;
     const sumEl = document.getElementById(`excel-sum-${id}`);
     if (sumEl) {
         sumEl.innerText = sum;
@@ -1944,8 +1925,8 @@ window.recalculateExcelSum = function(id) {
             attend: att,
             task: document.getElementById(`excel-task-${id}`).value,
             quiz: document.getElementById(`excel-quiz-${id}`).value,
-            feedback: feed,
-            attitude: attit,
+            feedback: 0,
+            attitude: autoAttitude,
             bonus: bonus
         };
     }
@@ -1977,8 +1958,7 @@ window.saveAllExcelRows = async function() {
         const attActive = document.getElementById(`excel-att-${code}`)?.checked || false;
         let taskValRaw = document.getElementById(`excel-task-${code}`)?.value.trim() || "";
         let quizValRaw = document.getElementById(`excel-quiz-${code}`)?.value.trim() || "";
-        const f = document.getElementById(`excel-feed-${code}`)?.checked ? 1 : 0;
-        const a = document.getElementById(`excel-attit-${code}`)?.checked ? 5 : 0;
+        const a = attActive ? 5 : 0;
         let bVal = document.getElementById(`excel-bonus-${code}`)?.value.trim() || "";
         const b = convertNumerals(bVal) || 0;
 
@@ -2005,7 +1985,7 @@ window.saveAllExcelRows = async function() {
             promises.push(fetch(`${centralApi}?action=saveQuiz&qrCode=${code}&quizNum=${lec}&val=${quizVal}${auth}`).then(r => r.json()).catch(e => ({})));
         }
 
-        promises.push(fetch(`${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=${f}&attitude=${a}&bonus=${b}${auth}`).then(r => r.json()).catch(e => ({})));
+        promises.push(fetch(`${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=0&attitude=${a}&bonus=${b}${auth}`).then(r => r.json()).catch(e => ({})));
 
         let personalApi = getPersonalApi(code);
         if (personalApi) {
@@ -2017,7 +1997,6 @@ window.saveAllExcelRows = async function() {
                 promises.push(fetch(`${personalApi}?action=update&qrCode=${code}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('online quize 25')}&val=${quizVal}`).then(r => r.json()).catch(e => ({})));
             }
             let combinedAtt = 0;
-            if (f) combinedAtt += 5;
             if (a) combinedAtt += 5;
             promises.push(fetch(`${personalApi}?action=update&qrCode=${code}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('attitude .10')}&val=${combinedAtt}`).then(r => r.json()).catch(e => ({})));
             promises.push(fetch(`${personalApi}?action=update&qrCode=${code}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('bonus')}&val=${b}`).then(r => r.json()).catch(e => ({})));
@@ -2071,8 +2050,7 @@ window.saveExcelRow = async function(id) {
     const attActive = document.getElementById(`excel-att-${id}`).checked;
     let taskValRaw = document.getElementById(`excel-task-${id}`).value.trim();
     let quizValRaw = document.getElementById(`excel-quiz-${id}`).value.trim();
-    const f = document.getElementById(`excel-feed-${id}`).checked ? 1 : 0;
-    const a = document.getElementById(`excel-attit-${id}`).checked ? 5 : 0;
+    const a = attActive ? 5 : 0;
     let bVal = document.getElementById(`excel-bonus-${id}`).value.trim();
     const b = convertNumerals(bVal) || 0;
 
@@ -2097,8 +2075,6 @@ window.saveExcelRow = async function(id) {
         document.getElementById(`excel-att-${id}`),
         document.getElementById(`excel-task-${id}`),
         document.getElementById(`excel-quiz-${id}`),
-        document.getElementById(`excel-feed-${id}`),
-        document.getElementById(`excel-attit-${id}`),
         document.getElementById(`excel-bonus-${id}`)
     ];
     rowInputs.forEach(inp => { if (inp) inp.disabled = true; });
@@ -2122,8 +2098,8 @@ window.saveExcelRow = async function(id) {
         promises.push(fetch(`${centralApi}?action=saveQuiz&qrCode=${code}&quizNum=${lec}&val=${quizVal}${auth}`).then(r => r.json()).catch(e => ({})));
     }
 
-    // 4. Save Extras (Feedback, Attitude, Bonus)
-    promises.push(fetch(`${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=${f}&attitude=${a}&bonus=${b}${auth}`).then(r => r.json()).catch(e => ({})));
+    // 4. Save Extras (attitude auto from attendance, feedback via import)
+    promises.push(fetch(`${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=0&attitude=${a}&bonus=${b}${auth}`).then(r => r.json()).catch(e => ({})));
 
     // === SYNC to Personal Sheet ===
     let personalApi = getPersonalApi(code);
@@ -2136,7 +2112,6 @@ window.saveExcelRow = async function(id) {
             promises.push(fetch(`${personalApi}?action=update&qrCode=${code}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('online quize 25')}&val=${quizVal}`).then(r => r.json()).catch(e => ({})));
         }
         let combinedAtt = 0;
-        if (f) combinedAtt += 5;
         if (a) combinedAtt += 5;
         promises.push(fetch(`${personalApi}?action=update&qrCode=${code}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('attitude .10')}&val=${combinedAtt}`).then(r => r.json()).catch(e => ({})));
         promises.push(fetch(`${personalApi}?action=update&qrCode=${code}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('bonus')}&val=${b}`).then(r => r.json()).catch(e => ({})));
