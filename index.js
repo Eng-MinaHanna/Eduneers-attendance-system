@@ -245,8 +245,11 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
           .then(res => res.json()).then(data => {
             if (data.status === "success" || data.status === "already") {
               successCount++;
-              // Auto-save attitude (5) on attendance sync — fire & forget
-              fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(record.code)}&lectureNum=${encodeURIComponent(record.lecture)}&feedback=0&attitude=5&bonus=0&group=${encodeURIComponent(record.group)}${getAuthParams()}`).catch(e => {});
+              // Auto-save attitude (5) on attendance sync — preserve existing feedback
+              let existingF = localStorage.getItem(`fb_${record.code}_${record.lecture}`) ? 5 : 0;
+              fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(record.code)}&lectureNum=${encodeURIComponent(record.lecture)}&feedback=${existingF ? 1 : 0}&attitude=5&bonus=0&group=${encodeURIComponent(record.group)}${getAuthParams()}`).catch(e => {});
+              // Track attitude locally for dashboard fallback
+              localStorage.setItem(`att_${record.code}_${record.lecture}`, '1');
               // Sync سلوك (5) to personal sheet during offline replay
               let linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
               let personalApi = linksMap[record.code];
@@ -640,8 +643,11 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
           showToast("⚠️ تم الحفظ محلياً لضعف الشبكة.", "warning");
         });
 
-      // Auto-save attitude (5) on attendance — fire & forget
-      fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&feedback=0&attitude=5&bonus=0&group=${encodeURIComponent(group)}${getAuthParams()}`).catch(e => {});
+      // Auto-save attitude (5) on attendance — preserve existing feedback
+      let existingF = localStorage.getItem(`fb_${studentCode}_${lec}`) ? 5 : 0;
+      fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&feedback=${existingF ? 1 : 0}&attitude=5&bonus=0&group=${encodeURIComponent(group)}${getAuthParams()}`).catch(e => {});
+      // Track attitude locally for dashboard fallback
+      localStorage.setItem(`att_${studentCode}_${lec}`, '1');
 
       // 2️⃣ إرسال 15 درجة حضور + سلوك إلى شيت الطالب الفردي ⚡
       let linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');

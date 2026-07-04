@@ -360,11 +360,17 @@
 
                 // Fetch existing extra data to preserve attitude when syncing feedback to personal sheets
                 var existingExtraMap = {};
+                var hasIndividualCols = false;
                 try {
                     var extraResp = await fetch(centralApi + '?action=getTop&extraOnly=1&fromLec=' + lec + '&toLec=' + lec + auth).then(function (r) { return r.json(); });
                     if (extraResp && extraResp.scores) {
+                        hasIndividualCols = extraResp.scores[0] && extraResp.scores[0].attitude !== undefined;
                         for (var ex = 0; ex < extraResp.scores.length; ex++) {
-                            existingExtraMap[extraResp.scores[ex].id] = parseFloat(extraResp.scores[ex].attitude) || 0;
+                            if (hasIndividualCols) {
+                                existingExtraMap[extraResp.scores[ex].id] = parseFloat(extraResp.scores[ex].attitude) || 0;
+                            } else {
+                                existingExtraMap[extraResp.scores[ex].id] = parseFloat(extraResp.scores[ex].total) || 0;
+                            }
                         }
                     }
                 } catch (e) { /* ignore */ }
@@ -388,9 +394,18 @@
                     try {
                         var existingExtra = existingExtraMap[code] || 0;
                         // Preserve existing attitude in master sheet (attitude .5 column)
-                        var existingAttitude = (attendanceMap[code] || existingExtra >= 5) ? 5 : 0;
-                        var res = await fetch(centralApi + '?action=saveExtra&qrCode=' + encodeURIComponent(code) + '&lectureNum=' + lec + '&feedback=5&attitude=' + existingAttitude + '&bonus=0' + auth).then(function (r) { return r.json(); });
+                        var existingAttitude;
+                        if (hasIndividualCols) {
+                            existingAttitude = existingExtra >= 5 ? 5 : 0;
+                        } else {
+                            existingAttitude = (attendanceMap[code] || existingExtra >= 10) ? 5 : 0;
+                        }
+                        var res = await fetch(centralApi + '?action=saveExtra&qrCode=' + encodeURIComponent(code) + '&lectureNum=' + lec + '&feedback=1&attitude=' + existingAttitude + '&bonus=0' + auth).then(function (r) { return r.json(); });
                         if (res.status === 'success') {
+                            // Track feedback + attitude state locally
+                            localStorage.setItem('fb_' + code + '_' + lec, '1');
+                            if (existingAttitude >= 5) localStorage.setItem('att_' + code + '_' + lec, '1');
+                            else localStorage.removeItem('att_' + code + '_' + lec);
                             // Sync to personal sheet: combine existing attitude(5) + feedback(5)
                             var combinedAtt = existingAttitude + 5;
                             var linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');

@@ -440,14 +440,27 @@
             }
 
             // Extra (bonus only — feedback handled via import, attitude auto from attendance)
-            var f = 0;
             var b = convertNumerals(document.getElementById('valBonus').value) || 0;
             try {
                 var rAtt = await fetch(centralApi + '?action=getTop&fromLec=' + lec + '&toLec=' + lec + '&weight=15' + auth).then(function (r) { return r.json(); }).catch(function (e) { return ({}); });
                 var attScore = rAtt && rAtt.scores ? rAtt.scores.find(function (s) { return s.id === code; }) : null;
                 var a = (attScore && parseFloat(attScore.total) >= 15) ? 5 : 0;
             } catch (e) { var a = 0; }
-            promises.push(fetch(centralApi + '?action=saveExtra&qrCode=' + encodeURIComponent(code) + '&lectureNum=' + lec + '&feedback=' + f + '&attitude=' + a + '&bonus=' + b + auth).then(function (r) { return r.json(); }).catch(function (e) { return ({}); }));
+            // Track attitude locally
+            if (a) localStorage.setItem('att_' + code + '_' + lec, '1');
+            else localStorage.removeItem('att_' + code + '_' + lec);
+            // Preserve existing feedback when saving attitude
+            var existingF = 0;
+            try {
+                var rExtra = await fetch(centralApi + '?action=getTop&extraOnly=1&fromLec=' + lec + '&toLec=' + lec + auth).then(function (r) { return r.json(); });
+                var extraScore = rExtra && rExtra.scores ? rExtra.scores.find(function (s) { return s.id === code; }) : null;
+                if (extraScore) {
+                    if (extraScore.feedback !== undefined) existingF = parseFloat(extraScore.feedback) >= 1 ? 5 : 0;
+                    else if (parseFloat(extraScore.total) >= 10) existingF = 5;
+                    else if (parseFloat(extraScore.total) >= 5 && localStorage.getItem('fb_' + code + '_' + lec)) existingF = 5;
+                }
+            } catch (e) { }
+            promises.push(fetch(centralApi + '?action=saveExtra&qrCode=' + encodeURIComponent(code) + '&lectureNum=' + lec + '&feedback=' + (existingF ? 1 : 0) + '&attitude=' + a + '&bonus=' + b + auth).then(function (r) { return r.json(); }).catch(function (e) { return ({}); }));
 
             // Sync to personal sheet
             var personalApi = getPersonalApi(code);

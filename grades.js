@@ -917,8 +917,22 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
                 if (attScore && parseFloat(attScore.total) >= 15) a = 5;
             } catch (e) { a = 0; }
             let b = convertNumerals(document.getElementById('valBonus').value) || 0;
+            // Track attitude locally
+            if (a) localStorage.setItem(`att_${code}_${lec}`, '1');
+            else localStorage.removeItem(`att_${code}_${lec}`);
+            // Preserve existing feedback when saving attitude
+            let existingF = 0;
+            try {
+                const rExtra = await fetch(`${centralApi}?action=getTop&extraOnly=1&fromLec=${lec}&toLec=${lec}${auth}`).then(r => r.json());
+                const extraScore = rExtra && rExtra.scores ? rExtra.scores.find(s => s.id === code) : null;
+                if (extraScore) {
+                    if (extraScore.feedback !== undefined) existingF = parseFloat(extraScore.feedback) >= 1 ? 5 : 0;
+                    else if (parseFloat(extraScore.total) >= 10) existingF = 5;
+                    else if (parseFloat(extraScore.total) >= 5 && localStorage.getItem(`fb_${code}_${lec}`)) existingF = 5;
+                }
+            } catch (e) { }
 
-            promises.push(fetch(`${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=0&attitude=${a}&bonus=${b}${auth}`).then(r => r.json()).catch(e => ({})));
+            promises.push(fetch(`${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=${existingF ? 1 : 0}&attitude=${a}&bonus=${b}${auth}`).then(r => r.json()).catch(e => ({})));
 
             // === SYNC to Individual Student Sheet ===
             let personalApi = getPersonalApi(code);
@@ -1498,10 +1512,25 @@ window.openDashboardGradeModal = async function(id) {
     document.getElementById('dbModalValBonus').value = "";
 
     if (sExtra) {
-        // sExtra.feedback: old data=0/1, new data=0/5 — treat any >=1 as checked
-        if (sExtra.feedback !== undefined && parseFloat(sExtra.feedback) >= 1) document.getElementById('dbModalFeedBtn').classList.add('active-att');
-        if (sExtra.attitude !== undefined && parseFloat(sExtra.attitude) >= 5) document.getElementById('dbModalAttitBtn').classList.add('active-att');
-        if (sExtra.bonus !== undefined && parseFloat(sExtra.bonus) > 0) document.getElementById('dbModalValBonus').value = parseFloat(sExtra.bonus);
+        // Try individual columns
+        let hasIndividual = sExtra.feedback !== undefined && sExtra.attitude !== undefined;
+        if (hasIndividual) {
+            if (parseFloat(sExtra.feedback) >= 1) document.getElementById('dbModalFeedBtn').classList.add('active-att');
+            if (parseFloat(sExtra.attitude) >= 5) document.getElementById('dbModalAttitBtn').classList.add('active-att');
+            if (parseFloat(sExtra.bonus) > 0) document.getElementById('dbModalValBonus').value = parseFloat(sExtra.bonus);
+        } else {
+            // Fallback: decompose total (feedback=5 + attitude=5) using localStorage hints
+            let rem = parseFloat(sExtra.total) || 0;
+            const hasFb = localStorage.getItem(`fb_${id}_${lec}`);
+            const hasAtt = localStorage.getItem(`att_${id}_${lec}`);
+            if (hasFb && rem >= 5) { document.getElementById('dbModalFeedBtn').classList.add('active-att'); rem -= 5; }
+            if (hasAtt && rem >= 5) { document.getElementById('dbModalAttitBtn').classList.add('active-att'); rem -= 5; }
+            if (!hasFb && !hasAtt) {
+                if (rem >= 10) { document.getElementById('dbModalFeedBtn').classList.add('active-att'); document.getElementById('dbModalAttitBtn').classList.add('active-att'); rem -= 10; }
+                else if (rem >= 5) { document.getElementById('dbModalAttitBtn').classList.add('active-att'); rem -= 5; }
+            }
+            if (rem > 0) document.getElementById('dbModalValBonus').value = rem;
+        }
     }
         
         setModalInputsLoading(false);
@@ -1584,7 +1613,13 @@ window.saveDashboardStudentGrade = async function() {
     let a = document.getElementById('dbModalAttitBtn').classList.contains('active-att') ? 5 : 0;
     let b = convertNumerals(document.getElementById('dbModalValBonus').value) || 0;
     
-    promises.push(fetch(`${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=${f}&attitude=${a}&bonus=${b}${auth}`).then(r => r.json()).catch(e => ({})));
+    // Track feedback + attitude state locally (API may not return individual columns)
+    if (f) localStorage.setItem(`fb_${code}_${lec}`, '1');
+    else localStorage.removeItem(`fb_${code}_${lec}`);
+    if (a) localStorage.setItem(`att_${code}_${lec}`, '1');
+    else localStorage.removeItem(`att_${code}_${lec}`);
+    
+    promises.push(fetch(`${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=${f ? 1 : 0}&attitude=${a}&bonus=${b}${auth}`).then(r => r.json()).catch(e => ({})));
     
     // === SYNC to Individual Student Sheet ===
     let personalApi = getPersonalApi(code);
@@ -1732,7 +1767,7 @@ window.loadExcelDashboardSheet = async function(useCache = true) {
             fetch(`${api}?action=getTop&extraOnly=1&fromLec=${lec}&toLec=${lec}${auth}`).then(r => r.json()).catch(e => ({})),
             fetch(`${api}?action=getTop&fromLec=${lec}&toLec=${lec}${auth}`).then(r => r.json()).catch(e => null)
         ]);
-        console.log('🧪 rExtra (extraOnly=1) first score:', rExtra?.scores?.[0]);
+        console.log('🧪 rExtra (extraOnly=1) first score:', rExtra?.scores?.[0], '🔑 keys:', Object.keys(rExtra?.scores?.[0] || {}));
 
         const gradesMap = {};
         // Default grades for everyone
@@ -1759,19 +1794,49 @@ window.loadExcelDashboardSheet = async function(useCache = true) {
             });
         }
         // Extra (Feedback, Attitude, Bonus)
-        // API returns individual columns: s.feedback (0/5), s.attitude (0/5), s.bonus (N)
         if (rExtra && rExtra.scores) {
+            const lecKey = document.getElementById('dbLecFrom')?.value || '1';
             rExtra.scores.forEach(s => {
                 if (gradesMap[s.id]) {
-                    // s.feedback: old data=0/1, new data=0/5 — treat any >=1 as checked
-                    if (s.feedback !== undefined) gradesMap[s.id].feedback = parseFloat(s.feedback) >= 1 ? 5 : 0;
-                    if (s.attitude !== undefined) gradesMap[s.id].attitude = parseFloat(s.attitude) >= 5 ? 5 : 0;
-                    if (s.bonus !== undefined) gradesMap[s.id].bonus = parseFloat(s.bonus) || 0;
+                    // 1) Individual columns (some APIs return s.feedback / s.attitude)
+                    if (s.feedback !== undefined) {
+                        gradesMap[s.id].feedback = parseFloat(s.feedback) >= 1 ? 5 : 0;
+                    }
+                    if (s.attitude !== undefined) {
+                        gradesMap[s.id].attitude = parseFloat(s.attitude) >= 5 ? 5 : 0;
+                    }
+                    if (s.bonus !== undefined) {
+                        gradesMap[s.id].bonus = parseFloat(s.bonus) || 0;
+                    }
+                    
+                    // 2) Fallback: decompose total if individual columns not available
+                    if (s.feedback === undefined || s.attitude === undefined) {
+                        const total = parseFloat(s.total) || 0;
+                        const hasFb = localStorage.getItem(`fb_${s.id}_${lecKey}`);
+                        const hasAtt = localStorage.getItem(`att_${s.id}_${lecKey}`);
+                        
+                        if (hasFb) gradesMap[s.id].feedback = 5;
+                        if (hasAtt) gradesMap[s.id].attitude = 5;
+                        
+                        if (!hasFb && !hasAtt) {
+                            // No localStorage hints: use total-based heuristics
+                            if (total >= 10) { gradesMap[s.id].feedback = 5; gradesMap[s.id].attitude = 5; }
+                            else if (total >= 5) { gradesMap[s.id].attitude = 5; }
+                        } else if (hasFb && !hasAtt) {
+                            // Only feedback: remaining goes to bonus
+                            gradesMap[s.id].attitude = 0;
+                        } else if (hasAtt && !hasFb) {
+                            gradesMap[s.id].feedback = 0;
+                        }
+                        gradesMap[s.id].bonus = Math.max(0, total - gradesMap[s.id].feedback - gradesMap[s.id].attitude);
+                    }
                 }
             });
         }
 
         window.excelGradesMap = gradesMap;
+        console.log('🧪 gradesMap sample:', window.dashboardStudents?.[0]?.id, gradesMap[window.dashboardStudents?.[0]?.id]);
+        console.log('🧪 excelGradesMap N2:', window.excelGradesMap['N2EDUR9'], 'feedback', window.excelGradesMap['N2EDUR9']?.feedback, 'attitude', window.excelGradesMap['N2EDUR9']?.attitude);
         renderExcelGrid();
         calculateSubmitPct();
     } catch (e) {
@@ -1984,6 +2049,12 @@ window.saveAllExcelRows = async function() {
         let bVal = document.getElementById(`excel-bonus-${code}`)?.value.trim() || "";
         const b = convertNumerals(bVal) || 0;
 
+        // Track feedback + attitude state locally
+        if (f) localStorage.setItem(`fb_${code}_${lec}`, '1');
+        else localStorage.removeItem(`fb_${code}_${lec}`);
+        if (a) localStorage.setItem(`att_${code}_${lec}`, '1');
+        else localStorage.removeItem(`att_${code}_${lec}`);
+
         if (taskValRaw === "") taskValRaw = "0";
         if (quizValRaw === "") quizValRaw = "0";
         if (taskValRaw === "0" && quizValRaw === "0") skipCount++;
@@ -2007,7 +2078,9 @@ window.saveAllExcelRows = async function() {
             promises.push(fetch(`${centralApi}?action=saveQuiz&qrCode=${code}&quizNum=${lec}&val=${quizVal}${auth}`).then(r => r.json()).catch(e => ({})));
         }
 
-        promises.push(fetch(`${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=${f}&attitude=${a}&bonus=${b}${auth}`).then(r => r.json()).catch(e => ({})));
+        const saveUrl = `${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=${f ? 1 : 0}&attitude=${a}&bonus=${b}${auth}`;
+        console.log('🔍 saveAllExcelRows saveExtra URL:', saveUrl);
+        promises.push(fetch(saveUrl).then(r => r.json().then(j => { console.log('🔍 saveAllExcelRows response:', j); return j; })).catch(e => ({})));
 
         let personalApi = getPersonalApi(code);
         if (personalApi) {
@@ -2078,6 +2151,12 @@ window.saveExcelRow = async function(id) {
     let bVal = document.getElementById(`excel-bonus-${id}`).value.trim();
     const b = convertNumerals(bVal) || 0;
 
+    // Track feedback + attitude state locally
+    if (f) localStorage.setItem(`fb_${code}_${lec}`, '1');
+    else localStorage.removeItem(`fb_${code}_${lec}`);
+    if (a) localStorage.setItem(`att_${code}_${lec}`, '1');
+    else localStorage.removeItem(`att_${code}_${lec}`);
+
     let isTaskEmpty = (taskValRaw === "");
     let isQuizEmpty = (quizValRaw === "");
 
@@ -2125,7 +2204,9 @@ window.saveExcelRow = async function(id) {
     }
 
     // 4. Save Extras (Feedback, Attitude, Bonus)
-    promises.push(fetch(`${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=${f}&attitude=${a}&bonus=${b}${auth}`).then(r => r.json()).catch(e => ({})));
+    const saveUrl = `${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=${f ? 1 : 0}&attitude=${a}&bonus=${b}${auth}`;
+    console.log('🔍 saveExcelRow saveExtra URL:', saveUrl);
+    promises.push(fetch(saveUrl).then(r => r.json().then(j => { console.log('🔍 saveExcelRow response:', j); return j; })).catch(e => ({})));
 
     // === SYNC to Personal Sheet ===
     let personalApi = getPersonalApi(code);
@@ -2286,12 +2367,18 @@ window.processFeedbackImport = async function() {
 
         // Fetch existing extra data to preserve attitude when syncing feedback to personal sheets
         let existingExtraMap = {};
+        let hasIndividualCols = false;
         try {
             const extraResp = await fetch(`${centralApi}?action=getTop&extraOnly=1&fromLec=${lec}&toLec=${lec}${auth}`).then(r => r.json());
             if (extraResp && extraResp.scores) {
+                hasIndividualCols = extraResp.scores[0] && extraResp.scores[0].attitude !== undefined;
                 for (const s of extraResp.scores) {
-                    // Store attitude value directly (API returns s.attitude as individual column)
-                    existingExtraMap[s.id] = parseFloat(s.attitude) || 0;
+                    if (hasIndividualCols) {
+                        existingExtraMap[s.id] = parseFloat(s.attitude) || 0;
+                    } else {
+                        // Fallback for old APIs that only return total
+                        existingExtraMap[s.id] = parseFloat(s.total) || 0;
+                    }
                 }
             }
         } catch (e) { /* ignore */ }
@@ -2314,9 +2401,24 @@ window.processFeedbackImport = async function() {
             try {
                     // Preserve existing attitude in master sheet (attitude .5 column)
                     // Attitude=5 from scan OR from manual dashboard entry
-                    let existingAttitude = (attendanceMap[code] || existingExtra >= 5) ? 5 : 0;
-                    const res = await fetch(`${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=5&attitude=${existingAttitude}&bonus=0${auth}`).then(r => r.json());
+                    let existingExtra = existingExtraMap[code] || 0;
+                    let existingAttitude;
+                    if (hasIndividualCols) {
+                        // API returns attitude individually: use actual value
+                        existingAttitude = existingExtra >= 5 ? 5 : 0;
+                    } else {
+                        // Old API (total only): use attendance as fallback
+                        existingAttitude = (attendanceMap[code] || existingExtra >= 10) ? 5 : 0;
+                    }
+                    const saveExtraUrl = `${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=1&attitude=${existingAttitude}&bonus=0${auth}`;
+                    console.log('🔍 feedbackImport saveExtra URL:', saveExtraUrl);
+                    const res = await fetch(saveExtraUrl).then(r => r.json());
+                    console.log('🔍 feedbackImport response:', res);
                 if (res.status === 'success') {
+                    // Track feedback + attitude state locally
+                    localStorage.setItem(`fb_${code}_${lec}`, '1');
+                    if (existingAttitude >= 5) localStorage.setItem(`att_${code}_${lec}`, '1');
+                    else localStorage.removeItem(`att_${code}_${lec}`);
                     // Sync to personal sheet: combine existing attitude(5) + feedback(5)
                     const combinedAtt = existingAttitude + 5; // feedback 5
                     let personalApi = getPersonalApi(code);
