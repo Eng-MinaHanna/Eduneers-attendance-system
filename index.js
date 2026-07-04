@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2tK_F3G_ndN-b5URC-PQOxaT63rLPExzCNyV6p9-UKGpKELVnJbc2LA/exec";
 
     let ATTENDANCE_API_URL = "https://script.google.com/macros/s/AKfycbw6v50o3s8mR5_D4-L9wE8j6D7eM8lO7fE2zK_O5I8S71577H3T4F9M49D6B8o/exec";
+    let GRADES_API_URL = "https://script.google.com/macros/s/AKfycbyATAge8KOnxJorTSRBKhp01ZNC292S0ScLyUGqyAO8WIJaDbNJi_8htuQhoRNooHrI/exec";
     let LOGIN_API_URL = "https://script.google.com/macros/s/AKfycbw-oytOWrgERm2yXu-NagMlyS14HlUGeAlsWqrZl2SwRJIi0IDL1AH2VduQvsmIIkNgFA/exec";
 
     // 🔗 دالة اختيار الـ API المناسب المخصص للجروب
@@ -242,7 +243,12 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
         let record = offlineQueue[index];
         fetch(`${getEffectiveApi(ATTENDANCE_API_URL)}?action=scan&qrCode=${encodeURIComponent(record.code)}&lectureNum=${encodeURIComponent(record.lecture)}&group=${encodeURIComponent(record.group)}${getAuthParams()}`)
           .then(res => res.json()).then(data => {
-            if (data.status === "success" || data.status === "already") successCount++; uploadNext(index + 1);
+            if (data.status === "success" || data.status === "already") {
+              successCount++;
+              // Auto-save attitude (5) on attendance sync — fire & forget
+              fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(record.code)}&lectureNum=${encodeURIComponent(record.lecture)}&feedback=0&attitude=5&bonus=0&group=${encodeURIComponent(record.group)}${getAuthParams()}`).catch(e => {});
+            }
+            uploadNext(index + 1);
           }).catch(err => {
             offlineQueue = offlineQueue.slice(index); localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue)); updateOfflineBadge(); completeProgress(); showToast("❌ انقطع الاتصال أثناء المزامنة. حاول مجدداً.", "error");
           });
@@ -626,6 +632,9 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
           updateOfflineBadge(); 
           showToast("⚠️ تم الحفظ محلياً لضعف الشبكة.", "warning");
         });
+
+      // Auto-save attitude (5) on attendance — fire & forget
+      fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&feedback=0&attitude=5&bonus=0&group=${encodeURIComponent(group)}${getAuthParams()}`).catch(e => {});
 
       // 2️⃣ إرسال 15 درجة حضور إلى شيت الطالب الفردي في نفس اللحظة ⚡
       let linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
