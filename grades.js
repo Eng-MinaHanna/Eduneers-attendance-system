@@ -1448,6 +1448,8 @@ window.openDashboardGradeModal = async function(id) {
     
     // Clear styling on toggle buttons
     document.getElementById('dbModalAttBtn').classList.remove('active-att');
+    document.getElementById('dbModalFeedBtn').classList.remove('active-att');
+    document.getElementById('dbModalAttitBtn').classList.remove('active-att');
     
     // Show Modal
     const modal = document.getElementById('dbGradeModal');
@@ -1487,16 +1489,17 @@ window.openDashboardGradeModal = async function(id) {
         // Quiz
         document.getElementById('dbModalValQuiz').value = quizVal;
         
-    // Extra points (bonus only in modal — attitude auto from attendance, feedback via import)
+    // Extra points: feedback (5) + attitude (5) + bonus
+    // API stores: feedback=0/1, attitude=0/5, bonus=N → combined total
+    document.getElementById('dbModalFeedBtn').classList.remove('active-att');
+    document.getElementById('dbModalAttitBtn').classList.remove('active-att');
     document.getElementById('dbModalValBonus').value = "";
 
     if (extraVal > 0) {
         let rem = extraVal;
-        // First 5 was feedback (ignored in UI), second 5 was attitude (auto from attendance)
-        // Remaining is bonus
-        rem = extraVal;
-        if (rem >= 5) rem -= 5; // feedback portion (handled via import)
-        if (rem >= 5) rem -= 5; // attitude portion (auto from attendance)
+        if (rem >= 6) { document.getElementById('dbModalFeedBtn').classList.add('active-att'); document.getElementById('dbModalAttitBtn').classList.add('active-att'); rem -= 6; }
+        else if (rem >= 5) { document.getElementById('dbModalAttitBtn').classList.add('active-att'); rem -= 5; }
+        else if (rem >= 1) { document.getElementById('dbModalFeedBtn').classList.add('active-att'); rem -= 1; }
         if (rem > 0) { document.getElementById('dbModalValBonus').value = rem; }
     }
         
@@ -1514,7 +1517,7 @@ function setModalInputsLoading(loading) {
         if (el) el.disabled = loading;
     });
     
-    const btns = ['dbModalAttBtn'];
+    const btns = ['dbModalAttBtn', 'dbModalFeedBtn', 'dbModalAttitBtn'];
     btns.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
@@ -1576,10 +1579,11 @@ window.saveDashboardStudentGrade = async function() {
         promises.push(fetch(`${centralApi}?action=saveQuiz&qrCode=${code}&quizNum=${lec}&val=${quizVal}${auth}`).then(r => r.json()).catch(e => ({})));
     }
     
-    let a = document.getElementById('dbModalAttBtn').classList.contains('active-att') ? 5 : 0;
+    let f = document.getElementById('dbModalFeedBtn').classList.contains('active-att') ? 1 : 0;
+    let a = document.getElementById('dbModalAttitBtn').classList.contains('active-att') ? 5 : 0;
     let b = convertNumerals(document.getElementById('dbModalValBonus').value) || 0;
     
-    promises.push(fetch(`${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=0&attitude=${a}&bonus=${b}${auth}`).then(r => r.json()).catch(e => ({})));
+    promises.push(fetch(`${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=${f}&attitude=${a}&bonus=${b}${auth}`).then(r => r.json()).catch(e => ({})));
     
     // === SYNC to Individual Student Sheet ===
     let personalApi = getPersonalApi(code);
@@ -1603,6 +1607,7 @@ window.saveDashboardStudentGrade = async function() {
             );
         }
         let combinedAtt = 0;
+        if (f) combinedAtt += 5;
         if (a) combinedAtt += 5;
         promises.push(
             fetch(`${personalApi}?action=update&qrCode=${code}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('attitude .10')}&val=${combinedAtt}`)
@@ -1750,13 +1755,16 @@ window.loadExcelDashboardSheet = async function(useCache = true) {
             });
         }
         // Extra (Feedback, Attitude, Bonus)
+        // API stores: feedback=0/1, attitude=0/5, bonus=N
+        // Combined total: 6=both, 5=attitude, 1=feedback, N=bonus
         if (rExtra && rExtra.scores) {
             rExtra.scores.forEach(s => {
                 const extraVal = parseFloat(s.total) || 0;
                 if (gradesMap[s.id]) {
                     let rem = extraVal;
-                    if (rem >= 5) { gradesMap[s.id].feedback = 5; rem -= 5; }
-                    if (rem >= 5) { gradesMap[s.id].attitude = 5; rem -= 5; }
+                    if (rem >= 6) { gradesMap[s.id].feedback = 5; gradesMap[s.id].attitude = 5; rem -= 6; }
+                    else if (rem >= 5) { gradesMap[s.id].attitude = 5; rem -= 5; }
+                    else if (rem >= 1) { gradesMap[s.id].feedback = 5; rem -= 1; }
                     if (rem > 0) { gradesMap[s.id].bonus = rem; }
                 }
             });
@@ -2275,6 +2283,17 @@ window.processFeedbackImport = async function() {
             console.log(`فشل جلب بيانات الحضور لـ ${groupName}`);
         }
 
+        // Fetch existing extra data to preserve attitude when syncing feedback to personal sheets
+        let existingExtraMap = {};
+        try {
+            const extraResp = await fetch(`${centralApi}?action=getTop&extraOnly=1&fromLec=${lec}&toLec=${lec}${auth}`).then(r => r.json());
+            if (extraResp && extraResp.scores) {
+                for (const s of extraResp.scores) {
+                    existingExtraMap[s.id] = parseFloat(s.total) || 0;
+                }
+            }
+        } catch (e) { /* ignore */ }
+
         let results = { success: 0, fail: 0, skipped: 0, crossed: 0 };
         let logLines = [];
 
@@ -2291,8 +2310,17 @@ window.processFeedbackImport = async function() {
                 continue;
             }
             try {
-                const res = await fetch(`${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=1&attitude=0&bonus=0${auth}`).then(r => r.json());
+                    const existingExtra = existingExtraMap[code] || 0;
+                    // Preserve existing attitude in master sheet (attitude .5 column)
+                    let existingAttitude = (existingExtra >= 5) ? 5 : 0;
+                    const res = await fetch(`${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=1&attitude=${existingAttitude}&bonus=0${auth}`).then(r => r.json());
                 if (res.status === 'success') {
+                    // Sync to personal sheet: combine existing attitude(5) + feedback(5)
+                    const combinedAtt = existingAttitude + 5; // feedback 5
+                    let personalApi = getPersonalApi(code);
+                    if (personalApi) {
+                        await fetch(`${personalApi}?action=update&qrCode=${code}&taskName=${encodeURIComponent('TASK ' + lec)}&category=${encodeURIComponent('attitude .10')}&val=${combinedAtt}`).then(r => r.json()).catch(e => {});
+                    }
                     results.success++;
                     logLines.push(`✅ [${groupName}] ${code} - تم`);
                 } else {

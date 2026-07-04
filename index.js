@@ -247,6 +247,13 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
               successCount++;
               // Auto-save attitude (5) on attendance sync — fire & forget
               fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(record.code)}&lectureNum=${encodeURIComponent(record.lecture)}&feedback=0&attitude=5&bonus=0&group=${encodeURIComponent(record.group)}${getAuthParams()}`).catch(e => {});
+              // Sync سلوك (5) to personal sheet during offline replay
+              let linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
+              let personalApi = linksMap[record.code];
+              if (personalApi) {
+                let taskName = "TASK " + record.lecture;
+                fetch(`${personalApi}?action=update&qrCode=${encodeURIComponent(record.code)}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('attitude .10')}&val=5`).catch(e => {});
+              }
             }
             uploadNext(index + 1);
           }).catch(err => {
@@ -636,19 +643,34 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
       // Auto-save attitude (5) on attendance — fire & forget
       fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&feedback=0&attitude=5&bonus=0&group=${encodeURIComponent(group)}${getAuthParams()}`).catch(e => {});
 
-      // 2️⃣ إرسال 15 درجة حضور إلى شيت الطالب الفردي في نفس اللحظة ⚡
+      // 2️⃣ إرسال 15 درجة حضور + سلوك إلى شيت الطالب الفردي ⚡
       let linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
       let personalApi = linksMap[studentCode];
 
       if (personalApi) {
-        let taskName = "TASK " + lec; // تحويل رقم المحاضرة لاسم التاسك
-        console.log("Syncing attendance to personal sheet:", personalApi);
-
-        // نستخدم نفس طريقة رصد الدرجات لضمان توافقها 100% مع شيت الطالب
+        let taskName = "TASK " + lec;
+        // Attendance
         fetch(`${personalApi}?action=update&qrCode=${encodeURIComponent(studentCode)}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('attendance .15')}&val=15`)
           .then(r => r.json())
-          .then(res => console.log("Personal Sheet Synced:", res))
-          .catch(e => console.error("Personal Sheet Sync Error:", e));
+          .then(res => console.log("Personal Sheet Attendance Synced:", res))
+          .catch(e => console.error("Personal Sheet Attendance Sync Error:", e));
+
+        // سلوك (5) auto — check if فيدباك was already set to avoid overwriting
+        let extraUrl = `${getEffectiveApi(GRADES_API_URL)}?action=getTop&extraOnly=1&fromLec=${encodeURIComponent(lec)}&toLec=${encodeURIComponent(lec)}${getAuthParams()}`;
+        fetch(extraUrl).then(r => r.json()).then(extraData => {
+          let score = (extraData.scores || []).find(s => s.id === studentCode);
+          let extraTotal = score ? parseFloat(score.total) || 0 : 0;
+          // attitude=5, feedback=1 → total>=6 means فيدباك already set
+          let hasFeedback = extraTotal >= 6 || (extraTotal >= 1 && extraTotal < 5);
+          let combinedAtt = 5 + (hasFeedback ? 5 : 0);
+          fetch(`${personalApi}?action=update&qrCode=${encodeURIComponent(studentCode)}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('attitude .10')}&val=${combinedAtt}`)
+            .then(r => r.json())
+            .then(res => console.log("Personal Sheet Attitude Synced:", res))
+            .catch(e => console.error("Personal Sheet Attitude Sync Error:", e));
+        }).catch(e => {
+          // Fallback: just سلوك 5
+          fetch(`${personalApi}?action=update&qrCode=${encodeURIComponent(studentCode)}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('attitude .10')}&val=5`).catch(e => {});
+        });
       } else {
         console.log("No personal API linked for student:", studentCode);
       }
