@@ -660,8 +660,8 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
         fetch(extraUrl).then(r => r.json()).then(extraData => {
           let score = (extraData.scores || []).find(s => s.id === studentCode);
           let extraTotal = score ? parseFloat(score.total) || 0 : 0;
-          // attitude=5, feedback=1 → total>=6 means فيدباك already set
-          let hasFeedback = extraTotal >= 6 || (extraTotal >= 1 && extraTotal < 5);
+          // feedback=5, attitude=5 → total>=10 means both already set
+          let hasFeedback = extraTotal >= 10;
           let combinedAtt = 5 + (hasFeedback ? 5 : 0);
           fetch(`${personalApi}?action=update&qrCode=${encodeURIComponent(studentCode)}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('attitude .10')}&val=${combinedAtt}`)
             .then(r => r.json())

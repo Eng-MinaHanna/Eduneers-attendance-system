@@ -364,7 +364,7 @@
                     var extraResp = await fetch(centralApi + '?action=getTop&extraOnly=1&fromLec=' + lec + '&toLec=' + lec + auth).then(function (r) { return r.json(); });
                     if (extraResp && extraResp.scores) {
                         for (var ex = 0; ex < extraResp.scores.length; ex++) {
-                            existingExtraMap[extraResp.scores[ex].id] = parseFloat(extraResp.scores[ex].total) || 0;
+                            existingExtraMap[extraResp.scores[ex].id] = parseFloat(extraResp.scores[ex].attitude) || 0;
                         }
                     }
                 } catch (e) { /* ignore */ }
@@ -388,8 +388,8 @@
                     try {
                         var existingExtra = existingExtraMap[code] || 0;
                         // Preserve existing attitude in master sheet (attitude .5 column)
-                        var existingAttitude = existingExtra >= 5 ? 5 : 0;
-                        var res = await fetch(centralApi + '?action=saveExtra&qrCode=' + encodeURIComponent(code) + '&lectureNum=' + lec + '&feedback=1&attitude=' + existingAttitude + '&bonus=0' + auth).then(function (r) { return r.json(); });
+                        var existingAttitude = (attendanceMap[code] || existingExtra >= 5) ? 5 : 0;
+                        var res = await fetch(centralApi + '?action=saveExtra&qrCode=' + encodeURIComponent(code) + '&lectureNum=' + lec + '&feedback=5&attitude=' + existingAttitude + '&bonus=0' + auth).then(function (r) { return r.json(); });
                         if (res.status === 'success') {
                             // Sync to personal sheet: combine existing attitude(5) + feedback(5)
                             var combinedAtt = existingAttitude + 5;

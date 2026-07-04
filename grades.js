@@ -1462,11 +1462,12 @@ window.openDashboardGradeModal = async function(id) {
         const api = getEffectiveApi(GRADES_API);
         
         // Fetch current grades for this specific lecture L
-        const [rAttend, rTasks, rQuizzes, rExtra] = await Promise.all([
+        const [rAttend, rTasks, rQuizzes, rExtra, rAllExtra] = await Promise.all([
             fetch(`${api}?action=getTop&fromLec=${lec}&toLec=${lec}&weight=15${auth}`).then(r => r.json()).catch(e => ({})),
             fetch(`${api}?action=getTop&fromTask=${lec}&toTask=${lec}${auth}`).then(r => r.json()).catch(e => ({})),
             fetch(`${api}?action=getTop&fromQuiz=${lec}&toQuiz=${lec}${auth}`).then(r => r.json()).catch(e => ({})),
-            fetch(`${api}?action=getTop&extraOnly=1&fromLec=${lec}&toLec=${lec}${auth}`).then(r => r.json()).catch(e => ({}))
+            fetch(`${api}?action=getTop&extraOnly=1&fromLec=${lec}&toLec=${lec}${auth}`).then(r => r.json()).catch(e => ({})),
+            fetch(`${api}?action=getTop&fromLec=${lec}&toLec=${lec}${auth}`).then(r => r.json()).catch(e => null)
         ]);
         
         const findScore = (res) => (res && res.scores || []).find(x => x.id === id);
@@ -1474,11 +1475,12 @@ window.openDashboardGradeModal = async function(id) {
         const sTask = findScore(rTasks);
         const sQuiz = findScore(rQuizzes);
         const sExtra = findScore(rExtra);
+        const sAllExtra = findScore(rAllExtra);
         
         const attendVal = sAttend ? parseFloat(sAttend.total) : 0;
         const taskVal = sTask && sTask.total !== "" ? parseFloat(sTask.total) : "";
         const quizVal = sQuiz && sQuiz.total !== "" ? parseFloat(sQuiz.total) : "";
-        const extraVal = sExtra ? parseFloat(sExtra.total) : 0;
+        let extraVal = sExtra ? parseFloat(sExtra.total) : 0;
         
         // Attendance
         if (attendVal >= 15) document.getElementById('dbModalAttBtn').classList.add('active-att');
@@ -1490,17 +1492,16 @@ window.openDashboardGradeModal = async function(id) {
         document.getElementById('dbModalValQuiz').value = quizVal;
         
     // Extra points: feedback (5) + attitude (5) + bonus
-    // API stores: feedback=0/1, attitude=0/5, bonus=N → combined total
+    // API returns individual columns in rExtra
     document.getElementById('dbModalFeedBtn').classList.remove('active-att');
     document.getElementById('dbModalAttitBtn').classList.remove('active-att');
     document.getElementById('dbModalValBonus').value = "";
 
-    if (extraVal > 0) {
-        let rem = extraVal;
-        if (rem >= 6) { document.getElementById('dbModalFeedBtn').classList.add('active-att'); document.getElementById('dbModalAttitBtn').classList.add('active-att'); rem -= 6; }
-        else if (rem >= 5) { document.getElementById('dbModalAttitBtn').classList.add('active-att'); rem -= 5; }
-        else if (rem >= 1) { document.getElementById('dbModalFeedBtn').classList.add('active-att'); rem -= 1; }
-        if (rem > 0) { document.getElementById('dbModalValBonus').value = rem; }
+    if (sExtra) {
+        // sExtra.feedback: old data=0/1, new data=0/5 — treat any >=1 as checked
+        if (sExtra.feedback !== undefined && parseFloat(sExtra.feedback) >= 1) document.getElementById('dbModalFeedBtn').classList.add('active-att');
+        if (sExtra.attitude !== undefined && parseFloat(sExtra.attitude) >= 5) document.getElementById('dbModalAttitBtn').classList.add('active-att');
+        if (sExtra.bonus !== undefined && parseFloat(sExtra.bonus) > 0) document.getElementById('dbModalValBonus').value = parseFloat(sExtra.bonus);
     }
         
         setModalInputsLoading(false);
@@ -1579,7 +1580,7 @@ window.saveDashboardStudentGrade = async function() {
         promises.push(fetch(`${centralApi}?action=saveQuiz&qrCode=${code}&quizNum=${lec}&val=${quizVal}${auth}`).then(r => r.json()).catch(e => ({})));
     }
     
-    let f = document.getElementById('dbModalFeedBtn').classList.contains('active-att') ? 1 : 0;
+    let f = document.getElementById('dbModalFeedBtn').classList.contains('active-att') ? 5 : 0;
     let a = document.getElementById('dbModalAttitBtn').classList.contains('active-att') ? 5 : 0;
     let b = convertNumerals(document.getElementById('dbModalValBonus').value) || 0;
     
@@ -1722,13 +1723,16 @@ window.loadExcelDashboardSheet = async function(useCache = true) {
         const auth = getAuthParams();
         const api = getEffectiveApi(GRADES_API);
 
-        // Fetch all 4 categories for the selected lecture
-        const [rAttend, rTasks, rQuizzes, rExtra] = await Promise.all([
+        // Fetch all categories for the selected lecture
+        // rAllExtra tries individual columns (some APIs return feedback/attitude/bonus separately)
+        const [rAttend, rTasks, rQuizzes, rExtra, rAllExtra] = await Promise.all([
             fetch(`${api}?action=getTop&fromLec=${lec}&toLec=${lec}&weight=15${auth}`).then(r => r.json()).catch(e => ({})),
             fetch(`${api}?action=getTop&fromTask=${lec}&toTask=${lec}${auth}`).then(r => r.json()).catch(e => ({})),
             fetch(`${api}?action=getTop&fromQuiz=${lec}&toQuiz=${lec}${auth}`).then(r => r.json()).catch(e => ({})),
-            fetch(`${api}?action=getTop&extraOnly=1&fromLec=${lec}&toLec=${lec}${auth}`).then(r => r.json()).catch(e => ({}))
+            fetch(`${api}?action=getTop&extraOnly=1&fromLec=${lec}&toLec=${lec}${auth}`).then(r => r.json()).catch(e => ({})),
+            fetch(`${api}?action=getTop&fromLec=${lec}&toLec=${lec}${auth}`).then(r => r.json()).catch(e => null)
         ]);
+        console.log('🧪 rExtra (extraOnly=1) first score:', rExtra?.scores?.[0]);
 
         const gradesMap = {};
         // Default grades for everyone
@@ -1755,17 +1759,14 @@ window.loadExcelDashboardSheet = async function(useCache = true) {
             });
         }
         // Extra (Feedback, Attitude, Bonus)
-        // API stores: feedback=0/1, attitude=0/5, bonus=N
-        // Combined total: 6=both, 5=attitude, 1=feedback, N=bonus
+        // API returns individual columns: s.feedback (0/5), s.attitude (0/5), s.bonus (N)
         if (rExtra && rExtra.scores) {
             rExtra.scores.forEach(s => {
-                const extraVal = parseFloat(s.total) || 0;
                 if (gradesMap[s.id]) {
-                    let rem = extraVal;
-                    if (rem >= 6) { gradesMap[s.id].feedback = 5; gradesMap[s.id].attitude = 5; rem -= 6; }
-                    else if (rem >= 5) { gradesMap[s.id].attitude = 5; rem -= 5; }
-                    else if (rem >= 1) { gradesMap[s.id].feedback = 5; rem -= 1; }
-                    if (rem > 0) { gradesMap[s.id].bonus = rem; }
+                    // s.feedback: old data=0/1, new data=0/5 — treat any >=1 as checked
+                    if (s.feedback !== undefined) gradesMap[s.id].feedback = parseFloat(s.feedback) >= 1 ? 5 : 0;
+                    if (s.attitude !== undefined) gradesMap[s.id].attitude = parseFloat(s.attitude) >= 5 ? 5 : 0;
+                    if (s.bonus !== undefined) gradesMap[s.id].bonus = parseFloat(s.bonus) || 0;
                 }
             });
         }
@@ -1978,7 +1979,7 @@ window.saveAllExcelRows = async function() {
         const attActive = document.getElementById(`excel-att-${code}`)?.checked || false;
         let taskValRaw = document.getElementById(`excel-task-${code}`)?.value.trim() || "";
         let quizValRaw = document.getElementById(`excel-quiz-${code}`)?.value.trim() || "";
-        const f = document.getElementById(`excel-feed-${code}`)?.checked ? 1 : 0;
+        const f = document.getElementById(`excel-feed-${code}`)?.checked ? 5 : 0;
         const a = document.getElementById(`excel-attit-${code}`)?.checked ? 5 : 0;
         let bVal = document.getElementById(`excel-bonus-${code}`)?.value.trim() || "";
         const b = convertNumerals(bVal) || 0;
@@ -2072,7 +2073,7 @@ window.saveExcelRow = async function(id) {
     const attActive = document.getElementById(`excel-att-${id}`).checked;
     let taskValRaw = document.getElementById(`excel-task-${id}`).value.trim();
     let quizValRaw = document.getElementById(`excel-quiz-${id}`).value.trim();
-    const f = document.getElementById(`excel-feed-${id}`).checked ? 1 : 0;
+    const f = document.getElementById(`excel-feed-${id}`).checked ? 5 : 0;
     const a = document.getElementById(`excel-attit-${id}`).checked ? 5 : 0;
     let bVal = document.getElementById(`excel-bonus-${id}`).value.trim();
     const b = convertNumerals(bVal) || 0;
@@ -2289,7 +2290,8 @@ window.processFeedbackImport = async function() {
             const extraResp = await fetch(`${centralApi}?action=getTop&extraOnly=1&fromLec=${lec}&toLec=${lec}${auth}`).then(r => r.json());
             if (extraResp && extraResp.scores) {
                 for (const s of extraResp.scores) {
-                    existingExtraMap[s.id] = parseFloat(s.total) || 0;
+                    // Store attitude value directly (API returns s.attitude as individual column)
+                    existingExtraMap[s.id] = parseFloat(s.attitude) || 0;
                 }
             }
         } catch (e) { /* ignore */ }
@@ -2310,10 +2312,10 @@ window.processFeedbackImport = async function() {
                 continue;
             }
             try {
-                    const existingExtra = existingExtraMap[code] || 0;
                     // Preserve existing attitude in master sheet (attitude .5 column)
-                    let existingAttitude = (existingExtra >= 5) ? 5 : 0;
-                    const res = await fetch(`${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=1&attitude=${existingAttitude}&bonus=0${auth}`).then(r => r.json());
+                    // Attitude=5 from scan OR from manual dashboard entry
+                    let existingAttitude = (attendanceMap[code] || existingExtra >= 5) ? 5 : 0;
+                    const res = await fetch(`${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=5&attitude=${existingAttitude}&bonus=0${auth}`).then(r => r.json());
                 if (res.status === 'success') {
                     // Sync to personal sheet: combine existing attitude(5) + feedback(5)
                     const combinedAtt = existingAttitude + 5; // feedback 5
