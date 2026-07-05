@@ -488,6 +488,10 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
       document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
       document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
 
+      if (viewId === 'users' && !document.body.classList.contains('role-admin') && !document.body.classList.contains('role-co-founder') && !document.body.classList.contains('role-owner')) {
+        viewId = 'scanner';
+      }
+
       let targetView = document.getElementById(`view-${viewId}`);
       if (!targetView) { viewId = 'scanner'; targetView = document.getElementById(`view-${viewId}`); }
 
