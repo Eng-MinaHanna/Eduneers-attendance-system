@@ -191,7 +191,7 @@
 
         function convertNumerals(str) {
             const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-            return str.replace(/[٠-٩]/g, w => arabicNumbers.indexOf(w));
+            return str.replace(/\/\d+$/, '').replace(/[٠-٩]/g, w => arabicNumbers.indexOf(w));
         }
 
         function normalizeCode(val) {
@@ -282,6 +282,12 @@
                         if (res.status === 'success') {
                             results.success++;
                             logLines.push('✅ [' + groupName + '] ' + code + ' = ' + grade + ' - تم');
+                            // Sync to personal sheet (same pattern as feedback.html)
+                            var linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
+                            var personalApi = linksMap[code] || localStorage.getItem('PERSONAL_API') || '';
+                            if (personalApi) {
+                                fetch(personalApi + '?action=update&qrCode=' + encodeURIComponent(code) + '&taskName=' + encodeURIComponent('TASK ' + lec) + '&category=' + encodeURIComponent('online quize 25') + '&val=' + grade).then(function (r) { return r.json(); }).catch(function () {});
+                            }
                         } else {
                             results.fail++;
                             logLines.push('❌ [' + groupName + '] ' + code + ' - ' + (res.message || 'خطأ'));
@@ -324,6 +330,7 @@
 
             btn.disabled = false;
             btn.innerText = '🚀 تسجيل درجات الكويز';
+            setTimeout(function () { document.getElementById('qzCodes').focus(); }, 100);
         };
 
         // Init on load

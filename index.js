@@ -41,7 +41,7 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
     function convertNumerals(str) {
       if (!str) return "";
       const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-      return str.toString().replace(/[٠-٩]/g, w => arabicNumbers.indexOf(w));
+      return str.toString().replace(/\/\d+$/, '').replace(/[٠-٩]/g, w => arabicNumbers.indexOf(w));
     }
 
     let loaderInterval;

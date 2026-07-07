@@ -196,7 +196,7 @@
 
         function convertNumerals(str) {
             const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-            return str.replace(/[٠-٩]/g, w => arabicNumbers.indexOf(w));
+            return str.replace(/\/\d+$/, '').replace(/[٠-٩]/g, w => arabicNumbers.indexOf(w));
         }
 
         function normalizeCode(val) {

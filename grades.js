@@ -129,7 +129,7 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
         // 🔴 دالة تحويل الأرقام العربية إلى إنجليزية
         function convertNumerals(str) {
             const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-            return str.replace(/[٠-٩]/g, w => arabicNumbers.indexOf(w));
+            return str.replace(/\/\d+$/, '').replace(/[٠-٩]/g, w => arabicNumbers.indexOf(w));
         }
 
         window.onload = () => {
@@ -1932,7 +1932,7 @@ window.renderExcelGrid = function() {
             
             <!-- Quiz (25) -->
             <td style="padding: 10px 8px; text-align: center;">
-                <input type="number" value="${g.quiz}" id="excel-quiz-${s.id}" oninput="recalculateExcelSum('${s.id}')" style="width: 70px; text-align: center; border-radius: 6px; padding: 6px 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.4); color: #fff; font-weight: bold; font-size: 13px; outline: none; transition: border-color 0.2s;" min="0" max="25" placeholder="0">
+                <input type="number" value="${g.quiz}" id="excel-quiz-${s.id}" oninput="recalculateExcelSum('${s.id}')" onblur="autoSaveQuizField('${s.id}')" style="width: 70px; text-align: center; border-radius: 6px; padding: 6px 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.4); color: #fff; font-weight: bold; font-size: 13px; outline: none; transition: border-color 0.2s;" min="0" max="25" placeholder="0">
             </td>
             
             <!-- Feedback (5) -->
@@ -2647,6 +2647,25 @@ window.updateTaskFromRubric = function() {
         }
     });
     document.getElementById('valTask').value = total;
+};
+
+window.autoSaveQuizField = async function(studentId) {
+    const quizEl = document.getElementById(`excel-quiz-${studentId}`);
+    if (!quizEl) return;
+    const quizVal = convertNumerals(quizEl.value.trim());
+    if (quizVal === "" || quizVal === "0") return;
+    const lec = document.getElementById('dbLecFrom').value || "1";
+    const code = studentId;
+    const auth = getAuthParams();
+    const centralApi = getEffectiveApi(GRADES_API);
+    const taskName = "TASK " + lec;
+    try {
+        await fetch(`${centralApi}?action=saveQuiz&qrCode=${code}&quizNum=${lec}&val=${quizVal}${auth}`).then(r => r.json());
+        let personalApi = getPersonalApi(code);
+        if (personalApi) {
+            await fetch(`${personalApi}?action=update&qrCode=${code}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('online quize 25')}&val=${quizVal}`).then(r => r.json());
+        }
+    } catch (e) {}
 };
 
 
