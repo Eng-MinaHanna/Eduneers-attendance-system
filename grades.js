@@ -1073,10 +1073,11 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
         let fullLeaderboard = [];
         async function extractLeaderboard(useCache = true) {
             let fl = document.getElementById('fL').value, tl = document.getElementById('tL').value;
+            let ex = document.getElementById('excludeTask').value;
             if (parseInt(fl) > parseInt(tl)) return showToast("❌ نطاق المحاضرات غير صحيح", "error");
 
             // Check cache first
-            const cacheParams = `fl=${fl}&tl=${tl}`;
+            const cacheParams = ex ? `fl=${fl}&tl=${tl}&ex=${ex}` : `fl=${fl}&tl=${tl}`;
             if (useCache) {
                 const cached = getGradesCached('leaderboard');
                 if (cached && GRADES_CACHE.leaderboard.params === cacheParams) {
@@ -1096,12 +1097,20 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
                 const auth = getAuthParams();
 
                 // Fetch each category separately
-                const [rTasks, rQuizzes, rAttend, rExtra] = await Promise.all([
+                const fetchPromises = [
                     fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&fromTask=${fl}&toTask=${tl}${auth}`).then(r => r.json()),
                     fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&fromQuiz=${fl}&toQuiz=${tl}${auth}`).then(r => r.json()),
                     fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&fromLec=${fl}&toLec=${tl}&weight=15${auth}`).then(r => r.json()),
                     fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&extraOnly=1&fromLec=${fl}&toLec=${tl}${auth}`).then(r => r.json())
-                ]);
+                ];
+
+                // If excluding a specific task, fetch it separately to subtract
+                if (ex) {
+                    fetchPromises.push(fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&fromTask=${ex}&toTask=${ex}${auth}`).then(r => r.json()));
+                }
+
+                const results = await Promise.all(fetchPromises);
+                const [rTasks, rQuizzes, rAttend, rExtra, rExclude] = results;
 
                 let m = {};
                 const col = (d, weight = 1) => {
@@ -1117,6 +1126,16 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
                 };
 
                 col(rTasks); col(rQuizzes); col(rAttend); col(rExtra);
+
+                // Subtract excluded task scores
+                if (ex && rExclude && rExclude.status === 'success') {
+                    rExclude.scores.forEach(s => {
+                        let val = parseFloat(s.total);
+                        if (!isNaN(val) && m[s.id]) {
+                            m[s.id].t -= val;
+                        }
+                    });
+                }
 
                 fullLeaderboard = Object.values(m).sort((a, b) => b.t - a.t);
                 fullLeaderboard.forEach((s, idx) => s.rank = idx + 1);
