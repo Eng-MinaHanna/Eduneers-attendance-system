@@ -2369,19 +2369,24 @@ window.processFeedbackImport = async function() {
         const centralApi = getApiForGroup(groupName);
         const auth = getAuthParamsForGroup(groupName);
 
+        // Check if attendance filter is enabled
+        const considerAttendance = document.getElementById('fbConsiderAttendance')?.checked ?? true;
+
         // Fetch attendance for this group
         const attendanceMap = {};
-        try {
-            const attResp = await fetch(`${centralApi}?action=getTop&fromLec=${lec}&toLec=${lec}&weight=15${auth}`).then(r => r.json());
-            if (attResp && attResp.scores) {
-                for (const s of attResp.scores) {
-                    if (parseFloat(s.total) >= 15) {
-                        attendanceMap[s.id] = true;
+        if (considerAttendance) {
+            try {
+                const attResp = await fetch(`${centralApi}?action=getTop&fromLec=${lec}&toLec=${lec}&weight=15${auth}`).then(r => r.json());
+                if (attResp && attResp.scores) {
+                    for (const s of attResp.scores) {
+                        if (parseFloat(s.total) >= 15) {
+                            attendanceMap[s.id] = true;
+                        }
                     }
                 }
+            } catch (e) {
+                console.log(`فشل جلب بيانات الحضور لـ ${groupName}`);
             }
-        } catch (e) {
-            console.log(`فشل جلب بيانات الحضور لـ ${groupName}`);
         }
 
         // Fetch existing extra data to preserve attitude when syncing feedback to personal sheets
@@ -2412,7 +2417,7 @@ window.processFeedbackImport = async function() {
                 logLines.push(`❌ ${code} - خارج الصلاحيات (المجموعة ${code.charAt(0)})`);
                 continue;
             }
-            if (!attendanceMap[code]) {
+            if (considerAttendance && !attendanceMap[code]) {
                 results.skipped++;
                 logLines.push(`⏭️ [${groupName}] ${code} - لم يحضر المحاضرة ${lec}`);
                 continue;
