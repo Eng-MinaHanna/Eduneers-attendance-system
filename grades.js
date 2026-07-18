@@ -1322,10 +1322,11 @@ window.loadDashboardStudents = async function(useCache = true, forceRosterOnly =
         // Build a unified roster with merging
         const mergedStudentsMap = new Map();
 
-        // 1. Add all students from the server roster first
+        // 1. Add students from server roster filtered by current group
         serverStudents.forEach(s => {
             if (s.id) {
                 const cleanCode = s.id.replace("EDUR9", "");
+                if (!cleanCode.startsWith(groupLetter)) return;
                 mergedStudentsMap.set(s.id, {
                     name: s.name || `متدرب (${cleanCode})`,
                     id: s.id,
