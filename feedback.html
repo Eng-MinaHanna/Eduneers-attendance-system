@@ -54,7 +54,6 @@
         <div style="margin: 15px 15px; border-radius: 12px; border: 1px solid rgba(192, 132, 252, 0.3); box-shadow: 0 0 15px rgba(192, 132, 252, 0.05); overflow: hidden;">
             <div style="background: rgba(192, 132, 252, 0.1); padding: 8px 15px; font-weight: 900; color: #c084fc; font-size: 12px; letter-spacing: 1px; border-bottom: 1px solid rgba(192, 132, 252, 0.1);">🎯 قسم الدرجات والتقييم</div>
             <div style="padding: 5px 0;">
-                <a href="#" onclick="gotoView('grades.html', 'grading')"><span>📝</span> <span>رصد الدرجات</span></a>
                 <a href="#" onclick="gotoView('grades.html', 'studentDashboard')"><span>📊</span> <span>لوحة درجات الطلاب</span></a>
                 <a href="#" onclick="gotoView('grades.html', 'searchView')"><span>🔍</span> <span>استعلام عن طالب</span></a>
                 <a href="feedback.html"  style="display:flex;"><span>💬</span> <span>Feedback شامل</span></a>
@@ -308,6 +307,7 @@
             var manualCodes = document.getElementById('fbManualCodes').value.trim();
             var btn = document.getElementById('fbSubmitBtn');
             if (!fileInput.files.length && !sheetUrl && !manualCodes) return showToast('❌ ارفع ملف Excel أو أدخل رابط Google Sheet أو أدخل أكواد يدوياً', 'error');
+            if (!confirm('هل أنت متأكد من تطبيق Feedback على المحاضرة رقم ' + lec + '؟')) return;
             btn.disabled = true;
             btn.innerText = 'جاري المعالجة⏳';
             showToast('⏳ جاري قراءة البيانات...', 'info');

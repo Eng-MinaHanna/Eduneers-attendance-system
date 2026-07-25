@@ -54,7 +54,6 @@
         <div style="margin: 15px 15px; border-radius: 12px; border: 1px solid rgba(192, 132, 252, 0.3); box-shadow: 0 0 15px rgba(192, 132, 252, 0.05); overflow: hidden;">
             <div style="background: rgba(192, 132, 252, 0.1); padding: 8px 15px; font-weight: 900; color: #c084fc; font-size: 12px; letter-spacing: 1px; border-bottom: 1px solid rgba(192, 132, 252, 0.1);">🎯 قسم الدرجات والتقييم</div>
             <div style="padding: 5px 0;">
-                <a href="#" onclick="gotoView('grades.html', 'grading')"><span>📝</span> <span>رصد الدرجات</span></a>
                 <a href="#" onclick="gotoView('grades.html', 'studentDashboard')"><span>📊</span> <span>لوحة درجات الطلاب</span></a>
                 <a href="#" onclick="gotoView('grades.html', 'searchView')"><span>🔍</span> <span>استعلام عن طالب</span></a>
                 <a href="Quizes.html" style="display:flex;"><span>📝</span> <span>Quizes</span></a>
@@ -227,6 +226,7 @@
             if (codeLines.length !== gradeLines.length) {
                 return showToast('❌ عدد الأكواد (' + codeLines.length + ') لا يساوي عدد الدرجات (' + gradeLines.length + ')', 'error');
             }
+            if (!confirm('هل أنت متأكد من تسجيل درجات الكويز للمحاضرة رقم ' + lec + '؟')) return;
 
             btn.disabled = true;
             btn.innerText = 'جاري التسجيل⏳';

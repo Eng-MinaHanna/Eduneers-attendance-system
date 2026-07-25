@@ -181,13 +181,16 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
                 fillGroupSelects();
                 loadLinksDatabase();
 
-                // Restore saved view or default to grading
+                // Restore saved view or default to studentDashboard
                 const savedView = localStorage.getItem('savedView');
-                if (savedView && ['grading', 'studentDashboard', 'searchView', 'topView', 'settings', 'taskRubric'].includes(savedView)) {
+                if (savedView && ['studentDashboard', 'searchView', 'topView', 'settings', 'taskRubric'].includes(savedView)) {
                     switchView(savedView);
                 } else {
-                    switchView('grading');
+                    switchView('studentDashboard');
                 }
+
+                // Auto-load data for the default studentDashboard view
+                setTimeout(() => loadDashboardStudents(true), 500);
 
                 // 🚀 Background Prefetch: silently load data so views are instant
                 setTimeout(() => prefetchGroupData(), 2000);
@@ -673,12 +676,6 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
                     if (typeof refreshLinksMonitor === 'function') refreshLinksMonitor();
                 } else if (activeTab.id === 'view-topView') {
                     if (typeof extractLeaderboard === 'function') extractLeaderboard(false);
-                } else if (activeTab.id === 'view-grading') {
-                    const gradeTable = document.getElementById('gradeTable');
-                    const res = document.getElementById('result');
-                    if (gradeTable) gradeTable.style.display = 'none';
-                    if (res) res.style.display = 'none';
-                    if (typeof prefetchGroupData === 'function') prefetchGroupData();
                 } else if (activeTab.id === 'view-searchView') {
                     const searchRes = document.getElementById('searchResult');
                     if (searchRes) searchRes.style.display = 'none';
@@ -860,159 +857,6 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
             return `&email=${encodeURIComponent(localStorage.getItem('userEmail'))}&token=${encodeURIComponent(localStorage.getItem('sessionToken'))}&group=${encodeURIComponent(localStorage.getItem('userGroup'))}`;
         }
 
-        let _isSubmitting = false;
-
-        async function submitData() {
-            if (_isSubmitting) return;
-
-            let numRaw = document.getElementById('studentCode').value.trim();
-            if (!numRaw) return showToast("❌ برجاء إدخال رقم كود الطالب", "error");
-
-            let num = convertNumerals(numRaw);
-            const groupLetter = localStorage.getItem('userGroup').replace("Group ", "").trim();
-            const code = groupLetter + num + "EDUR9";
-            const lec = document.getElementById('currentLecNum').value;
-            const auth = getAuthParams();
-
-            _isSubmitting = true;
-
-            // Use single central API endpoint
-            const centralApi = getEffectiveApi(GRADES_API);
-            let promises = [];
-            let taskName = "TASK " + lec;
-
-            // 1. Save Main Task Grade - Central
-            let taskValRaw = document.getElementById('valTask').value.trim();
-            let quizValRaw = document.getElementById('valQuiz').value.trim();
-
-            let isTaskEmpty = (taskValRaw === "");
-            let isQuizEmpty = (quizValRaw === "");
-
-            if (isTaskEmpty || isQuizEmpty) {
-                let confirmZero = await showCustomConfirm("هل تريد وضع مجموع 0 درجات لهذا المتدرب ؟", "تأكيد رصد الدرجة");
-                if (!confirmZero) {
-                    _isSubmitting = false;
-                    return;
-                }
-                if (isTaskEmpty) taskValRaw = "0";
-                if (isQuizEmpty) quizValRaw = "0";
-            }
-
-            let taskVal = convertNumerals(taskValRaw);
-            if (taskVal !== "") {
-                promises.push(fetch(`${centralApi}?action=saveGrade&qrCode=${code}&taskNum=${lec}&val=${taskVal}${auth}`).then(r => r.json()).catch(e => ({})));
-            }
-
-            // 3. Save Quiz Grade - Central  
-            let quizVal = convertNumerals(quizValRaw);
-            if (quizVal !== "") {
-                promises.push(fetch(`${centralApi}?action=saveQuiz&qrCode=${code}&quizNum=${lec}&val=${quizVal}${auth}`).then(r => r.json()).catch(e => ({})));
-            }
-
-            // 4. Save Extra (attitude auto from attendance, feedback via import) - Central
-            let a = 0;
-            try {
-                const rAtt = await fetch(`${centralApi}?action=getTop&fromLec=${lec}&toLec=${lec}&weight=15${auth}`).then(r => r.json()).catch(e => ({}));
-                const attScore = rAtt && rAtt.scores ? rAtt.scores.find(s => s.id === code) : null;
-                if (attScore && parseFloat(attScore.total) >= 15) a = 5;
-            } catch (e) { a = 0; }
-            let b = convertNumerals(document.getElementById('valBonus').value) || 0;
-            // Track attitude locally
-            if (a) localStorage.setItem(`att_${code}_${lec}`, '1');
-            else localStorage.removeItem(`att_${code}_${lec}`);
-            // Preserve existing feedback when saving attitude
-            let existingF = 0;
-            try {
-                const rExtra = await fetch(`${centralApi}?action=getTop&extraOnly=1&fromLec=${lec}&toLec=${lec}${auth}`).then(r => r.json());
-                const extraScore = rExtra && rExtra.scores ? rExtra.scores.find(s => s.id === code) : null;
-                if (extraScore) {
-                    if (extraScore.feedback !== undefined) existingF = parseFloat(extraScore.feedback) >= 1 ? 5 : 0;
-                    else if (parseFloat(extraScore.total) >= 10) existingF = 5;
-                    else if (parseFloat(extraScore.total) >= 5 && localStorage.getItem(`fb_${code}_${lec}`)) existingF = 5;
-                }
-            } catch (e) { }
-
-            promises.push(fetch(`${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=${existingF ? 1 : 0}&attitude=${a}&bonus=${b}${auth}`).then(r => r.json()).catch(e => ({})));
-
-            // === SYNC to Individual Student Sheet ===
-            let personalApi = getPersonalApi(code);
-            if (personalApi) {
-                console.log("Syncing to personal sheet:", personalApi);
-
-                // Main Task
-                if (taskVal !== "") {
-                    promises.push(
-                        fetch(`${personalApi}?action=update&qrCode=${code}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('Main task. 70')}&val=${taskVal}`)
-                            .then(r => r.json()).then(res => console.log("Sync Task:", res)).catch(e => console.error("Sync Error:", e))
-                    );
-                }
-
-                // Quiz
-                if (quizVal !== "") {
-                    promises.push(
-                        fetch(`${personalApi}?action=update&qrCode=${code}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('online quize 25')}&val=${quizVal}`)
-                            .then(r => r.json()).then(res => console.log("Sync Quiz:", res)).catch(e => console.error("Sync Error:", e))
-                    );
-                }
-
-                // Extra (attitude auto from attendance)
-                let combinedAtt = 0;
-                if (a) combinedAtt += 5;
-
-                promises.push(
-                    fetch(`${personalApi}?action=update&qrCode=${code}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('attitude .10')}&val=${combinedAtt}`)
-                        .then(r => r.json()).then(res => console.log("Sync Attitude:", res)).catch(e => console.error("Sync Error:", e))
-                );
-
-                // Bonus
-                promises.push(
-                    fetch(`${personalApi}?action=update&qrCode=${code}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('bonus')}&val=${b}`)
-                        .then(r => r.json()).then(res => console.log("Sync Bonus:", res)).catch(e => console.error("Sync Error:", e))
-                );
-            } else {
-                console.log("No personal API found for:", code);
-            }
-
-            if (promises.length === 0) {
-                _isSubmitting = false;
-                playBeep('error');
-                return showToast("⚠️ لم يتم إدخال أي تقييم لإرساله!", "error");
-            }
-
-            playBeep('success');
-            _isSubmitting = false;
-
-            // Auto-clear for quick continuous entry
-            document.getElementById('studentCode').value = "";
-            document.getElementById('valTask').value = "";
-            document.getElementById('valQuiz').value = "";
-            document.getElementById('valBonus').value = "";
-            document.getElementById('studentCode').focus();
-
-            showToast("⏳ جاري التسجيل...", "success");
-
-            Promise.all(promises).then(results => {
-                let studentName = "";
-                for (let res of results) {
-                    if (!res) continue;
-                    if (res.name) { studentName = res.name; break; }
-                    if (res.studentName) { studentName = res.studentName; break; }
-                    if (res.message && res.message.includes("الطالب")) {
-                        let parts = res.message.split("الطالب");
-                        if (parts.length > 1) { studentName = parts[1].replace(':', '').trim(); break; }
-                    }
-                    if (res.message && res.message.includes("-")) {
-                        let parts = res.message.split("-");
-                        if (parts.length > 1) { studentName = parts[1].trim(); break; }
-                    }
-                }
-                let displayName = studentName || (groupLetter + num);
-                showToast("✅ تم التوثيق بنجاح لـ: " + displayName, "success");
-            }).catch(e => {
-                showToast("❌ حدث خطأ في بعض ملفات التقييم", "error");
-                playBeep('error');
-            });
-        }
 
         async function searchStudent() {
             let numRaw = document.getElementById('searchCode').value.trim();
@@ -1714,7 +1558,7 @@ window.onDashboardLectureChange = function() {
 
 // ==================== SECTION: EXCEL-STYLE INTERACTIVE SPREADSHEET DASHBOARD ====================
 
-window.dbActiveTab = 'cards';
+window.dbActiveTab = 'excel';
 window.excelGradesMap = {};
 
 window.switchDashboardTab = function(tabId) {
@@ -2325,6 +2169,7 @@ window.processFeedbackImport = async function() {
     if (!fileInput.files.length && !sheetUrl && !manualCodes) {
         return showToast("❌ ارفع ملف Excel أو أدخل رابط Google Sheet أو أدخل أكواد يدوياً", "error");
     }
+    if (!confirm(`هل أنت متأكد من تطبيق Feedback على المحاضرة رقم ${lec}؟`)) return;
 
     btn.disabled = true;
     btn.innerText = "جاري المعالجة⏳";

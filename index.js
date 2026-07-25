@@ -626,7 +626,13 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
       playBeep('success');
       showToast(`⚡ جاري إرسال حضور (${studentCode})...`, "success");
 
-      fetch(`${getEffectiveApi(ATTENDANCE_API_URL)}?action=scan&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}${getAuthParams()}`)
+      const scanTime = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+      // Store timestamp locally as fallback
+      let attTimes = JSON.parse(localStorage.getItem('ATTEND_TIMES') || '{}');
+      attTimes[studentCode + '_' + lec] = scanTime;
+      localStorage.setItem('ATTEND_TIMES', JSON.stringify(attTimes));
+
+      fetch(`${getEffectiveApi(ATTENDANCE_API_URL)}?action=scan&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}&time=${encodeURIComponent(scanTime)}${getAuthParams()}`)
         .then(res => res.json()).then(data => {
           if (data.status === "success") {
             let studentName = data.name || data.studentName || data.student_name;
@@ -689,10 +695,18 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
       const lec = document.getElementById('lecture').value; const group = localStorage.getItem('userGroup') || "Group A";
       const tbody = document.getElementById('attendeesList'); tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 30px;">⏳ المزامنة...</td></tr>`;
       showProgress("سحب بيانات الحضور...");
+      const attTimes = JSON.parse(localStorage.getItem('ATTEND_TIMES') || '{}');
       fetch(`${getEffectiveApi(ATTENDANCE_API_URL)}?action=getDashboard&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}${getAuthParams()}`)
         .then(res => res.json()).then(data => {
           completeProgress(); document.getElementById('dashCount').innerText = data.count || 0;
-          if (data.status === "success" && data.attendees.length > 0) { allAttendees = data.attendees.map((d, i) => ({ ...d, _originalIdx: i })); renderTable(allAttendees); }
+          if (data.status === "success" && data.attendees.length > 0) {
+            allAttendees = data.attendees.map((d, i) => {
+              const localTime = attTimes[d.id + '_' + lec];
+              if (localTime && (!d.time || d.time.includes('مسجل') || d.time.includes('✅'))) d.time = localTime;
+              return { ...d, _originalIdx: i };
+            });
+            renderTable(allAttendees);
+          }
           else { allAttendees = []; tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 30px; color:var(--text-muted);">لا توجد سجلات حالياً</td></tr>`; }
         }).catch(err => { completeProgress(); tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#ef4444; padding: 30px;">❌ خطأ</td></tr>`; });
     }
@@ -792,7 +806,8 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
       let csvContent = "\uFEFFكود الطالب,الاسم بالكامل,وقت التوثيق\n";
       allAttendees.forEach(student => { let safeName = student.name.replace(/,/g, " "); csvContent += `${student.id},${safeName},${student.time}\n`; });
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob); link.download = `Report_${group}_Lec_${lec}.csv`; link.click(); showToast("✅ تم التصدير", "success");
+      const now = new Date(); const ts = now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '_' + String(now.getHours()).padStart(2,'0') + String(now.getMinutes()).padStart(2,'0');
+      link.href = URL.createObjectURL(blob); link.download = `Report_${group}_Lec_${lec}_${ts}.csv`; link.click(); showToast("✅ تم التصدير", "success");
     }
 
     async function fetchAnalyticsData(type = 'group') {

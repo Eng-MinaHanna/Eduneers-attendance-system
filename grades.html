@@ -97,8 +97,6 @@
                 style="background: rgba(192, 132, 252, 0.1); padding: 8px 15px; font-weight: 900; color: #c084fc; font-size: 12px; letter-spacing: 1px; border-bottom: 1px solid rgba(192, 132, 252, 0.1);">
                 🎯 قسم الدرجات والتقييم</div>
             <div style="padding: 5px 0;">
-                <a href="#" onclick="gotoView('grades.html', 'grading')" id="nav-grading"><span>📝</span> <span>رصد
-                        الدرجات</span></a>
                 <a href="#" onclick="gotoView('grades.html', 'studentDashboard')" id="nav-studentDashboard"><span>📊</span> <span>لوحة درجات الطلاب</span></a>
                 <a href="#" onclick="gotoView('grades.html', 'searchView')" id="nav-searchView"><span>🔍</span>
                     <span>استعلام عن طالب</span></a>
@@ -121,8 +119,6 @@
             <div style="padding: 5px 0;">
                 <a href="#" onclick="gotoView('index.html', 'users')" id="nav-users" class="admin-only"><span>👥</span>
                     <span>إدارة المستخدمين</span></a>
-                <a href="#" onclick="gotoView('GradesSpecific.html', 'taskRubric')" id="nav-taskRubric" ><span>🔧</span>
-                    <span>تهيئة الـ 70 درجة</span></a>
             </div>
         </div>
 
@@ -138,37 +134,7 @@
         <div >
         </div>
 
-        <div id="view-grading" class="view-section active">
-            <div style="max-width: 500px; margin: auto;">
-                <h3
-                    style="color:var(--electric-blue); text-align:center; font-size:24px; font-weight:800; margin-bottom:20px;">
-                    رصد تقييم المحاضرة</h3>
-
-                <label style="font-size:13px; font-weight:bold; color:var(--text-muted);">رقم كود الطالب</label>
-                <input type="text" id="studentCode" placeholder="أدخل الرقم فقط (مثال: 15)"
-                    style="font-size:1.4rem; letter-spacing: 2px;">
-
-                <div style="margin-bottom: 20px;">
-                    <label style="font-size:13px; font-weight:bold; color:var(--text-muted);">رقم المحاضرة
-                        المستهدفة</label>
-                    <select id="currentLecNum" style="margin-bottom:0;">
-                    </select>
-                </div>
-
-                <label style="font-size:13px; font-weight:bold; color:var(--text-muted);">بونص إضافي (Bonus)</label>
-                <input type="number" id="valBonus" placeholder="0">
-
-                <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:15px 0;">
-
-                <div class="grid-2">
-                    <div><label style="font-size:13px; font-weight:bold; color:var(--text-muted);">درجة
-                            التاسك</label><input type="number" id="valTask" placeholder="من 70"></div>
-                    <div><label style="font-size:13px; font-weight:bold; color:var(--text-muted);">درجة
-                            الكويز</label><input type="number" id="valQuiz" placeholder="الدرجة"></div>
-                </div>
-
-                <button class="btn-submit mutator" onclick="submitData()">حفظ وإرسال التقييم 📡</button>
-            </div>
+        <div id="view-grading" class="view-section">
         </div>
 
         <div id="view-searchView" class="view-section">
@@ -248,23 +214,23 @@
 
                 <!-- View Switcher -->
                 <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 25px;">
-                    <button id="btnViewCards" onclick="switchDashboardTab('cards')" class="btn-submit" style="margin: 0; padding: 12px 20px; font-size: 13px; font-weight: bold; background: var(--electric-blue); color: #000; border-radius: 10px; flex: 1; max-width: 250px; transition: all 0.3s ease; border: none; cursor: pointer;">
+                    <button id="btnViewCards" onclick="switchDashboardTab('cards')" class="btn-submit" style="margin: 0; padding: 12px 20px; font-size: 13px; font-weight: bold; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); color: #fff; border-radius: 10px; flex: 1; max-width: 250px; transition: all 0.3s ease; cursor: pointer;">
                         📦 بطاقات المتدربين السريعة
                     </button>
-                    <button id="btnViewExcel" onclick="switchDashboardTab('excel')" class="btn-submit" style="margin: 0; padding: 12px 20px; font-size: 13px; font-weight: bold; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); color: #fff; border-radius: 10px; flex: 1; max-width: 250px; transition: all 0.3s ease; cursor: pointer;">
+                    <button id="btnViewExcel" onclick="switchDashboardTab('excel')" class="btn-submit" style="margin: 0; padding: 12px 20px; font-size: 13px; font-weight: bold; background: var(--electric-blue); color: #000; border-radius: 10px; flex: 1; max-width: 250px; transition: all 0.3s ease; border: none; cursor: pointer;">
                         📊 شيت التقييم الشامل (Excel)
                     </button>
                 </div>
 
                 <!-- Students Grid -->
-                <div id="dbStudentsContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px;">
+                <div id="dbStudentsContainer" style="display: none; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px;">
                     <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted); font-size: 15px;">
                         ⏳ جاري تحميل قائمة المتدربين من السيرفر المركزي...
                     </div>
                 </div>
 
                 <!-- Excel Grid Sheet -->
-                <div id="dbExcelContainer" style="display: none; background: rgba(255,255,255,0.01); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 20px; backdrop-filter: blur(20px); margin-bottom: 25px;">
+                <div id="dbExcelContainer" style="display: block; background: rgba(255,255,255,0.01); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 20px; backdrop-filter: blur(20px); margin-bottom: 25px;">
                     <div id="excelHeaderInfo" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;" dir="rtl">
                         <span style="font-size: 13px; color: var(--text-muted); font-weight: bold;">
                             💡 يمكنك رصد أو تعديل درجات أي متدرب مباشرة في الجدول وسيتم حساب المجموع تلقائياً، اضغط على زر حفظ لحفظ المتدرب.
