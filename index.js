@@ -800,16 +800,6 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
         });
     }
 
-    async function exportToExcel() {
-      if (allAttendees.length === 0) return showCustomAlert("لا توجد بيانات حضور لتصديرها.", "تصدير فارغ", "warning");
-      const lec = document.getElementById('lecture').value; const group = localStorage.getItem('userGroup') || "Group A";
-      let csvContent = "\uFEFFكود الطالب,الاسم بالكامل,وقت التوثيق\n";
-      allAttendees.forEach(student => { let safeName = student.name.replace(/,/g, " "); csvContent += `${student.id},${safeName},${student.time}\n`; });
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a");
-      const now = new Date(); const ts = now.getFullYear() + String(now.getMonth()+1).padStart(2,'0') + String(now.getDate()).padStart(2,'0') + '_' + String(now.getHours()).padStart(2,'0') + String(now.getMinutes()).padStart(2,'0');
-      link.href = URL.createObjectURL(blob); link.download = `Report_${group}_Lec_${lec}_${ts}.csv`; link.click(); showToast("✅ تم التصدير", "success");
-    }
-
     async function fetchAnalyticsData(type = 'group') {
       showProgress("تحليل البيانات وبناء الرسوم... 📈");
       const currentGroup = localStorage.getItem('userGroup') || "Group A";
@@ -840,7 +830,6 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
           document.getElementById('analyticsDesc').innerText = `📈 تتبع كفاءة الحضور لـ ${currentGroup} حتى المحاضرة ${currentLec}`;
           chartTitle = 'كثافة الحضور';
 
-          // Fetch from lec 1 to currentLec
           for (let i = 1; i <= currentLec; i++) {
             labels.push(`م ${i}`);
             const url = `${getEffectiveApi(ATTENDANCE_API_URL)}?action=getDashboard&lectureNum=${i}&group=${encodeURIComponent(currentGroup)}${getAuthParams()}`;
@@ -856,7 +845,6 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
         completeProgress();
         document.getElementById('analyticsDesc').style.display = 'block';
 
-        // التحقق من وجود بيانات
         const hasData = dataPoints.some(val => val > 0);
         if (hasData) {
           renderAnalyticsChart(labels, dataPoints, chartTitle);
@@ -1105,13 +1093,12 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
       if (!subject || !body) return showToast("⚠️ يرجى تعبئة عنوان ومحتوى الرسالة!", "warning");
 
       const fileInput = document.getElementById('mailAttachment');
-      let fileData = null;
-      var file = fileInput.files[0];
+      var file = fileInput ? fileInput.files[0] : null;
 
       if (file && file.size > 5 * 1024 * 1024) return showToast("❌ حجم الملف يجب أن لا يتخطى 5MB!", "error");
 
       const processRequest = (base64File, mimeType, fileName) => {
-        showProgress("جاري الإرسال للخوادم المركزية 🚀 (تأكد من استقرار الإنترنت)...");
+        showProgress("جاري الإرسال للخوادم المركزية 🚀...");
 
         const payload = {
           action: "sendBroadcast",
@@ -1147,13 +1134,12 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
               showToast(data.message || "حدث خطأ أثناء المعالجة.", "error");
             }
           } catch (e) {
-            console.error("Server API Error. Returned HTML/Text instead of JSON:", text);
-            showToast("❌ خطأ بسيرفر جوجل! راجع كود doPost للمنصة.", "error");
+            console.error("Server API Error:", text);
+            showToast("❌ خطأ بسيرفر جوجل!", "error");
           }
         }).catch(e => {
           completeProgress();
-          console.error("Network/CORS Error:", e);
-          showToast("❌ خطأ اتصال أو CORS! تأكد من نشر السكربت كـ (Anyone)", "error");
+          showToast("❌ خطأ اتصال أو CORS!", "error");
         });
       };
 
@@ -1167,74 +1153,272 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
       }
     }
 
-// ==================== SECTION ====================
-// ==================== PWA & SERVICE WORKER ====================
+    // ==================== PWA & SERVICE WORKER ====================
     let deferredPrompt;
-    
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-          .then((registration) => {
-            console.log('[PWA] Service Worker registered');
-            
-            // Check for updates periodically
-            setInterval(() => {
-              registration.update();
-            }, 3600000); // Check every hour
-          })
-          .catch((err) => {
-            console.log('[PWA] Service Worker registration failed:', err);
-          });
+        navigator.serviceWorker.register('sw.js').then((registration) => {
+          setInterval(() => { registration.update(); }, 3600000);
+        }).catch((err) => { console.log('[PWA] Service Worker failed:', err); });
       });
-      
-      // Listen for install prompt
-      window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        // You can show a custom install button here
-      });
+      window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
     }
-    
-    // Function to trigger install prompt
+
     function installPWA() {
       if (deferredPrompt) {
         deferredPrompt.prompt();
         deferredPrompt.userChoice.then((choiceResult) => {
-          if (choiceResult.outcome === 'accepted') {
-            showToast('✅ تم تثبيت التطبيق!', 'success');
-          }
+          if (choiceResult.outcome === 'accepted') showToast('✅ تم تثبيت التطبيق!', 'success');
           deferredPrompt = null;
         });
       }
     }
 
-    // --- SMOOTH BACKGROUND PARTICLES (CSS-only, no JS overhead) ---
+    // --- SMOOTH BACKGROUND PARTICLES ---
     document.addEventListener('DOMContentLoaded', () => {
       const container = document.getElementById('particles-container');
       if (!container) return;
-      
-      // Reduced count for performance
       const particleCount = 12;
-      
       for (let i = 0; i < particleCount; i++) {
         const particle = document.createElement('div');
         particle.classList.add('particle');
-        
-        // Random properties
         const size = Math.random() * 2 + 1.5;
         const left = Math.random() * 100;
         const delay = Math.random() * 20;
         const duration = Math.random() * 15 + 15;
-        
-        particle.style.cssText = `
-          width: ${size}px;
-          height: ${size}px;
-          left: ${left}%;
-          animation-delay: ${delay}s;
-          animation-duration: ${duration}s;
-        `;
-        
+        particle.style.cssText = `width: ${size}px; height: ${size}px; left: ${left}%; animation-delay: ${delay}s; animation-duration: ${duration}s;`;
         container.appendChild(particle);
       }
     });
 
+    // ==================== BATCH ATTENDANCE & ATTITUDE SYNC ====================
+    function playBeep(type) {
+      if (navigator.vibrate) {
+        if (type === 'success') navigator.vibrate(150);
+        else navigator.vibrate([100, 50, 100, 50, 200]);
+      }
+      try {
+        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        if (type === 'success') {
+          osc.type = 'sine';
+          osc.frequency.value = 800;
+          gain.gain.value = 0.1;
+          osc.start();
+          osc.stop(ctx.currentTime + 0.15);
+        } else {
+          osc.type = 'sawtooth';
+          osc.frequency.value = 300;
+          gain.gain.value = 0.1;
+          osc.start();
+          osc.stop(ctx.currentTime + 0.3);
+        }
+      } catch (e) { console.log('Audio play error', e); }
+    }
+
+    let _xlsxLibLoadedInIndex = false;
+
+    function loadXlsxLibInIndex() {
+      return new Promise(function (resolve, reject) {
+        if (typeof XLSX !== 'undefined') { _xlsxLibLoadedInIndex = true; resolve(); return; }
+        var script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+        script.onload = function () { _xlsxLibLoadedInIndex = true; resolve(); };
+        script.onerror = function () { reject(new Error('Failed to load XLSX library')); };
+        document.head.appendChild(script);
+      });
+    }
+
+    function normalizeCode(val) {
+      if (!val) return null;
+      var trimmed = val.toString().trim().toUpperCase();
+      var arabicMap = { '٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9' };
+      trimmed = trimmed.replace(/[٠-٩]/g, function(c) { return arabicMap[c]; });
+      var match = trimmed.match(/^([A-Z]\d+)(EDUR9)?$/);
+      if (match) return match[1] + 'EDUR9';
+      var numMatch = trimmed.match(/^(\d+)$/);
+      if (numMatch) {
+        var group = localStorage.getItem('userGroup') || 'Group A';
+        var letter = group.replace('Group ', '').trim();
+        return letter + numMatch[1] + 'EDUR9';
+      }
+      return null;
+    }
+
+    function extractCodesFromSheetIndex(rows) {
+      var codes = [];
+      var codeCol = -1;
+      for (var r = 0; r < Math.min(10, rows.length); r++) {
+        var row = rows[r];
+        if (!row) continue;
+        for (var c = 0; c < row.length; c++) {
+          var cell = (row[c] || '').toString().trim();
+          if (/^codes?$/i.test(cell)) { codeCol = c; break; }
+        }
+        if (codeCol !== -1) break;
+      }
+      if (codeCol === -1) {
+        for (var r2 = 0; r2 < rows.length; r2++) {
+          var row2 = rows[r2];
+          if (!row2) continue;
+          for (var c2 = 0; c2 < row2.length; c2++) {
+            var cell2 = (row2[c2] || '').toString().trim();
+            var code = normalizeCode(cell2);
+            if (code) codes.push(code);
+          }
+        }
+      } else {
+        for (var r3 = 0; r3 < rows.length; r3++) {
+          var row3 = rows[r3];
+          if (!row3 || !row3[codeCol]) continue;
+          var cell3 = row3[codeCol].toString().trim();
+          var code = normalizeCode(cell3);
+          if (code) codes.push(code);
+        }
+      }
+      return codes.filter(function (v, i, a) { return a.indexOf(v) === i; });
+    }
+
+    function showBatchResultsIndex(results, logLines) {
+      var container = document.getElementById('batchAttResults');
+      var foundEl = document.getElementById('batchAttFoundCount');
+      var successEl = document.getElementById('batchAttSuccessCount');
+      var failEl = document.getElementById('batchAttFailCount');
+      var crossedEl = document.getElementById('batchAttCrossedCount');
+      var logEl = document.getElementById('batchAttLog');
+      if (!container) return;
+      container.style.display = 'block';
+      var total = results.success + results.fail + (results.crossed || 0);
+      if (foundEl) foundEl.innerText = '📌 الإجمالي: ' + total + ' كود';
+      if (successEl) successEl.innerText = '✅ تم بنجاح: ' + results.success;
+      if (crossedEl) {
+        if (results.crossed) {
+          crossedEl.style.display = 'inline-block';
+          crossedEl.innerText = '🚫 خارج الصلاحيات: ' + results.crossed;
+        } else {
+          crossedEl.style.display = 'none';
+        }
+      }
+      if (failEl) failEl.innerText = results.fail ? '❌ فشل: ' + results.fail : '';
+      if (logEl) logEl.innerText = logLines.join('\n');
+    }
+
+    async function processBatchAttendance() {
+      var lec = document.getElementById('batchAttLec').value.trim();
+      if (!lec) return showToast('❌ أدخل رقم المحاضرة', 'error');
+      var fileInput = document.getElementById('batchAttFileInput');
+      var sheetUrl = document.getElementById('batchAttSheetUrl').value.trim();
+      var manualCodes = document.getElementById('batchAttManualCodes').value.trim();
+      var addBehavior = document.getElementById('batchAttAddBehavior').checked;
+      var btn = document.getElementById('batchAttSubmitBtn');
+
+      if (!fileInput.files.length && !sheetUrl && !manualCodes) return showToast('❌ ارفع ملف Excel أو أدخل رابط Google Sheet أو أدخل أكواد يدوياً', 'error');
+      if (!confirm('هل أنت متأكد من تسجيل الحضور والسلوك للمحاضرة رقم ' + lec + ' للمتدربين المدخلين؟')) return;
+
+      btn.disabled = true;
+      btn.innerText = 'جاري المعالجة والرصد⏳';
+      showToast('⏳ جاري قراءة البيانات وتحديد الأكواد...', 'info');
+
+      try {
+        var codes = [];
+        if (fileInput.files.length) {
+          await loadXlsxLibInIndex();
+          var file = fileInput.files[0];
+          var data = await file.arrayBuffer();
+          var workbook = XLSX.read(data, { type: 'array' });
+          var sheet = workbook.Sheets[workbook.SheetNames[0]];
+          var json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+          codes = extractCodesFromSheetIndex(json);
+        } else if (sheetUrl) {
+          var resp = await fetch(sheetUrl);
+          if (!resp.ok) throw new Error('فشل تحميل رابط الشيت');
+          var csvText = await resp.text();
+          var rows = csvText.split('\n').map(function (r) { return r.split(','); });
+          codes = extractCodesFromSheetIndex(rows);
+        } else if (manualCodes) {
+          var lines = manualCodes.split(/[\n,;]+/);
+          for (var i = 0; i < lines.length; i++) {
+            var code = normalizeCode(lines[i]);
+            if (code) codes.push(code);
+          }
+          codes = codes.filter(function (v, idx, a) { return a.indexOf(v) === idx; });
+        }
+
+        if (codes.length === 0) {
+          btn.disabled = false;
+          btn.innerText = '🚀 تنفيذ رصد الحضور والسلوك على جميع الطلاب';
+          return showToast('❌ لم يتم العثور على أكواد طلاب في التنسيق المدخل', 'error');
+        }
+
+        showToast('✅ تم العثور على ' + codes.length + ' كود، جاري تسجيل الحضور والسلوك...', 'success');
+
+        var userGroup = localStorage.getItem('userGroup') || 'Group A';
+        var groupLetter = userGroup.replace('Group ', '').trim();
+        var groupName = 'Group ' + groupLetter;
+        var centralGradesApi = getEffectiveApi(GRADES_API_URL);
+        var centralAttApi = getEffectiveApi(ATTENDANCE_API_URL);
+        var auth = getAuthParams();
+
+        var results = { success: 0, fail: 0, crossed: 0 };
+        var logLines = [];
+
+        for (var c = 0; c < codes.length; c++) {
+          var code = codes[c];
+          // Validate authorization group
+          if (code.charAt(0) !== groupLetter) {
+            results.crossed++;
+            logLines.push('❌ ' + code + ' - خارج الصلاحيات (المجموعة ' + code.charAt(0) + ')');
+            continue;
+          }
+
+          try {
+            var scanTime = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+            // 1. Central Attendance API
+            var attRes = await fetch(`${centralAttApi}?action=scan&qrCode=${encodeURIComponent(code)}&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(groupName)}&time=${encodeURIComponent(scanTime)}${auth}`).then(function (r) { return r.json(); }).catch(function() { return { status: 'error' }; });
+
+            // 2. Central Extra API for Attitude (Behavior 5 pts)
+            var existingF = localStorage.getItem('fb_' + code + '_' + lec) ? 5 : 0;
+            if (addBehavior) {
+              await fetch(`${centralGradesApi}?action=saveExtra&qrCode=${encodeURIComponent(code)}&lectureNum=${encodeURIComponent(lec)}&feedback=${existingF ? 1 : 0}&attitude=5&bonus=0&group=${encodeURIComponent(groupName)}${auth}`).catch(function() {});
+              localStorage.setItem('att_' + code + '_' + lec, '1');
+            }
+
+            // 3. Sync to Personal Sheet
+            var linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
+            var personalApi = linksMap[code] || localStorage.getItem('PERSONAL_API') || '';
+            if (personalApi) {
+              var taskName = 'TASK ' + lec;
+              // Sync Attendance (15)
+              await fetch(`${personalApi}?action=update&qrCode=${encodeURIComponent(code)}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('attendance .15')}&val=15`).catch(function() {});
+
+              if (addBehavior) {
+                // Sync Attitude (5 or 10 if FB exists)
+                var combinedAtt = 5 + (existingF ? 5 : 0);
+                await fetch(`${personalApi}?action=update&qrCode=${encodeURIComponent(code)}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('attitude .10')}&val=${combinedAtt}`).catch(function() {});
+              }
+            }
+
+            results.success++;
+            logLines.push('✅ [' + groupName + '] ' + code + ' - تم رصد الحضور' + (addBehavior ? ' والسلوك' : ''));
+          } catch (e) {
+            results.fail++;
+            logLines.push('❌ [' + groupName + '] ' + code + ' - فشل الاتصال');
+          }
+        }
+
+        showBatchResultsIndex(results, logLines);
+        playBeep('success');
+        showToast('✅ تم رصد الحضور والسلوك لـ ' + results.success + ' طالب بنجاح' + (results.fail ? '، فشل ' + results.fail : ''), 'success');
+      } catch (e) {
+        console.error('Batch attendance error:', e);
+        showToast('❌ حدث خطأ: ' + e.message, 'error');
+      }
+
+      btn.disabled = false;
+      btn.innerText = '🚀 تنفيذ رصد الحضور والسلوك على جميع الطلاب';
+    }
+
+    

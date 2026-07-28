@@ -75,6 +75,7 @@
             QR</span></a>
         <a href="#" onclick="gotoView('index.html', 'manual')" id="nav-manual"><span>✍️</span> <span>التسجيل اليدوي
             السريع</span></a>
+        <a href="#" onclick="gotoView('index.html', 'batchAttendance')" id="nav-batchAttendance"><span>📋</span> <span>تسجيل غياب/حضور شامل</span></a>
         <a href="#" onclick="gotoView('index.html', 'dashboard')" id="nav-dashboard"><span>📊</span> <span>لوحة
             الحضور</span></a>
         <a href="#" onclick="gotoView('index.html', 'analytics')" id="nav-analytics"
@@ -366,7 +367,72 @@
           <span>إطلاق الإعلان الآن</span>
         </button>
         <p style="text-align:center; font-size:12px; color: var(--text-muted); margin-top: 12px;">يتم إرسال الرسائل عبر
-          خوادم Google الآمنة مع توقيعك الرسمي ولوجو Eduneers</p>
+      </div>
+    </div>
+
+    <div id="view-batchAttendance" class="view-section manager-only">
+      <div style="max-width: 650px; margin: auto;">
+        <h3 style="color:var(--electric-blue); text-align:center; font-size:24px; font-weight:900; margin-bottom:5px;">📋 تسجيل غياب وحضور شامل (دفعة)</h3>
+        <p style="text-align:center; font-size:12px; opacity:0.75; margin-bottom:20px; color:var(--text-muted);">ارفع ملف Excel أو ادخل رابط Google Sheet أو الأكواد يدوياً لـ رصد الحضور والسلوك لـ دفعة كاملاً دفعة واحدة</p>
+
+        <div style="background: var(--card-bg); border-radius: 16px; padding: 22px; margin-bottom: 20px; border: 1px solid rgba(0, 210, 255, 0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 18px;">
+            <div>
+              <label style="font-size:12px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:6px;">📌 رقم المحاضرة (Lecture):</label>
+              <input type="number" id="batchAttLec" value="1" min="1" max="50" style="font-size:14px; width:100%; padding:12px; border:1px solid rgba(0,210,255,0.3); background:var(--card-bg); color:var(--text-main); border-radius:10px; box-sizing:border-box; text-align:center; font-weight:bold;">
+            </div>
+            <div>
+              <label style="font-size:12px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:6px;">⚙️ الإجراء المطلوب:</label>
+              <select id="batchAttMode" style="font-size:13px; width:100%; padding:12px; border:1px solid rgba(0,210,255,0.3); background:var(--card-bg); color:var(--text-main); border-radius:10px; box-sizing:border-box; font-weight:bold;">
+                <option value="present">⚡ تسجيل حضور + سلوك (Present + Attitude)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="border-top: 1px solid rgba(128,128,128,0.15); padding-top: 15px; margin-bottom: 15px;">
+            <label style="font-size:12px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:6px;">📁 1. رفع ملف Excel (.xlsx .xls):</label>
+            <input type="file" id="batchAttFileInput" accept=".xlsx,.xls" style="font-size:12px; width:100%; padding:10px; border:1px dashed rgba(0,210,255,0.4); background:rgba(0,210,255,0.03); color:var(--text-main); border-radius:10px; box-sizing:border-box;">
+          </div>
+
+          <div style="border-top: 1px solid rgba(128,128,128,0.15); padding-top: 15px; margin-bottom: 15px;">
+            <label style="font-size:12px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:6px;">🔗 2. أو رابط Google Sheet (منشور كـ CSV):</label>
+            <input type="url" id="batchAttSheetUrl" placeholder="https://docs.google.com/spreadsheets/d/.../export?format=csv" style="font-size:12px; width:100%; padding:12px; border:1px solid rgba(128,128,128,0.2); background:var(--card-bg); color:var(--text-main); border-radius:10px; box-sizing:border-box;">
+          </div>
+
+          <div style="border-top: 1px solid rgba(128,128,128,0.15); padding-top: 15px; margin-bottom: 15px;">
+            <label style="font-size:12px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:6px;">✏️ 3. أو أدخل الأكواد يدوياً (كود واحد في كل سطر أو مفصولة بـ فاصلة):</label>
+            <textarea id="batchAttManualCodes" placeholder="A1EDUR9&#10;A2EDUR9&#10;A15EDUR9" style="font-size:13px; width:100%; padding:12px; border:1px solid rgba(128,128,128,0.2); background:var(--card-bg); color:var(--text-main); border-radius:10px; box-sizing:border-box; min-height:90px; resize:vertical; font-family:monospace; direction:ltr; text-align:left;"></textarea>
+          </div>
+
+          <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 12px; padding: 12px 15px; margin-bottom: 18px;">
+            <label style="display:flex; align-items:center; gap:10px; cursor:pointer; color:var(--text-main); font-size:13px; font-weight:bold;">
+              <input type="checkbox" id="batchAttAddBehavior" checked style="width:18px; height:18px; cursor:pointer; accent-color:#10b981;">
+              ✨ إضافة السلوك تلقائياً (5 درجات) للسيرفر المركزي والشيت الفردي
+            </label>
+            <div style="font-size:11px; opacity:0.8; color:var(--text-muted); margin-top:5px; margin-right:28px;">
+              عند التفعيل: كل متدرب يتم رصد حضوره، يضاف له 5 درجات سلوك تلقائياً في السيرفر ومزامنتها مع شيته الشخصي فوراً.
+            </div>
+          </div>
+
+          <button id="batchAttSubmitBtn" onclick="processBatchAttendance()" style="width:100%; padding:15px; border:none; border-radius:12px; background:linear-gradient(135deg, #00d2ff, #0284c7); color:#fff; font-weight:900; font-size:15px; cursor:pointer; transition:0.3s; box-shadow:0 4px 15px rgba(0,210,255,0.3);">
+            🚀 تنفيذ رصد الحضور والسلوك على جميع الطلاب
+          </button>
+        </div>
+
+        <div id="batchAttResults" style="display:none;">
+          <div style="background: var(--card-bg); border-radius: 16px; padding: 20px; border: 1px solid rgba(0,210,255,0.25); box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+            <h4 style="color:var(--electric-blue); margin:0 0 15px 0; font-size:17px; font-weight:800;">📊 تقرير نتيجة الرصد</h4>
+            <div id="batchAttStats" style="display:flex; gap:12px; margin-bottom:15px; flex-wrap:wrap;">
+              <span id="batchAttFoundCount" style="background:rgba(0,210,255,0.1); color:var(--electric-blue); padding:8px 14px; border-radius:8px; font-size:13px; font-weight:bold;"></span>
+              <span id="batchAttSuccessCount" style="background:rgba(16,185,129,0.1); color:#10b981; padding:8px 14px; border-radius:8px; font-size:13px; font-weight:bold;"></span>
+              <span id="batchAttCrossedCount" style="background:rgba(239,68,68,0.15); color:#ef4444; padding:8px 14px; border-radius:8px; font-size:13px; font-weight:bold; display:none;"></span>
+              <span id="batchAttFailCount" style="background:rgba(239,68,68,0.1); color:#ef4444; padding:8px 14px; border-radius:8px; font-size:13px; font-weight:bold;"></span>
+            </div>
+            <div style="max-height:220px; overflow-y:auto; background:rgba(0,0,0,0.2); border-radius:10px; padding:12px; border:1px solid rgba(255,255,255,0.08);">
+              <pre id="batchAttLog" style="font-size:11px; color:var(--text-muted); margin:0; white-space:pre-wrap; direction:ltr; text-align:left; font-family:monospace;"></pre>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 

@@ -354,9 +354,20 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
             const studentsStat = document.getElementById('settings-stat-students');
             if (studentsStat) studentsStat.innerText = groupKeys.length;
 
+            // Build name map from dashboardStudents if available
+            const nameMap = {};
+            if (window.dashboardStudents && window.dashboardStudents.length) {
+                window.dashboardStudents.forEach(s => {
+                    if (s.id && s.name) nameMap[s.id] = s.name;
+                });
+            }
+
             let html = "";
-            groupKeys.forEach(code => {
+            groupKeys.forEach((code, idx) => {
                 const url = linksMap[code];
+                const fullId = code.includes('EDUR9') ? code : code + 'EDUR9';
+                const name = nameMap[fullId] || nameMap[code] || '—';
+                const shortUrl = url.length > 45 ? url.substring(0, 45) + '...' : url;
                 html += `
                     <tr class="link-row" draggable="true" data-code="${code}"
                         ondragstart="onLinkRowDragStart(event, '${code}')"
@@ -364,23 +375,25 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
                         ondrop="onLinkRowDrop(event, '${code}')"
                         ondragend="onLinkRowDragEnd(event)"
                         style="border-bottom:1px solid rgba(255,255,255,0.05); transition: background 0.2s; cursor:grab;">
-                        <td style="padding:12px 10px; font-weight:bold; color:var(--electric-blue); font-family:monospace; font-size:13px;">${code}</td>
-                        <td style="padding:12px 10px; opacity:0.75; font-family:monospace; font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:280px;" title="${url}">${url}</td>
-                        <td style="padding:12px 10px; text-align:center;">
-                            <div style="display:flex; justify-content:center; gap:8px; align-items:center;">
-                                <button onclick="moveLinkUp('${code}')" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--electric-blue); cursor:pointer; font-size:10px; padding:3px 6px; border-radius:4px; transition: all 0.2s;" title="ترتيب لأعلى">▲</button>
-                                <button onclick="moveLinkDown('${code}')" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--electric-blue); cursor:pointer; font-size:10px; padding:3px 6px; border-radius:4px; transition: all 0.2s;" title="ترتيب لأسفل">▼</button>
-                                <div style="width:1px; height:12px; background:rgba(255,255,255,0.15); margin:0 2px;"></div>
-                                <button onclick="editPersonalLink('${code}', '${url}')" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:14px; padding:2px;" title="تعديل">✏️</button>
-                                <button onclick="copyToClipboard('${url}')" style="background:none; border:none; color:var(--electric-blue); cursor:pointer; font-size:14px; padding:2px;" title="نسخ الرابط">📋</button>
-                                <button onclick="confirmRemoveLink('${code}')" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:14px; padding:2px;" title="حذف">🗑️</button>
+                        <td style="padding:10px; text-align:center; color:var(--text-muted); font-size:11px; font-weight:bold;">${idx + 1}</td>
+                        <td style="padding:10px; font-weight:900; color:var(--electric-blue); font-family:monospace; font-size:13px; letter-spacing:0.5px;">${code}</td>
+                        <td style="padding:10px; font-weight:600; font-size:12px; color:#fff;">${name}</td>
+                        <td style="padding:10px; font-family:monospace; font-size:10px; color:var(--text-muted); direction:ltr; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:250px;" title="${url}">${shortUrl}</td>
+                        <td style="padding:10px; text-align:center;">
+                            <div style="display:flex; justify-content:center; gap:4px; align-items:center;">
+                                <button onclick="moveLinkUp('${code}')" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--electric-blue); cursor:pointer; font-size:10px; padding:4px 6px; border-radius:4px; transition: all 0.2s;" title="排序 لأعلى">▲</button>
+                                <button onclick="moveLinkDown('${code}')" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:var(--electric-blue); cursor:pointer; font-size:10px; padding:4px 6px; border-radius:4px; transition: all 0.2s;" title="排序 لأسفل">▼</button>
+                                <div style="width:1px; height:14px; background:rgba(255,255,255,0.12); margin:0 2px;"></div>
+                                <button onclick="editPersonalLink('${code}', '${url.replace(/'/g, "\\'")}')" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size:13px; padding:2px 4px; border-radius:4px; transition:all 0.2s;" title="تعديل">✏️</button>
+                                <button onclick="copyToClipboard('${url.replace(/'/g, "\\'")}')" style="background:none; border:none; color:var(--electric-blue); cursor:pointer; font-size:13px; padding:2px 4px; border-radius:4px; transition:all 0.2s;" title="نسخ الرابط">📋</button>
+                                <button onclick="confirmRemoveLink('${code}')" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:13px; padding:2px 4px; border-radius:4px; transition:all 0.2s;" title="حذف">🗑️</button>
                             </div>
                         </td>
                     </tr>
                 `;
             });
 
-            tableBody.innerHTML = html || `<tr><td colspan="3" style="text-align:center; padding:30px; opacity:0.5; color:var(--text-muted);">لا يوجد روابط مسجلة حالياً لـ ${currentGroup}...</td></tr>`;
+            tableBody.innerHTML = html || `<tr><td colspan="5" style="text-align:center; padding:30px; opacity:0.5; color:var(--text-muted);">لا يوجد روابط مسجلة حالياً لـ ${currentGroup}...</td></tr>`;
         }
 
         // Drag-and-Drop handlers for link rows
@@ -573,12 +586,58 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
             const rows = document.querySelectorAll('#mappedLinksMonitorTable .link-row');
             rows.forEach(row => {
                 const code = row.getAttribute('data-code') || "";
-                if (code.toUpperCase().includes(query)) {
+                const rowText = row.textContent.toUpperCase();
+                if (code.toUpperCase().includes(query) || rowText.includes(query)) {
                     row.style.display = "";
                 } else {
                     row.style.display = "none";
                 }
             });
+        };
+
+        // Sort buttons for linked students list
+        window.sortLinksBy = function(mode) {
+            // Update active button styling
+            document.querySelectorAll('[id^="sortLinks"]').forEach(b => {
+                b.style.background = 'rgba(255,255,255,0.05)';
+                b.style.color = 'var(--text-muted)';
+            });
+            const activeBtn = document.getElementById('sortLinks' + mode.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(''));
+            if (activeBtn) {
+                activeBtn.style.background = 'var(--electric-blue)';
+                activeBtn.style.color = '#000';
+            }
+
+            const currentGroup = localStorage.getItem('userGroup') || "Group A";
+            let linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
+            const groupLetter = currentGroup.replace("Group ", "").trim();
+            let groupKeys = Object.keys(linksMap).filter(code => code.startsWith(groupLetter));
+
+            // Build name map
+            const nameMap = {};
+            if (window.dashboardStudents && window.dashboardStudents.length) {
+                window.dashboardStudents.forEach(s => { if (s.id && s.name) nameMap[s.id] = s.name; });
+            }
+
+            // Sort
+            groupKeys.sort((a, b) => {
+                const fullA = a.includes('EDUR9') ? a : a + 'EDUR9';
+                const fullB = b.includes('EDUR9') ? b : b + 'EDUR9';
+                const nameA = (nameMap[fullA] || '').toLowerCase();
+                const nameB = (nameMap[fullB] || '').toLowerCase();
+                const numA = parseInt(a.replace(/\D/g, '')) || 0;
+                const numB = parseInt(b.replace(/\D/g, '')) || 0;
+
+                if (mode === 'name-asc') return nameA.localeCompare(nameB, 'ar');
+                if (mode === 'name-desc') return nameB.localeCompare(nameA, 'ar');
+                if (mode === 'code-asc') return numA - numB;
+                if (mode === 'code-desc') return numB - numA;
+                return 0;
+            });
+
+            // Save order and refresh
+            localStorage.setItem('PERSONAL_LINKS_ORDER_' + currentGroup, JSON.stringify(groupKeys));
+            refreshLinksMonitor();
         };
 
         window.testGroupConnection = function() {
@@ -863,48 +922,65 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
             if (!numRaw) return showToast("❌ برجاء إدخال رقم الطالب", "error");
 
             let num = convertNumerals(numRaw);
-            let fl = document.getElementById('sfL').value, tl = document.getElementById('stL').value;
-            if (parseInt(fl) > parseInt(tl)) return showToast("❌ نطاق المحاضرات غير صحيح", "error");
+            let fl = parseInt(document.getElementById('sfL').value);
+            let tl = parseInt(document.getElementById('stL').value);
+            if (fl > tl) return showToast("❌ نطاق المحاضرات غير صحيح", "error");
 
             const group = localStorage.getItem('userGroup');
             const code = group.replace("Group ", "").trim() + num + "EDUR9";
+            const api = getEffectiveApi(GRADES_API);
+            const absenceKey = `absence_${code}`;
 
             showLoader(true, "جاري استرجاع سجلات الطالب 🔍...");
             try {
                 const auth = getAuthParams();
 
-                // Fetch each category separately with correct parameters
-                const [rAttend, rTasks, rQuizzes, rExtra] = await Promise.all([
-                    // Attendance: uses fromLec/toLec (no task or quiz params)
-                    fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&fromLec=${fl}&toLec=${tl}&weight=15${auth}`).then(r => r.json()),
-                    // Main Tasks: uses fromTask/toTask
-                    fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&fromTask=${fl}&toTask=${tl}${auth}`).then(r => r.json()),
-                    // Quizzes: uses fromQuiz/toQuiz  
-                    fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&fromQuiz=${fl}&toQuiz=${tl}${auth}`).then(r => r.json()),
-                    // Extra (feedback + attitude + bonus): uses extraOnly
-                    fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&extraOnly=1&fromLec=${fl}&toLec=${tl}${auth}`).then(r => r.json())
-                ]);
-
-                let total = 0; let html = "";
-                const addRow = (res, label) => {
+                const findScore = (res) => {
                     let s = (res.scores || []).find(x => x.id === code);
-                    let val = (s && !isNaN(parseFloat(s.total))) ? parseFloat(s.total) : 0;
-                    html += `<tr><td>${label}</td><td><span style="color:var(--electric-blue); font-size:1.1rem;">${val}</span></td></tr>`;
-                    total += val;
-                    if (s && s.name) document.getElementById('resName').innerText = s.name;
+                    return {
+                        val: (s && !isNaN(parseFloat(s.total))) ? parseFloat(s.total) : 0,
+                        name: s ? s.name : null
+                    };
                 };
 
-                document.getElementById('resName').innerText = "لم يتم العثور على اسم";
+                const findExtras = (res) => {
+                    let s = (res.scores || []).find(x => x.id === code);
+                    if (!s) return { feedback: 0, attitude: 0, bonus: 0, name: null };
+                    let fb = 0, att = 0, bon = 0;
+                    if (s.feedback !== undefined) fb = parseFloat(s.feedback) >= 1 ? 5 : 0;
+                    if (s.attitude !== undefined) att = parseFloat(s.attitude) >= 5 ? 5 : 0;
+                    if (s.bonus !== undefined) bon = parseFloat(s.bonus) || 0;
+                    if (s.feedback === undefined && s.attitude === undefined) {
+                        const total = parseFloat(s.total) || 0;
+                        if (total >= 10) { fb = 5; att = 5; }
+                        else if (total >= 5) { att = 5; }
+                        bon = Math.max(0, total - fb - att);
+                    }
+                    return { feedback: fb, attitude: att, bonus: bon, name: s.name || null };
+                };
 
-                // Each API returns its own category data
-                addRow(rAttend, "إجمالي الحضور");
-                addRow(rTasks, "إجمالي التاسكات");
-                addRow(rQuizzes, "إجمالي الكويزات");
-                addRow(rExtra, "إجمالي (البونص)");
+                const lectureData = [];
+                for (let i = fl; i <= tl; i++) {
+                    const batch = await Promise.all([
+                        fetch(`${api}?action=getTop&fromLec=${i}&toLec=${i}&weight=15${auth}`).then(r => r.json()),
+                        fetch(`${api}?action=getTop&fromTask=${i}&toTask=${i}${auth}`).then(r => r.json()),
+                        fetch(`${api}?action=getTop&fromQuiz=${i}&toQuiz=${i}${auth}`).then(r => r.json()),
+                        fetch(`${api}?action=getTop&extraOnly=1&fromLec=${i}&toLec=${i}${auth}`).then(r => r.json())
+                    ]);
+                    lectureData.push({
+                        attend: findScore(batch[0]),
+                        tasks: findScore(batch[1]),
+                        quizzes: findScore(batch[2]),
+                        extras: findExtras(batch[3])
+                    });
+                }
 
-                document.getElementById('searchResult').style.display = 'block';
-                document.getElementById('resDetails').innerHTML = html;
-                document.getElementById('resTotal').innerText = total;
+                window._searchLectureData = lectureData;
+                window._searchCode = code;
+                window._searchFL = fl;
+                window._searchTL = tl;
+                window._searchStudentName = lectureData[0]?.attend?.name || lectureData[0]?.extras?.name || null;
+                renderSearchResults();
                 showLoader(false);
 
             } catch (e) {
@@ -914,14 +990,107 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
             }
         }
 
+        function toggleSearchAbsence(lecIdx) {
+            const code = window._searchCode;
+            const absenceKey = `absence_${code}`;
+            let absences = JSON.parse(localStorage.getItem(absenceKey) || '{}');
+            if (absences[lecIdx]) {
+                delete absences[lecIdx];
+            } else {
+                absences[lecIdx] = 1;
+            }
+            localStorage.setItem(absenceKey, JSON.stringify(absences));
+            renderSearchResults();
+            playBeep(absences[lecIdx] ? 'error' : 'success');
+        }
+
+        function renderSearchResults() {
+            const lectureData = window._searchLectureData;
+            const code = window._searchCode;
+            const fl = window._searchFL;
+            const tl = window._searchTL;
+            const absenceKey = `absence_${code}`;
+            const absences = JSON.parse(localStorage.getItem(absenceKey) || '{}');
+            let html = "";
+            const totals = { attend: 0, tasks: 0, quizzes: 0, feedback: 0, attitude: 0, bonus: 0 };
+            let absenceCount = 0;
+
+            for (let i = 0; i < lectureData.length; i++) {
+                const d = lectureData[i];
+                const lecNum = fl + i;
+                const isAbsent = !!absences[i];
+                if (isAbsent) absenceCount++;
+
+                const att = isAbsent ? 0 : d.extras.attitude;
+                const rowTotal = d.attend.val + d.tasks.val + d.quizzes.val + d.extras.feedback + att + d.extras.bonus;
+                totals.attend += d.attend.val;
+                totals.tasks += d.tasks.val;
+                totals.quizzes += d.quizzes.val;
+                totals.feedback += d.extras.feedback;
+                totals.attitude += att;
+                totals.bonus += d.extras.bonus;
+
+                const absentStyle = isAbsent ? 'background:rgba(239,68,68,0.08);' : '';
+                const attitudeStyle = isAbsent ? 'color:#ef4444; text-decoration:line-through; font-weight:800;' : '';
+
+                html += `<tr style="${absentStyle}">
+                    <td style="font-weight:700;">محاضرة ${lecNum}</td>
+                    <td>${d.attend.val}</td>
+                    <td>${d.tasks.val}</td>
+                    <td>${d.quizzes.val}</td>
+                    <td>${d.extras.feedback}</td>
+                    <td style="${attitudeStyle}">${isAbsent ? '0 ❌' : att}</td>
+                    <td>${d.extras.bonus}</td>
+                    <td style="text-align:center;">
+                        <button onclick="toggleSearchAbsence(${i})" style="
+                            border:none; border-radius:8px; cursor:pointer; padding:4px 10px; font-size:12px; font-weight:800;
+                            transition:all 0.2s; min-width:50px;
+                            ${isAbsent
+                                ? 'background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3);'
+                                : 'background:rgba(16,185,129,0.1); color:var(--text-muted); border:1px solid rgba(255,255,255,0.05);'}
+                        ">${isAbsent ? '❌ غياب' : '✓ حاضر'}</button>
+                    </td>
+                    <td style="font-weight:800; color:var(--electric-blue);">${rowTotal}</td>
+                </tr>`;
+            }
+
+            const grandTotal = totals.attend + totals.tasks + totals.quizzes + totals.feedback + totals.attitude + totals.bonus;
+
+            html += `<tr style="background:rgba(245,176,65,0.08); font-weight:900;">
+                <td>الإجمالي</td>
+                <td>${totals.attend}</td>
+                <td>${totals.tasks}</td>
+                <td>${totals.quizzes}</td>
+                <td>${totals.feedback}</td>
+                <td>${totals.attitude}</td>
+                <td>${totals.bonus}</td>
+                <td></td>
+                <td style="color:var(--accent); font-size:1.2rem;">${grandTotal}</td>
+            </tr>`;
+
+            if (absenceCount > 0) {
+                html = `<tr style="background:rgba(239,68,68,0.06); border-radius:8px;">
+                    <td colspan="9" style="text-align:center; padding:10px;">
+                        <span style="color:#ef4444; font-weight:800; font-size:13px;">⚠️ عدد مرات الغياب: <span style="font-size:1.1rem;">${absenceCount}</span> &nbsp;|&nbsp; خصم السلوك: <span style="font-size:1.1rem;">-${absenceCount * 5}</span> درجة</span>
+                    </td>
+                </tr>` + html;
+            }
+
+            document.getElementById('resName').innerText = window._searchStudentName || "لم يتم العثور على اسم";
+            document.getElementById('resTotal').innerText = grandTotal;
+            document.getElementById('searchResult').style.display = 'block';
+            document.getElementById('resDetails').innerHTML = html;
+        }
+
         let fullLeaderboard = [];
         async function extractLeaderboard(useCache = true) {
-            let fl = document.getElementById('fL').value, tl = document.getElementById('tL').value;
-            let ex = document.getElementById('excludeTask').value;
-            if (parseInt(fl) > parseInt(tl)) return showToast("❌ نطاق المحاضرات غير صحيح", "error");
+            let fl = parseInt(document.getElementById('fL').value);
+            let tl = parseInt(document.getElementById('tL').value);
+            if (fl > tl) return showToast("❌ نطاق المحاضرات غير صحيح", "error");
 
             // Check cache first
-            const cacheParams = ex ? `fl=${fl}&tl=${tl}&ex=${ex}` : `fl=${fl}&tl=${tl}`;
+            const exLecVal = document.getElementById('exLec').value;
+            const cacheParams = `fl=${fl}&tl=${tl}&ex=${exLecVal}`;
             if (useCache) {
                 const cached = getGradesCached('leaderboard');
                 if (cached && GRADES_CACHE.leaderboard.params === cacheParams) {
@@ -939,50 +1108,111 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
             showLoader(true, "جاري تحليل بيانات الجروب لاستخراج الترتيب 🏆...");
             try {
                 const auth = getAuthParams();
+                const api = getEffectiveApi(GRADES_API);
+                const pre = fl > 1 ? fl - 1 : 0;
 
-                // Fetch each category separately
+                // Fetch cumulative totals (1→tl) and pre-range totals (1→fl-1) for subtraction
                 const fetchPromises = [
-                    fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&fromTask=${fl}&toTask=${tl}${auth}`).then(r => r.json()),
-                    fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&fromQuiz=${fl}&toQuiz=${tl}${auth}`).then(r => r.json()),
-                    fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&fromLec=${fl}&toLec=${tl}&weight=15${auth}`).then(r => r.json()),
-                    fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&extraOnly=1&fromLec=${fl}&toLec=${tl}${auth}`).then(r => r.json())
+                    fetch(`${api}?action=getTop&fromTask=1&toTask=${tl}${auth}`).then(r => r.json()),
+                    fetch(`${api}?action=getTop&fromQuiz=1&toQuiz=${tl}${auth}`).then(r => r.json()),
+                    fetch(`${api}?action=getTop&fromLec=1&toLec=${tl}&weight=15${auth}`).then(r => r.json()),
+                    fetch(`${api}?action=getTop&extraOnly=1&fromLec=1&toLec=${tl}${auth}`).then(r => r.json())
                 ];
 
-                // If excluding a specific task, fetch it separately to subtract
-                if (ex) {
-                    fetchPromises.push(fetch(`${getEffectiveApi(GRADES_API)}?action=getTop&fromTask=${ex}&toTask=${ex}${auth}`).then(r => r.json()));
+                // Only fetch pre-range data if not starting from lecture 1
+                if (pre > 0) {
+                    fetchPromises.push(
+                        fetch(`${api}?action=getTop&fromTask=1&toTask=${pre}${auth}`).then(r => r.json()),
+                        fetch(`${api}?action=getTop&fromQuiz=1&toQuiz=${pre}${auth}`).then(r => r.json()),
+                        fetch(`${api}?action=getTop&fromLec=1&toLec=${pre}&weight=15${auth}`).then(r => r.json()),
+                        fetch(`${api}?action=getTop&extraOnly=1&fromLec=1&toLec=${pre}${auth}`).then(r => r.json())
+                    );
                 }
 
                 const results = await Promise.all(fetchPromises);
-                const [rTasks, rQuizzes, rAttend, rExtra, rExclude] = results;
+                const [rTasks, rQuizzes, rAttend, rExtra] = results;
 
-                let m = {};
-                const col = (d, weight = 1) => {
-                    if (d.status === 'success') {
+                // Build a map from cumulative scores
+                const buildMap = (d) => {
+                    const map = {};
+                    if (d && d.status === 'success') {
                         d.scores.forEach(s => {
-                            let val = parseFloat(s.total);
-                            if (!isNaN(val)) {
-                                if (!m[s.id]) m[s.id] = { id: s.id, n: s.name, t: 0 };
-                                m[s.id].t += val;
-                            }
+                            const val = parseFloat(s.total);
+                            if (!isNaN(val)) map[s.id] = val;
                         });
                     }
+                    return map;
                 };
 
-                col(rTasks); col(rQuizzes); col(rAttend); col(rExtra);
+                const endTasks = buildMap(rTasks);
+                const endQuizzes = buildMap(rQuizzes);
+                const endAttend = buildMap(rAttend);
+                const endExtra = buildMap(rExtra);
 
-                // Subtract excluded task scores
-                if (ex && rExclude && rExclude.status === 'success') {
-                    rExclude.scores.forEach(s => {
-                        let val = parseFloat(s.total);
-                        if (!isNaN(val) && m[s.id]) {
-                            m[s.id].t -= val;
-                        }
-                    });
+                let preTasks = {}, preQuizzes = {}, preAttend = {}, preExtra = {};
+                if (pre > 0) {
+                    preTasks = buildMap(results[4]);
+                    preQuizzes = buildMap(results[5]);
+                    preAttend = buildMap(results[6]);
+                    preExtra = buildMap(results[7]);
                 }
+
+                // Merge: subtract pre from end to get the exact range
+                let m = {};
+                const allIds = new Set([...Object.keys(endTasks), ...Object.keys(endQuizzes), ...Object.keys(endAttend), ...Object.keys(endExtra)]);
+                allIds.forEach(id => {
+                    let total = 0;
+                    total += (endTasks[id] || 0) - (preTasks[id] || 0);
+                    total += (endQuizzes[id] || 0) - (preQuizzes[id] || 0);
+                    total += (endAttend[id] || 0) - (preAttend[id] || 0);
+                    total += (endExtra[id] || 0) - (preExtra[id] || 0);
+                    if (total > 0) {
+                        m[id] = { id, t: total };
+                    }
+                });
+
+                // We need names - fetch them from the full range response
+                const nameMap = {};
+                [rTasks, rQuizzes, rAttend, rExtra].forEach(d => {
+                    if (d && d.status === 'success') {
+                        d.scores.forEach(s => { if (s.name && !nameMap[s.id]) nameMap[s.id] = s.name; });
+                    }
+                });
+                Object.keys(m).forEach(id => { m[id].n = nameMap[id] || ''; });
 
                 fullLeaderboard = Object.values(m).sort((a, b) => b.t - a.t);
                 fullLeaderboard.forEach((s, idx) => s.rank = idx + 1);
+
+                // Apply granular lecture exclusion if specified
+                const exLec = parseInt(document.getElementById('exLec').value);
+                if (exLec && exLec >= fl && exLec <= tl) {
+                    const exTasks = document.getElementById('exTasks').checked;
+                    const exQuiz = document.getElementById('exQuiz').checked;
+                    const exAttend = document.getElementById('exAttend').checked;
+                    const exExtra = document.getElementById('exExtra').checked;
+
+                    const exclFetches = [];
+                    if (exTasks) exclFetches.push(fetch(`${api}?action=getTop&fromTask=${exLec}&toTask=${exLec}${auth}`).then(r => r.json()));
+                    if (exQuiz) exclFetches.push(fetch(`${api}?action=getTop&fromQuiz=${exLec}&toQuiz=${exLec}${auth}`).then(r => r.json()));
+                    if (exAttend) exclFetches.push(fetch(`${api}?action=getTop&fromLec=${exLec}&toLec=${exLec}&weight=15${auth}`).then(r => r.json()));
+                    if (exExtra) exclFetches.push(fetch(`${api}?action=getTop&extraOnly=1&fromLec=${exLec}&toLec=${exLec}${auth}`).then(r => r.json()));
+
+                    if (exclFetches.length > 0) {
+                        const exResults = await Promise.all(exclFetches);
+                        exResults.forEach(d => {
+                            if (d && d.status === 'success') {
+                                d.scores.forEach(s => {
+                                    const val = parseFloat(s.total);
+                                    if (!isNaN(val) && m[s.id]) {
+                                        m[s.id].t -= val;
+                                    }
+                                });
+                            }
+                        });
+                        fullLeaderboard = Object.values(m).sort((a, b) => b.t - a.t);
+                        fullLeaderboard.forEach((s, idx) => s.rank = idx + 1);
+                    }
+                }
 
                 showLoader(false);
 

@@ -81,6 +81,7 @@
                         QR</span></a>
                 <a href="#" onclick="gotoView('index.html', 'manual')" id="nav-manual"><span>✍️</span> <span>التسجيل
                         اليدوي السريع</span></a>
+                <a href="#" onclick="gotoView('index.html', 'batchAttendance')" id="nav-batchAttendance"><span>📋</span> <span>تسجيل غياب/حضور شامل</span></a>
                 <a href="#" onclick="gotoView('index.html', 'dashboard')" id="nav-dashboard"><span>📊</span> <span>لوحة
                         الحضور</span></a>
                 <a href="#" onclick="gotoView('index.html', 'analytics')" id="nav-analytics"
@@ -138,7 +139,7 @@
         </div>
 
         <div id="view-searchView" class="view-section">
-            <div style="max-width: 500px; margin: auto;">
+            <div style="max-width: 700px; margin: auto;">
                 <h3 style="color:var(--accent); text-align:center; font-size:24px; font-weight:800;">استعلام شامل عن
                     متدرب</h3>
 
@@ -164,15 +165,24 @@
                     <div style="text-align:center; margin:15px 0;"><span
                             style="background:var(--accent); color:#000; padding:8px 25px; border-radius:50px; font-weight:900; box-shadow:0 4px 10px rgba(245, 176, 65, 0.3);">إجمالي
                             النقاط: <span id="resTotal" style="font-size:1.2rem;">0</span></span></div>
+                    <div style="overflow-x:auto;">
                     <table class="res-table">
                         <thead>
                             <tr>
                                 <th>بند التقييم</th>
-                                <th>النقاط المكتسبة</th>
+                                <th>الحضور</th>
+                                <th>التاسكات</th>
+                                <th>الكويزات</th>
+                                <th>الفيدباك</th>
+                                <th>السلوك</th>
+                                <th>البونص</th>
+                                <th>غياب</th>
+                                <th>المجموع</th>
                             </tr>
                         </thead>
                         <tbody id="resDetails"></tbody>
                     </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -330,8 +340,24 @@
                     <div style="display:flex; justify-content:center; align-items:center; gap:10px;">
                         من <input type="number" id="fL" value="1" class="small-input"> إلى <input type="number" id="tL"
                             value="5" class="small-input">
-                        استبعاد <input type="number" id="excludeTask" value="2" class="small-input"
-                            style="width:55px;" placeholder="-">
+                    </div>
+                    <div style="border-top:1px solid rgba(128,128,128,0.1); margin-top:12px; padding-top:12px;">
+                        <label style="font-size:12px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:8px;">استثناء محاضرة رقم:</label>
+                        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                            <input type="number" id="exLec" value="" class="small-input" style="width:55px;" placeholder="-">
+                            <label style="font-size:11px; display:flex; align-items:center; gap:4px; cursor:pointer; color:var(--text-muted);">
+                                <input type="checkbox" id="exTasks" style="accent-color:var(--electric-blue);"> التاسكات
+                            </label>
+                            <label style="font-size:11px; display:flex; align-items:center; gap:4px; cursor:pointer; color:var(--text-muted);">
+                                <input type="checkbox" id="exQuiz" style="accent-color:var(--electric-blue);"> الكويزات
+                            </label>
+                            <label style="font-size:11px; display:flex; align-items:center; gap:4px; cursor:pointer; color:var(--text-muted);">
+                                <input type="checkbox" id="exAttend" style="accent-color:var(--electric-blue);"> الحضور
+                            </label>
+                            <label style="font-size:11px; display:flex; align-items:center; gap:4px; cursor:pointer; color:var(--text-muted);">
+                                <input type="checkbox" id="exExtra" style="accent-color:var(--electric-blue);"> البونص/الفيدباك
+                            </label>
+                        </div>
                     </div>
                     <div style="font-size: 10px; margin-top: 10px; opacity: 0.7;">(يتم تجميع نقاط: الحضور + البونص + التاسكات + الكويزات)</div>
                 </div>
@@ -439,31 +465,40 @@
 
                     <!-- Mapped Student List Monitor -->
                     <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top:20px;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
-                            <div style="font-size:14px; font-weight:bold; color:#fff;">📋 قائمة الطلاب المربوطين حالياً:</div>
+                        <div style="margin-bottom:15px;">
+                            <div style="font-size:14px; font-weight:bold; color:#fff; margin-bottom:12px;">📋 قائمة الطلاب المربوطين حالياً:</div>
                             
-                            <!-- Local filter for table -->
-                            <div id="links-search-box" class="search-box" style="margin:0; width: 250px; position:relative;">
-                                <input type="text" id="searchLinksInput" placeholder="بحث بكود الطالب..."
-                                    onkeyup="filterLinksMonitorTable()"
-                                    style="margin:0; padding:8px 12px; padding-right:32px; font-size:11px; width:100%; box-sizing:border-box; text-align:right;">
-                                <span style="position:absolute; right:10px; top:8px; opacity:0.5; font-size:11px;">🔍</span>
+                            <!-- Filter Bar -->
+                            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                                <div class="search-box" style="margin:0; flex:1; min-width:180px; position:relative;">
+                                    <input type="text" id="searchLinksInput" placeholder="ابحث بالاسم أو الكود..."
+                                        onkeyup="filterLinksMonitorTable()"
+                                        style="margin:0; padding:8px 12px; padding-right:32px; font-size:11px; width:100%; box-sizing:border-box; text-align:right;">
+                                    <span style="position:absolute; right:10px; top:8px; opacity:0.5; font-size:11px;">🔍</span>
+                                </div>
+                                <div style="display:flex; gap:4px; background:rgba(0,0,0,0.2); border-radius:8px; padding:3px;">
+                                    <button onclick="sortLinksBy('name-asc')" id="sortLinksNameAsc" style="font-size:10px; padding:5px 10px; border:none; border-radius:6px; cursor:pointer; background:rgba(255,255,255,0.05); color:var(--text-muted); transition:all 0.2s; white-space:nowrap;">اسم ↑</button>
+                                    <button onclick="sortLinksBy('name-desc')" id="sortLinksNameDesc" style="font-size:10px; padding:5px 10px; border:none; border-radius:6px; cursor:pointer; background:rgba(255,255,255,0.05); color:var(--text-muted); transition:all 0.2s; white-space:nowrap;">اسم ↓</button>
+                                    <button onclick="sortLinksBy('code-asc')" id="sortLinksCodeAsc" style="font-size:10px; padding:5px 10px; border:none; border-radius:6px; cursor:pointer; background:rgba(255,255,255,0.05); color:var(--text-muted); transition:all 0.2s; white-space:nowrap;">كود ↑</button>
+                                    <button onclick="sortLinksBy('code-desc')" id="sortLinksCodeDesc" style="font-size:10px; padding:5px 10px; border:none; border-radius:6px; cursor:pointer; background:rgba(255,255,255,0.05); color:var(--text-muted); transition:all 0.2s; white-space:nowrap;">كود ↓</button>
+                                </div>
                             </div>
                         </div>
 
-                        <div id="links-table-wrapper" style="max-height: 250px; overflow-y: auto; background: rgba(0,0,0,0.15); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); padding: 5px;">
-                            <!-- Responsive modern table style -->
+                        <div id="links-table-wrapper" style="max-height: 400px; overflow-y: auto; background: rgba(0,0,0,0.15); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); padding: 5px;">
                             <table style="width:100%; border-collapse:collapse; text-align:right; font-size:12px;" dir="rtl">
                                 <thead>
-                                    <tr style="border-bottom:1px solid rgba(255,255,255,0.08); color:var(--text-muted);">
-                                        <th style="padding:10px; font-weight:bold; width: 20%;">كود الطالب</th>
+                                    <tr style="border-bottom:2px solid rgba(0,210,255,0.2); color:var(--text-muted);">
+                                        <th style="padding:10px; font-weight:bold; width:5%;">#</th>
+                                        <th style="padding:10px; font-weight:bold; width:15%;">كود الطالب</th>
+                                        <th style="padding:10px; font-weight:bold; width:20%;">اسم المتدرب</th>
                                         <th style="padding:10px; font-weight:bold;">رابط الـ API الفردي</th>
-                                        <th style="padding:10px; font-weight:bold; text-align:center; width: 35%;">إجراءات والترتيب</th>
+                                        <th style="padding:10px; font-weight:bold; text-align:center; width:22%;">إجراءات</th>
                                     </tr>
                                 </thead>
                                 <tbody id="mappedLinksMonitorTable">
                                     <tr>
-                                        <td colspan="3" style="text-align:center; padding:20px; opacity:0.6;">جاري تحميل الروابط...</td>
+                                        <td colspan="5" style="text-align:center; padding:20px; opacity:0.6;">جاري تحميل الروابط...</td>
                                     </tr>
                                 </tbody>
                             </table>
