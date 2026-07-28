@@ -56,7 +56,9 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
         // 🔗 دالة جلب رابط الطالب الفردي
         function getPersonalApi(studentCode) {
             let linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
-            return linksMap[studentCode] || localStorage.getItem('PERSONAL_API') || "";
+            // Try the exact key, then with EDUR9 suffix/prefix
+            let normalized = studentCode.includes('EDUR9') ? studentCode : studentCode + 'EDUR9';
+            return linksMap[studentCode] || linksMap[normalized] || localStorage.getItem('PERSONAL_API') || "";
         }
 
         let myChart = null;
@@ -256,8 +258,14 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
                         for (let g in data.groups) {
                             localStorage.setItem(`GROUP_API_${g}`, data.groups[g]);
                         }
-                        // Update Individuals Cache
-                        localStorage.setItem('PERSONAL_LINKS_MAP', JSON.stringify(data.individuals));
+                        // Update Individuals Cache — normalize codes to include EDUR9
+                        let individuals = data.individuals || {};
+                        let normalized = {};
+                        for (let c in individuals) {
+                            let key = c.includes('EDUR9') ? c : c + 'EDUR9';
+                            normalized[key] = individuals[c];
+                        }
+                        localStorage.setItem('PERSONAL_LINKS_MAP', JSON.stringify(normalized));
 
                         // refresh UI if on settings view
                         if (document.getElementById('groupApiInput')) {
@@ -265,22 +273,55 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
                             document.getElementById('groupApiInput').value = localStorage.getItem(`GROUP_API_${currentGroup}`) || "";
                         }
                         refreshLinksMonitor();
+                    } else {
+                        console.warn("Links DB returned non-success:", data);
+                        refreshLinksMonitor(); // still render from local cache
                     }
-                }).catch(e => console.error("Error loading links DB", e));
+                }).catch(e => {
+                    console.error("Error loading links DB", e);
+                    refreshLinksMonitor(); // fallback: render from local cache even if server is down
+                });
         }
 
         function saveGroupApi() {
             const url = document.getElementById('groupApiInput').value.trim();
             const currentGroup = localStorage.getItem('userGroup') || "Group A";
-            if (!url) return showToast("❌ יرجى إدخال الرابط أولاً", "error");
+            if (!url) return showToast("❌ يرجى إدخال الرابط أولاً", "error");
 
             showToast("⏳ جاري الحفظ في الـ Database المركزية...", "info");
             fetch(`${CENTRAL_LINKS_API}?action=saveGroup&group=${encodeURIComponent(currentGroup)}&url=${encodeURIComponent(url)}`)
                 .then(r => r.json())
                 .then(res => {
+                    if (res.status !== 'success') {
+                        console.warn("Server save failed, saving locally:", res);
+                    }
                     localStorage.setItem(`GROUP_API_${currentGroup}`, url);
                     showToast(`✅ تم حفظ رابط الجروب لـ ${currentGroup}! 🚀`, "success");
-                }).catch(e => showToast("❌ خطأ في الاتصال بالشبكة", "error"));
+                }).catch(e => {
+                    console.warn("Network error, saving locally:", e);
+                    localStorage.setItem(`GROUP_API_${currentGroup}`, url);
+                    showToast(`✅ تم حفظ رابط ${currentGroup} محلياً (السيرفر غير متاح)`, "success");
+                });
+        }
+
+        function resetGroupApi() {
+            const currentGroup = localStorage.getItem('userGroup') || "Group A";
+            showToast("⏳ جاري الحذف من الـ Database...", "info");
+            fetch(`${CENTRAL_LINKS_API}?action=removeGroup&group=${encodeURIComponent(currentGroup)}`)
+                .then(r => r.json())
+                .then(res => {
+                    if (res.status !== 'success') {
+                        console.warn("Server delete failed, deleting locally:", res);
+                    }
+                    localStorage.removeItem(`GROUP_API_${currentGroup}`);
+                    document.getElementById('groupApiInput').value = "";
+                    showToast(`🔄 تم إرجاع ${currentGroup} للرابط الافتراضي`, "success");
+                }).catch(e => {
+                    console.warn("Network error, deleting locally:", e);
+                    localStorage.removeItem(`GROUP_API_${currentGroup}`);
+                    document.getElementById('groupApiInput').value = "";
+                    showToast(`🔄 تم حذف رابط ${currentGroup} محلياً (السيرفر غير متاح)`, "success");
+                });
         }
 
         function resetGroupApi() {
@@ -301,7 +342,7 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
             const currentGroup = localStorage.getItem('userGroup') || "Group A";
 
             if (!code || !url) return showToast("❌ يرجى إدخال الكود والرابط معاً", "error");
-            // If they just typed "K1", append standard suffix
+            // Normalize: if they just typed "K1", append standard suffix
             if (!code.includes("EDUR")) code = code + "EDUR9";
 
             const groupLetter = currentGroup.replace("Group ", "").trim();
@@ -313,6 +354,10 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
             fetch(`${CENTRAL_LINKS_API}?action=saveIndividual&code=${encodeURIComponent(code)}&url=${encodeURIComponent(url)}&group=${encodeURIComponent(currentGroup)}`)
                 .then(r => r.json())
                 .then(res => {
+                    if (res.status !== 'success') {
+                        // Save to localStorage anyway even if server fails
+                        console.warn("Server save failed, saving locally:", res);
+                    }
                     let linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
                     linksMap[code] = url;
                     localStorage.setItem('PERSONAL_LINKS_MAP', JSON.stringify(linksMap));
@@ -321,7 +366,17 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
                     document.getElementById('targetStudentCode').value = "";
                     document.getElementById('personalApiInput').value = "";
                     refreshLinksMonitor();
-                }).catch(e => showToast("❌ خطأ في الاتصال", "error"));
+                }).catch(e => {
+                    // Network error — save locally anyway
+                    console.warn("Network error saving link, saving locally:", e);
+                    let linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
+                    linksMap[code] = url;
+                    localStorage.setItem('PERSONAL_LINKS_MAP', JSON.stringify(linksMap));
+                    showToast(`✅ تم حفظ رابط ${code} محلياً (السيرفر غير متاح)`, "success");
+                    document.getElementById('targetStudentCode').value = "";
+                    document.getElementById('personalApiInput').value = "";
+                    refreshLinksMonitor();
+                });
         }
 
         function refreshLinksMonitor() {
@@ -551,12 +606,22 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
             fetch(`${CENTRAL_LINKS_API}?action=removeIndividual&code=${encodeURIComponent(code)}`)
                 .then(r => r.json())
                 .then(res => {
+                    if (res.status !== 'success') {
+                        console.warn("Server delete failed, deleting locally:", res);
+                    }
                     let linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
                     delete linksMap[code];
                     localStorage.setItem('PERSONAL_LINKS_MAP', JSON.stringify(linksMap));
                     refreshLinksMonitor();
                     showToast("🗑️ تم حذف الربط بنجاح", "success");
-                }).catch(e => showToast("❌ خطأ في الاتصال", "error"));
+                }).catch(e => {
+                    console.warn("Network error deleting link, deleting locally:", e);
+                    let linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
+                    delete linksMap[code];
+                    localStorage.setItem('PERSONAL_LINKS_MAP', JSON.stringify(linksMap));
+                    refreshLinksMonitor();
+                    showToast("🗑️ تم حذف الربط محلياً (السيرفر غير متاح)", "success");
+                });
         }
 
         window.editPersonalLink = function(code, url) {
@@ -2465,8 +2530,9 @@ window.processFeedbackImport = async function() {
             }
         }
 
-        // Fetch existing extra data to preserve attitude when syncing feedback to personal sheets
+        // Fetch existing extra data to preserve attitude + bonus when syncing feedback to personal sheets
         let existingExtraMap = {};
+        let existingBonusMap = {};
         let hasIndividualCols = false;
         try {
             const extraResp = await fetch(`${centralApi}?action=getTop&extraOnly=1&fromLec=${lec}&toLec=${lec}${auth}`).then(r => r.json());
@@ -2475,9 +2541,21 @@ window.processFeedbackImport = async function() {
                 for (const s of extraResp.scores) {
                     if (hasIndividualCols) {
                         existingExtraMap[s.id] = parseFloat(s.attitude) || 0;
+                        existingBonusMap[s.id] = parseFloat(s.bonus) || 0;
                     } else {
-                        // Fallback for old APIs that only return total
-                        existingExtraMap[s.id] = parseFloat(s.total) || 0;
+                        // Fallback: decompose total → feedback(5) + attitude(5) + bonus
+                        const total = parseFloat(s.total) || 0;
+                        existingExtraMap[s.id] = total;
+                        const hasFb = localStorage.getItem(`fb_${s.id}_${lec}`);
+                        const hasAtt = localStorage.getItem(`att_${s.id}_${lec}`);
+                        let fb = hasFb ? 5 : 0;
+                        let att = hasAtt ? 5 : 0;
+                        // If no localStorage hints, use heuristics like the dashboard
+                        if (!hasFb && !hasAtt) {
+                            if (total >= 10) { fb = 5; att = 5; }
+                            else if (total >= 5) { att = 5; }
+                        }
+                        existingBonusMap[s.id] = Math.max(0, total - fb - att);
                     }
                 }
             }
@@ -2510,7 +2588,8 @@ window.processFeedbackImport = async function() {
                         // Old API (total only): use attendance as fallback
                         existingAttitude = (attendanceMap[code] || existingExtra >= 10) ? 5 : 0;
                     }
-                    const saveExtraUrl = `${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=1&attitude=${existingAttitude}&bonus=0${auth}`;
+                    const existingBonus = existingBonusMap[code] || 0;
+                    const saveExtraUrl = `${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=1&attitude=${existingAttitude}&bonus=${existingBonus}${auth}`;
                     console.log('🔍 feedbackImport saveExtra URL:', saveExtraUrl);
                     const res = await fetch(saveExtraUrl).then(r => r.json());
                     console.log('🔍 feedbackImport response:', res);

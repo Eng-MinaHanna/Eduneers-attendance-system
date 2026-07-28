@@ -199,7 +199,8 @@
 
         function getPersonalApi(studentCode) {
             let linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
-            return linksMap[studentCode] || localStorage.getItem('PERSONAL_API') || '';
+            let normalized = studentCode.includes('EDUR9') ? studentCode : studentCode + 'EDUR9';
+            return linksMap[studentCode] || linksMap[normalized] || localStorage.getItem('PERSONAL_API') || '';
         }
 
         function showToast(text, type) {

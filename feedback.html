@@ -369,18 +369,32 @@
                     }
                 }
 
-                // Fetch existing extra data to preserve attitude when syncing feedback to personal sheets
+                // Fetch existing extra data to preserve attitude + bonus when syncing feedback to personal sheets
                 var existingExtraMap = {};
+                var existingBonusMap = {};
                 var hasIndividualCols = false;
                 try {
                     var extraResp = await fetch(centralApi + '?action=getTop&extraOnly=1&fromLec=' + lec + '&toLec=' + lec + auth).then(function (r) { return r.json(); });
                     if (extraResp && extraResp.scores) {
                         hasIndividualCols = extraResp.scores[0] && extraResp.scores[0].attitude !== undefined;
                         for (var ex = 0; ex < extraResp.scores.length; ex++) {
+                            var sid = extraResp.scores[ex].id;
                             if (hasIndividualCols) {
-                                existingExtraMap[extraResp.scores[ex].id] = parseFloat(extraResp.scores[ex].attitude) || 0;
+                                existingExtraMap[sid] = parseFloat(extraResp.scores[ex].attitude) || 0;
+                                existingBonusMap[sid] = parseFloat(extraResp.scores[ex].bonus) || 0;
                             } else {
-                                existingExtraMap[extraResp.scores[ex].id] = parseFloat(extraResp.scores[ex].total) || 0;
+                                var total = parseFloat(extraResp.scores[ex].total) || 0;
+                                existingExtraMap[sid] = total;
+                                // Decompose total to extract bonus
+                                var hasFb = localStorage.getItem('fb_' + sid + '_' + lec);
+                                var hasAtt = localStorage.getItem('att_' + sid + '_' + lec);
+                                var fb = hasFb ? 5 : 0;
+                                var att = hasAtt ? 5 : 0;
+                                if (!hasFb && !hasAtt) {
+                                    if (total >= 10) { fb = 5; att = 5; }
+                                    else if (total >= 5) { att = 5; }
+                                }
+                                existingBonusMap[sid] = Math.max(0, total - fb - att);
                             }
                         }
                     }
@@ -404,6 +418,7 @@
                     }
                     try {
                         var existingExtra = existingExtraMap[code] || 0;
+                        var existingBonus = existingBonusMap[code] || 0;
                         // Preserve existing attitude in master sheet (attitude .5 column)
                         var existingAttitude;
                         if (hasIndividualCols) {
@@ -411,7 +426,7 @@
                         } else {
                             existingAttitude = (attendanceMap[code] || existingExtra >= 10) ? 5 : 0;
                         }
-                        var res = await fetch(centralApi + '?action=saveExtra&qrCode=' + encodeURIComponent(code) + '&lectureNum=' + lec + '&feedback=1&attitude=' + existingAttitude + '&bonus=0' + auth).then(function (r) { return r.json(); });
+                        var res = await fetch(centralApi + '?action=saveExtra&qrCode=' + encodeURIComponent(code) + '&lectureNum=' + lec + '&feedback=1&attitude=' + existingAttitude + '&bonus=' + existingBonus + auth).then(function (r) { return r.json(); });
                         if (res.status === 'success') {
                             // Track feedback + attitude state locally
                             localStorage.setItem('fb_' + code + '_' + lec, '1');
@@ -420,7 +435,7 @@
                             // Sync to personal sheet: combine existing attitude(5) + feedback(5)
                             var combinedAtt = existingAttitude + 5;
                             var linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
-                            var personalApi = linksMap[code] || localStorage.getItem('PERSONAL_API') || '';
+                            var personalApi = linksMap[code] || linksMap[code + 'EDUR9'] || localStorage.getItem('PERSONAL_API') || '';
                             if (personalApi) {
                                 await fetch(personalApi + '?action=update&qrCode=' + encodeURIComponent(code) + '&taskName=' + encodeURIComponent('TASK ' + lec) + '&category=' + encodeURIComponent('attitude .10') + '&val=' + combinedAtt).then(function (r) { return r.json(); }).catch(function () {});
                             }

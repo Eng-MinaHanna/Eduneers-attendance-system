@@ -376,6 +376,32 @@
                 var results = { success: 0, fail: 0, crossed: 0 };
                 var logLines = [];
 
+                // Fetch existing bonus values once before the loop to preserve them
+                var existingBonusMap = {};
+                try {
+                    var existingExtraResp = await fetch(centralGradesApi + '?action=getTop&extraOnly=1&fromLec=' + encodeURIComponent(lec) + '&toLec=' + encodeURIComponent(lec) + auth).then(function(r) { return r.json(); });
+                    if (existingExtraResp && existingExtraResp.scores) {
+                        var hasIndividualColsBatch = existingExtraResp.scores[0] && existingExtraResp.scores[0].attitude !== undefined;
+                        for (var ei = 0; ei < existingExtraResp.scores.length; ei++) {
+                            var es = existingExtraResp.scores[ei];
+                            if (hasIndividualColsBatch && es.bonus !== undefined) {
+                                existingBonusMap[es.id] = parseFloat(es.bonus) || 0;
+                            } else {
+                                var totalBatch = parseFloat(es.total) || 0;
+                                var hasFbBatch = localStorage.getItem('fb_' + es.id + '_' + lec);
+                                var hasAttBatch = localStorage.getItem('att_' + es.id + '_' + lec);
+                                var fbBatch = hasFbBatch ? 5 : 0;
+                                var attBatch = hasAttBatch ? 5 : 0;
+                                if (!hasFbBatch && !hasAttBatch) {
+                                    if (totalBatch >= 10) { fbBatch = 5; attBatch = 5; }
+                                    else if (totalBatch >= 5) { attBatch = 5; }
+                                }
+                                existingBonusMap[es.id] = Math.max(0, totalBatch - fbBatch - attBatch);
+                            }
+                        }
+                    }
+                } catch(e) {}
+
                 for (var c = 0; c < codes.length; c++) {
                     var code = codes[c];
                     // Validate authorization group
@@ -396,7 +422,8 @@
                         // 3. Central Extra API for Attitude (Behavior 5 pts)
                         var existingF = localStorage.getItem('fb_' + code + '_' + lec) ? 5 : 0;
                         if (addBehavior) {
-                            await fetch(centralGradesApi + '?action=saveExtra&qrCode=' + encodeURIComponent(code) + '&lectureNum=' + encodeURIComponent(lec) + '&feedback=' + (existingF ? 1 : 0) + '&attitude=5&bonus=0&group=' + encodeURIComponent(groupName) + auth).catch(function() {});
+                            var existingBonus = existingBonusMap[code] || 0;
+                            await fetch(centralGradesApi + '?action=saveExtra&qrCode=' + encodeURIComponent(code) + '&lectureNum=' + encodeURIComponent(lec) + '&feedback=' + (existingF ? 1 : 0) + '&attitude=5&bonus=' + existingBonus + '&group=' + encodeURIComponent(groupName) + auth).catch(function() {});
                             localStorage.setItem('att_' + code + '_' + lec, '1');
                         }
 

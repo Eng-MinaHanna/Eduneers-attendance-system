@@ -285,7 +285,7 @@
                             logLines.push('✅ [' + groupName + '] ' + code + ' = ' + grade + ' - تم');
                             // Sync to personal sheet (same pattern as feedback.html)
                             var linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
-                            var personalApi = linksMap[code] || localStorage.getItem('PERSONAL_API') || '';
+                            var personalApi = linksMap[code] || linksMap[code + 'EDUR9'] || localStorage.getItem('PERSONAL_API') || '';
                             if (personalApi) {
                                 fetch(personalApi + '?action=update&qrCode=' + encodeURIComponent(code) + '&taskName=' + encodeURIComponent('TASK ' + lec) + '&category=' + encodeURIComponent('online quize 25') + '&val=' + grade).then(function (r) { return r.json(); }).catch(function () {});
                             }

@@ -247,12 +247,14 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
               successCount++;
               // Auto-save attitude (5) on attendance sync — preserve existing feedback
               let existingF = localStorage.getItem(`fb_${record.code}_${record.lecture}`) ? 5 : 0;
-              fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(record.code)}&lectureNum=${encodeURIComponent(record.lecture)}&feedback=${existingF ? 1 : 0}&attitude=5&bonus=0&group=${encodeURIComponent(record.group)}${getAuthParams()}`).catch(e => {});
+              let existingBonusKey = `bonus_${record.code}_${record.lecture}`;
+              let existingBonVal = parseInt(localStorage.getItem(existingBonusKey)) || 0;
+              fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(record.code)}&lectureNum=${encodeURIComponent(record.lecture)}&feedback=${existingF ? 1 : 0}&attitude=5&bonus=${existingBonVal}&group=${encodeURIComponent(record.group)}${getAuthParams()}`).catch(e => {});
               // Track attitude locally for dashboard fallback
               localStorage.setItem(`att_${record.code}_${record.lecture}`, '1');
               // Sync سلوك (5) to personal sheet during offline replay
               let linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
-              let personalApi = linksMap[record.code];
+              let personalApi = linksMap[record.code] || linksMap[record.code + 'EDUR9'];
               if (personalApi) {
                 let taskName = "TASK " + record.lecture;
                 fetch(`${personalApi}?action=update&qrCode=${encodeURIComponent(record.code)}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('attitude .10')}&val=5`).catch(e => {});
@@ -293,7 +295,14 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
         fetch(`${CENTRAL_LINKS_API}?action=getAllLinks`).then(r => r.json()).then(data => {
           if (data.status === "success") {
             for (let g in data.groups) localStorage.setItem(`GROUP_API_${g}`, data.groups[g]);
-            localStorage.setItem('PERSONAL_LINKS_MAP', JSON.stringify(data.individuals));
+            // Normalize codes to include EDUR9
+            let individuals = data.individuals || {};
+            let normalized = {};
+            for (let c in individuals) {
+              let key = c.includes('EDUR9') ? c : c + 'EDUR9';
+              normalized[key] = individuals[c];
+            }
+            localStorage.setItem('PERSONAL_LINKS_MAP', JSON.stringify(normalized));
           }
         }).catch(e => console.log("Central link grab error", e));
 
@@ -653,15 +662,39 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
           showToast("⚠️ تم الحفظ محلياً لضعف الشبكة.", "warning");
         });
 
-      // Auto-save attitude (5) on attendance — preserve existing feedback
+      // Auto-save attitude (5) on attendance — preserve existing feedback + bonus
       let existingF = localStorage.getItem(`fb_${studentCode}_${lec}`) ? 5 : 0;
-      fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&feedback=${existingF ? 1 : 0}&attitude=5&bonus=0&group=${encodeURIComponent(group)}${getAuthParams()}`).catch(e => {});
+      // Fetch existing bonus to preserve it, then save extra
+      fetch(`${getEffectiveApi(GRADES_API_URL)}?action=getTop&extraOnly=1&fromLec=${encodeURIComponent(lec)}&toLec=${encodeURIComponent(lec)}${getAuthParams()}`)
+        .then(r => r.json()).catch(() => ({}))
+        .then(extraResp => {
+          let extraScore = (extraResp.scores || []).find(s => s.id === studentCode);
+          let preservedBonus = 0;
+          if (extraScore) {
+            if (extraScore.bonus !== undefined) {
+              preservedBonus = parseFloat(extraScore.bonus) || 0;
+            } else {
+              // Fallback: decompose total to extract bonus
+              const total = parseFloat(extraScore.total) || 0;
+              const hasFb = localStorage.getItem(`fb_${studentCode}_${lec}`);
+              const hasAtt = localStorage.getItem(`att_${studentCode}_${lec}`);
+              let fb = hasFb ? 5 : 0;
+              let att = hasAtt ? 5 : 0;
+              if (!hasFb && !hasAtt) {
+                if (total >= 10) { fb = 5; att = 5; }
+                else if (total >= 5) { att = 5; }
+              }
+              preservedBonus = Math.max(0, total - fb - att);
+            }
+          }
+          return fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&feedback=${existingF ? 1 : 0}&attitude=5&bonus=${preservedBonus}&group=${encodeURIComponent(group)}${getAuthParams()}`);
+        }).catch(e => {});
       // Track attitude locally for dashboard fallback
       localStorage.setItem(`att_${studentCode}_${lec}`, '1');
 
       // 2️⃣ إرسال 15 درجة حضور + سلوك إلى شيت الطالب الفردي ⚡
       let linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
-      let personalApi = linksMap[studentCode];
+      let personalApi = linksMap[studentCode] || linksMap[studentCode + 'EDUR9'];
 
       if (personalApi) {
         let taskName = "TASK " + lec;
@@ -783,7 +816,7 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
 
             // ⚡ مزامنة الحذف مع شيت الطالب الفردي
             let linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
-            let personalApi = linksMap[studentCode];
+            let personalApi = linksMap[studentCode] || linksMap[studentCode + 'EDUR9'];
             if (personalApi) {
               let taskName = "TASK " + lec;
               console.log("Syncing deletion to personal sheet:", personalApi);
@@ -1365,6 +1398,33 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
         var results = { success: 0, fail: 0, crossed: 0 };
         var logLines = [];
 
+        // Fetch existing bonus values once before the loop to preserve them
+        var existingBonusMapIdx = {};
+        try {
+            var existingExtraRespIdx = await fetch(`${centralGradesApi}?action=getTop&extraOnly=1&fromLec=${encodeURIComponent(lec)}&toLec=${encodeURIComponent(lec)}${auth}`).then(function(r) { return r.json(); });
+            if (existingExtraRespIdx && existingExtraRespIdx.scores) {
+                var hasIndividualColsIdx = existingExtraRespIdx.scores[0] && existingExtraRespIdx.scores[0].attitude !== undefined;
+                for (var ei = 0; ei < existingExtraRespIdx.scores.length; ei++) {
+                    var es = existingExtraRespIdx.scores[ei];
+                    if (hasIndividualColsIdx && es.bonus !== undefined) {
+                        existingBonusMapIdx[es.id] = parseFloat(es.bonus) || 0;
+                    } else {
+                        // Fallback: decompose total to extract bonus
+                        var totalIdx = parseFloat(es.total) || 0;
+                        var hasFbIdx = localStorage.getItem('fb_' + es.id + '_' + lec);
+                        var hasAttIdx = localStorage.getItem('att_' + es.id + '_' + lec);
+                        var fbIdx = hasFbIdx ? 5 : 0;
+                        var attIdx = hasAttIdx ? 5 : 0;
+                        if (!hasFbIdx && !hasAttIdx) {
+                            if (totalIdx >= 10) { fbIdx = 5; attIdx = 5; }
+                            else if (totalIdx >= 5) { attIdx = 5; }
+                        }
+                        existingBonusMapIdx[es.id] = Math.max(0, totalIdx - fbIdx - attIdx);
+                    }
+                }
+            }
+        } catch(e) {}
+
         for (var c = 0; c < codes.length; c++) {
           var code = codes[c];
           // Validate authorization group
@@ -1382,13 +1442,14 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
             // 2. Central Extra API for Attitude (Behavior 5 pts)
             var existingF = localStorage.getItem('fb_' + code + '_' + lec) ? 5 : 0;
             if (addBehavior) {
-              await fetch(`${centralGradesApi}?action=saveExtra&qrCode=${encodeURIComponent(code)}&lectureNum=${encodeURIComponent(lec)}&feedback=${existingF ? 1 : 0}&attitude=5&bonus=0&group=${encodeURIComponent(groupName)}${auth}`).catch(function() {});
+              var existingBonusIdx = existingBonusMapIdx[code] || 0;
+              await fetch(`${centralGradesApi}?action=saveExtra&qrCode=${encodeURIComponent(code)}&lectureNum=${encodeURIComponent(lec)}&feedback=${existingF ? 1 : 0}&attitude=5&bonus=${existingBonusIdx}&group=${encodeURIComponent(groupName)}${auth}`).catch(function() {});
               localStorage.setItem('att_' + code + '_' + lec, '1');
             }
 
             // 3. Sync to Personal Sheet
             var linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
-            var personalApi = linksMap[code] || localStorage.getItem('PERSONAL_API') || '';
+            var personalApi = linksMap[code] || linksMap[code + 'EDUR9'] || localStorage.getItem('PERSONAL_API') || '';
             if (personalApi) {
               var taskName = 'TASK ' + lec;
               // Sync Attendance (15)
