@@ -136,6 +136,7 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
 
         window.onload = () => {
             try {
+                if (typeof renderSidebar === 'function') renderSidebar();
                 if (localStorage.getItem('isLoggedIn') !== 'true') { window.location.href = 'index.html'; return; }
                 if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
                 if (localStorage.getItem('performanceMode') === 'true') { document.body.classList.add('performance-mode'); document.getElementById('perfToggle').innerText = '💤'; }
@@ -2578,15 +2579,15 @@ window.processFeedbackImport = async function() {
             }
             try {
                     // Preserve existing attitude in master sheet (attitude .5 column)
-                    // Attitude=5 from scan OR from manual dashboard entry
-                    let existingExtra = existingExtraMap[code] || 0;
-                    let existingAttitude;
-                    if (hasIndividualCols) {
-                        // API returns attitude individually: use actual value
-                        existingAttitude = existingExtra >= 5 ? 5 : 0;
-                    } else {
-                        // Old API (total only): use attendance as fallback
-                        existingAttitude = (attendanceMap[code] || existingExtra >= 10) ? 5 : 0;
+                    // Use localStorage as primary source (most up-to-date), then API
+                    let existingAttitude = localStorage.getItem(`att_${code}_${lec}`) ? 5 : 0;
+                    if (!existingAttitude) {
+                        let existingExtra = existingExtraMap[code] || 0;
+                        if (hasIndividualCols) {
+                            existingAttitude = existingExtra >= 5 ? 5 : 0;
+                        } else {
+                            existingAttitude = (attendanceMap[code] || existingExtra >= 10) ? 5 : 0;
+                        }
                     }
                     const existingBonus = existingBonusMap[code] || 0;
                     const saveExtraUrl = `${centralApi}?action=saveExtra&qrCode=${code}&lectureNum=${lec}&feedback=1&attitude=${existingAttitude}&bonus=${existingBonus}${auth}`;

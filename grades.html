@@ -11,6 +11,7 @@
     <link rel="preload" href="https://cdn.jsdelivr.net/npm/chart.js" as="script">
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="sidebar.js"></script>
 </head>
 
 <body class="dark-mode">
@@ -60,74 +61,7 @@
     </div>
 
     <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
-    <div class="sidebar" id="sidebar">
-        <button class="close-btn" onclick="toggleSidebar()">×</button>
-        <div
-            style="padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 10px;">
-            <div style="font-weight: 900; color: var(--electric-blue); font-size: 1.3rem;">Eduneers System</div>
-            <div id="sideRole"
-                style="font-size: 10px; opacity: 0.7; margin-top: 5px; text-transform: uppercase; background: rgba(255,255,255,0.1); display: inline-block; padding: 4px 10px; border-radius: 8px;">
-            </div>
-        </div>
-
-        <!-- Attendance Section -->
-        <div
-            style="margin: 10px 15px; border-radius: 12px; border: 1px solid rgba(0, 210, 255, 0.3); box-shadow: 0 0 15px rgba(0, 210, 255, 0.05); overflow: hidden;">
-            <div
-                style="background: rgba(0, 210, 255, 0.1); padding: 8px 15px; font-weight: 900; color: #00d2ff; font-size: 12px; letter-spacing: 1px; border-bottom: 1px solid rgba(0, 210, 255, 0.1);">
-                📷 قسم الحضور</div>
-            <div style="padding: 5px 0;">
-                <a href="#" onclick="gotoView('index.html', 'scanner')" id="nav-scanner"><span>📷</span> <span>مسح الـ
-                        QR</span></a>
-                <a href="#" onclick="gotoView('index.html', 'manual')" id="nav-manual"><span>✍️</span> <span>التسجيل
-                        اليدوي السريع</span></a>
-                <a href="#" onclick="gotoView('index.html', 'batchAttendance')" id="nav-batchAttendance"><span>📋</span> <span>تسجيل غياب/حضور شامل</span></a>
-                <a href="#" onclick="gotoView('index.html', 'dashboard')" id="nav-dashboard"><span>📊</span> <span>لوحة
-                        الحضور</span></a>
-                <a href="#" onclick="gotoView('index.html', 'analytics')" id="nav-analytics"
-                    ><span>📈</span> <span>إحصائيات الجروبات</span></a>
-                <a href="#" onclick="gotoView('index.html', 'mail')" id="nav-mail" ><span>📧</span>
-                    <span>الإعلانات والبريد</span></a>
-            </div>
-        </div>
-
-        <!-- Grades Section -->
-        <div 
-            style="margin: 15px 15px; border-radius: 12px; border: 1px solid rgba(192, 132, 252, 0.3); box-shadow: 0 0 15px rgba(192, 132, 252, 0.05); overflow: hidden;">
-            <div
-                style="background: rgba(192, 132, 252, 0.1); padding: 8px 15px; font-weight: 900; color: #c084fc; font-size: 12px; letter-spacing: 1px; border-bottom: 1px solid rgba(192, 132, 252, 0.1);">
-                🎯 قسم الدرجات والتقييم</div>
-            <div style="padding: 5px 0;">
-                <a href="#" onclick="gotoView('grades.html', 'studentDashboard')" id="nav-studentDashboard"><span>📊</span> <span>لوحة درجات الطلاب</span></a>
-                <a href="#" onclick="gotoView('grades.html', 'searchView')" id="nav-searchView"><span>🔍</span>
-                    <span>استعلام عن طالب</span></a>
-                <a href="#" onclick="gotoView('grades.html', 'topView')" id="nav-topView"
-                    ><span>🏆</span> <span>لوحة الشرف Top 5</span></a>
-                <a href="feedback.html" id="nav-feedbackImport" ><span>💬</span> <span>Feedback شامل</span></a>
-                <a href="TasksForAll.html" style="display:flex;"><span>📋</span> <span>Tasks للكل</span></a>
-                <a href="Quizes.html" id="nav-quizes" style="display:flex;"><span>📝</span> <span>Quizes</span></a>
-                <a href="#" onclick="gotoView('grades.html', 'settings')" id="nav-settings"
-                    ><span>⚙️</span> <span>إعدادات النظام</span></a>
-            </div>
-        </div>
-
-        <!-- Admin Section -->
-        <div 
-            style="margin: 15px 15px; border-radius: 12px; border: 1px solid rgba(245, 176, 65, 0.3); box-shadow: 0 0 15px rgba(245, 176, 65, 0.05); overflow: hidden;">
-            <div
-                style="background: rgba(245, 176, 65, 0.1); padding: 8px 15px; font-weight: 900; color: #f5b041; font-size: 12px; letter-spacing: 1px; border-bottom: 1px solid rgba(245, 176, 65, 0.1);">
-                ⚙️ الإدارة العليا</div>
-            <div style="padding: 5px 0;">
-                <a href="#" onclick="gotoView('index.html', 'users')" id="nav-users" class="admin-only"><span>👥</span>
-                    <span>إدارة المستخدمين</span></a>
-            </div>
-        </div>
-
-        <a href="#" onclick="logout()"
-            style="color: #ef4444; margin: 15px; background: rgba(239, 68, 68, 0.1); border-radius: 12px; text-align: center; justify-content: center;"><span>🚪</span>
-            <span>تسجيل الخروج</span></a>
-        <div style="height: 100px; flex-shrink: 0;"></div>
-    </div>
+    <div class="sidebar" id="sidebar"></div>
 
     <div class="container">
         <div id="toast"></div>

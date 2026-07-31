@@ -236,6 +236,201 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
 
       showProgress("جاري رفع البيانات المتأخرة للسيرفر...");
       let successCount = 0;
+      return str.toString().replace(/\/\d+$/, '').replace(/[٠-٩]/g, w => arabicNumbers.indexOf(w));
+    }
+
+    let loaderInterval;
+    function showProgress(message = "جاري العمل...") {
+      const l = document.getElementById('electricLoader');
+      document.getElementById('loaderMessage').innerText = message;
+      l.style.display = 'flex';
+      let p = 0; document.getElementById('loaderPercent').innerText = p + '%'; document.getElementById('progressBarFill').style.width = p + '%';
+      clearInterval(loaderInterval);
+      loaderInterval = setInterval(() => { p += Math.floor(Math.random() * 10) + 1; if (p > 90) p = 90; document.getElementById('progressBarFill').style.width = p + '%'; document.getElementById('loaderPercent').innerText = p + '%'; }, 100);
+    }
+
+    function completeProgress() {
+      clearInterval(loaderInterval);
+      document.getElementById('progressBarFill').style.width = '100%'; document.getElementById('loaderPercent').innerText = '100%';
+      setTimeout(() => { document.getElementById('electricLoader').style.display = 'none'; document.getElementById('progressBarFill').style.width = '0%'; }, 300);
+    }
+
+    function showCustomAlert(message, title = "تنبيه النظام", iconType = "info") {
+      return new Promise((resolve) => {
+        const existing = document.querySelector('.custom-modal-overlay');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.className = 'custom-modal-overlay';
+        
+        const icon = iconType === "warning" ? "⚠️" : "⚡";
+        const iconClass = iconType === "warning" ? "warning" : "";
+
+        overlay.innerHTML = `
+          <div class="custom-modal-card">
+            <div class="custom-modal-icon-container ${iconClass}">${icon}</div>
+            <h3 class="custom-modal-title">${title}</h3>
+            <p class="custom-modal-message">${message}</p>
+            <div class="custom-modal-actions">
+              <button class="custom-modal-btn custom-modal-btn-confirm" id="custom-modal-ok">حسناً 👍</button>
+            </div>
+          </div>
+        `;
+
+        document.body.appendChild(overlay);
+        overlay.offsetHeight;
+        overlay.classList.add('active');
+
+        const okBtn = overlay.querySelector('#custom-modal-ok');
+        if (okBtn) okBtn.focus();
+
+        let resolved = false;
+
+        function closeAlert() {
+          if (resolved) return;
+          resolved = true;
+          
+          overlay.style.pointerEvents = 'none';
+          resolve(true);
+
+          overlay.classList.remove('active');
+          document.removeEventListener('keydown', handleKeyDown);
+
+          setTimeout(() => {
+            overlay.remove();
+          }, 200);
+        }
+
+        function handleKeyDown(e) {
+          if (e.key === 'Enter' || e.key === 'Escape') {
+            e.preventDefault();
+            closeAlert();
+          }
+        }
+
+        if (okBtn) okBtn.addEventListener('click', closeAlert);
+        document.addEventListener('keydown', handleKeyDown);
+      });
+    }
+
+    function showCustomConfirm(message, title = "تأكيد الإجراء", iconType = "warning") {
+      return new Promise((resolve) => {
+        const existing = document.querySelector('.custom-modal-overlay');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.className = 'custom-modal-overlay';
+
+        const icon = iconType === "warning" ? "⚠️" : "⚡";
+        const iconClass = iconType === "warning" ? "warning" : "";
+
+        overlay.innerHTML = `
+          <div class="custom-modal-card">
+            <div class="custom-modal-icon-container ${iconClass}">${icon}</div>
+            <h3 class="custom-modal-title">${title}</h3>
+            <p class="custom-modal-message">${message}</p>
+            <div class="custom-modal-actions">
+              <button class="custom-modal-btn custom-modal-btn-cancel" id="custom-modal-cancel">إلغاء ✖️</button>
+              <button class="custom-modal-btn custom-modal-btn-confirm" id="custom-modal-confirm">تأكيد 📥</button>
+            </div>
+          </div>
+        `;
+
+        document.body.appendChild(overlay);
+        overlay.offsetHeight;
+        overlay.classList.add('active');
+
+        const confirmBtn = overlay.querySelector('#custom-modal-confirm');
+        const cancelBtn = overlay.querySelector('#custom-modal-cancel');
+        if (confirmBtn) confirmBtn.focus();
+
+        let resolved = false;
+
+        function handleDecision(decision) {
+          if (resolved) return;
+          resolved = true;
+
+          overlay.style.pointerEvents = 'none';
+          resolve(decision);
+
+          overlay.classList.remove('active');
+          document.removeEventListener('keydown', handleKeyDown);
+
+          setTimeout(() => {
+            overlay.remove();
+          }, 200);
+        }
+
+        function handleKeyDown(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            handleDecision(true);
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            handleDecision(false);
+          }
+        }
+
+        if (confirmBtn) confirmBtn.addEventListener('click', () => handleDecision(true));
+        if (cancelBtn) cancelBtn.addEventListener('click', () => handleDecision(false));
+        document.addEventListener('keydown', handleKeyDown);
+      });
+    }
+
+    function showToast(text, type = "success") {
+      const t = document.getElementById('toast'); t.innerText = text;
+      t.style.background = type === "success" ? "linear-gradient(135deg, #10b981, #059669)" : "linear-gradient(135deg, #ef4444, #dc2626)";
+      t.style.display = 'block'; setTimeout(() => { t.style.display = 'none'; }, 4000);
+    }
+
+    function playBeep(type) {
+      if (navigator.vibrate) { if (type === 'success') navigator.vibrate(150); else navigator.vibrate([100, 50, 100, 50, 200]); }
+      const ctx = new (window.AudioContext || window.webkitAudioContext)(); const osc = ctx.createOscillator(); const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      if (type === 'success') { osc.type = 'sine'; osc.frequency.value = 800; gain.gain.value = 0.1; osc.start(); osc.stop(ctx.currentTime + 0.15); }
+      else { osc.type = 'sawtooth'; osc.frequency.value = 300; gain.gain.value = 0.1; osc.start(); osc.stop(ctx.currentTime + 0.3); }
+    }
+
+    function getAuthParams() {
+      return `&email=${encodeURIComponent(localStorage.getItem('userEmail'))}&token=${encodeURIComponent(localStorage.getItem('sessionToken'))}`;
+    }
+
+    function fillGroupSelects() {
+      let options = ''; const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      for (let i = 0; i < letters.length; i++) { let g = 'Group ' + letters[i]; options += `<option value="${g}">${g}</option>`; }
+      const newUg = document.getElementById('newUserGroup'); const ggs = document.getElementById('globalGroupSelect');
+      if (newUg) newUg.innerHTML = options;
+      if (ggs) { ggs.innerHTML = options; ggs.value = localStorage.getItem('userGroup') || 'Group A'; }
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode'); const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem('darkMode', isDark);
+      document.getElementById('themeToggle').innerText = isDark ? '🌙' : '☀️';
+      if (currentView === 'analytics' && attendanceChartInstance) { loadAnalytics('group'); }
+    }
+
+    function togglePerformanceMode() {
+      const isPerf = document.body.classList.toggle('performance-mode');
+      localStorage.setItem('performanceMode', isPerf);
+      document.getElementById('perfToggle').innerText = isPerf ? '💤' : '⚡';
+    }
+
+    function updateOfflineBadge() {
+      const badge = document.getElementById('offlineBadge'); const countSpan = document.getElementById('offlineCount');
+      if (offlineQueue.length > 0) {
+        badge.style.display = 'block'; countSpan.innerText = offlineQueue.length;
+        if (navigator.onLine) badge.style.backgroundColor = '#f39c12';
+        else badge.style.backgroundColor = '#ef4444';
+      } else { badge.style.display = 'none'; }
+    }
+
+    async function syncOfflineData() {
+      if (!navigator.onLine) return showCustomAlert("الإنترنت ما زال مقطوعاً. تأكد من الاتصال أولاً.", "انقطاع الاتصال", "warning");
+      if (offlineQueue.length === 0) return;
+
+      showProgress("جاري رفع البيانات المتأخرة للسيرفر...");
+      let successCount = 0;
       function uploadNext(index) {
         if (index >= offlineQueue.length) {
           offlineQueue = []; localStorage.setItem('offlineQueue', JSON.stringify(offlineQueue)); updateOfflineBadge(); completeProgress(); showToast(`✅ تمت مزامنة ${successCount} سجلات بنجاح!`, "success"); return;
@@ -245,11 +440,8 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
           .then(res => res.json()).then(data => {
             if (data.status === "success" || data.status === "already") {
               successCount++;
-              // Auto-save attitude (5) on attendance sync — preserve existing feedback
-              let existingF = localStorage.getItem(`fb_${record.code}_${record.lecture}`) ? 5 : 0;
-              let existingBonusKey = `bonus_${record.code}_${record.lecture}`;
-              let existingBonVal = parseInt(localStorage.getItem(existingBonusKey)) || 0;
-              fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(record.code)}&lectureNum=${encodeURIComponent(record.lecture)}&feedback=${existingF ? 1 : 0}&attitude=5&bonus=${existingBonVal}&group=${encodeURIComponent(record.group)}${getAuthParams()}`).catch(e => {});
+              // Auto-save attitude (5) on attendance sync (feedback & bonus preserved on backend)
+              fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(record.code)}&lectureNum=${encodeURIComponent(record.lecture)}&attitude=5&group=${encodeURIComponent(record.group)}${getAuthParams()}`).catch(e => {});
               // Track attitude locally for dashboard fallback
               localStorage.setItem(`att_${record.code}_${record.lecture}`, '1');
               // Sync سلوك (5) to personal sheet during offline replay
@@ -280,6 +472,7 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
 
     window.onload = function () {
       try {
+        if (typeof renderSidebar === 'function') renderSidebar();
         if (localStorage.getItem('darkMode') === 'true') { document.body.classList.add('dark-mode'); document.getElementById('themeToggle').innerText = '🌙'; }
         if (localStorage.getItem('performanceMode') === 'true') { document.body.classList.add('performance-mode'); document.getElementById('perfToggle').innerText = '💤'; }
         updateOfflineBadge(); 
@@ -662,33 +855,8 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
           showToast("⚠️ تم الحفظ محلياً لضعف الشبكة.", "warning");
         });
 
-      // Auto-save attitude (5) on attendance — preserve existing feedback + bonus
-      let existingF = localStorage.getItem(`fb_${studentCode}_${lec}`) ? 5 : 0;
-      // Fetch existing bonus to preserve it, then save extra
-      fetch(`${getEffectiveApi(GRADES_API_URL)}?action=getTop&extraOnly=1&fromLec=${encodeURIComponent(lec)}&toLec=${encodeURIComponent(lec)}${getAuthParams()}`)
-        .then(r => r.json()).catch(() => ({}))
-        .then(extraResp => {
-          let extraScore = (extraResp.scores || []).find(s => s.id === studentCode);
-          let preservedBonus = 0;
-          if (extraScore) {
-            if (extraScore.bonus !== undefined) {
-              preservedBonus = parseFloat(extraScore.bonus) || 0;
-            } else {
-              // Fallback: decompose total to extract bonus
-              const total = parseFloat(extraScore.total) || 0;
-              const hasFb = localStorage.getItem(`fb_${studentCode}_${lec}`);
-              const hasAtt = localStorage.getItem(`att_${studentCode}_${lec}`);
-              let fb = hasFb ? 5 : 0;
-              let att = hasAtt ? 5 : 0;
-              if (!hasFb && !hasAtt) {
-                if (total >= 10) { fb = 5; att = 5; }
-                else if (total >= 5) { att = 5; }
-              }
-              preservedBonus = Math.max(0, total - fb - att);
-            }
-          }
-          return fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&feedback=${existingF ? 1 : 0}&attitude=5&bonus=${preservedBonus}&group=${encodeURIComponent(group)}${getAuthParams()}`);
-        }).catch(e => {});
+      // Auto-save attitude (5) on attendance — feedback and bonus are preserved on backend
+      fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&attitude=5&group=${encodeURIComponent(group)}${getAuthParams()}`).catch(e => {});
       // Track attitude locally for dashboard fallback
       localStorage.setItem(`att_${studentCode}_${lec}`, '1');
 
@@ -1395,20 +1563,6 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
         var centralAttApi = getEffectiveApi(ATTENDANCE_API_URL);
         var auth = getAuthParams();
 
-        var results = { success: 0, fail: 0, crossed: 0 };
-        var logLines = [];
-
-        // Fetch existing bonus values once before the loop to preserve them
-        var existingBonusMapIdx = {};
-        try {
-            var existingExtraRespIdx = await fetch(`${centralGradesApi}?action=getTop&extraOnly=1&fromLec=${encodeURIComponent(lec)}&toLec=${encodeURIComponent(lec)}${auth}`).then(function(r) { return r.json(); });
-            if (existingExtraRespIdx && existingExtraRespIdx.scores) {
-                var hasIndividualColsIdx = existingExtraRespIdx.scores[0] && existingExtraRespIdx.scores[0].attitude !== undefined;
-                for (var ei = 0; ei < existingExtraRespIdx.scores.length; ei++) {
-                    var es = existingExtraRespIdx.scores[ei];
-                    if (hasIndividualColsIdx && es.bonus !== undefined) {
-                        existingBonusMapIdx[es.id] = parseFloat(es.bonus) || 0;
-                    } else {
                         // Fallback: decompose total to extract bonus
                         var totalIdx = parseFloat(es.total) || 0;
                         var hasFbIdx = localStorage.getItem('fb_' + es.id + '_' + lec);

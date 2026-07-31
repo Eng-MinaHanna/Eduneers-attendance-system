@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="grades.css?v=1.0.5">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="sidebar.js"></script>
 </head>
 <body class="dark-mode">
     <div id="particles-js" style="position:fixed; top:0; left:0; width:100%; height:100%; z-index:-2; pointer-events:none;"></div>
@@ -37,12 +38,52 @@
     </div>
 
     <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
-    <div class="sidebar" id="sidebar">
-        <button class="close-btn" onclick="toggleSidebar()">×</button>
-        <div style="padding: 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 10px;">
-            <div style="font-weight: 900; color: var(--electric-blue); font-size: 1.3rem;">Eduneers System</div>
-            <div id="sideRole" style="font-size: 10px; opacity: 0.7; margin-top: 5px; text-transform: uppercase; background: rgba(255,255,255,0.1); display: inline-block; padding: 4px 10px; border-radius: 8px;"></div>
+    <div class="sidebar" id="sidebar"></div>
+
+    <div class="container">
+        <div id="toast"></div>
+
+        <div id="view-quizImport" class="view-section active" style="display:block !important;">
+            <div style="max-width: 600px; margin: auto;">
+                <h3 style="color:var(--electric-blue); text-align:center; font-size:22px; font-weight:900; margin-bottom:5px;">📝 تسجيل درجات الكويزات</h3>
+                <p style="text-align:center; font-size:12px; opacity:0.7; margin-bottom:20px; color:var(--text-muted);">أدخل أكواد الطلاب ودرجات الكويز لكل محاضرة</p>
+
+                <div style="background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(128,128,128,0.15);">
+                    <div style="margin-bottom: 15px;">
+                        <label style="font-size:12px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:6px;">رقم المحاضرة (Lecture):</label>
+                        <input type="number" id="quizImportLec" value="1" min="1" max="50" style="font-size:14px; width:100%; padding:12px; border:1px solid rgba(0,210,255,0.2); background:var(--card-bg); color:var(--text-main); border-radius:10px; box-sizing:border-box; text-align:center;">
+                    </div>
+
+                    <div style="border-top: 1px solid rgba(128,128,128,0.1); padding-top: 15px; margin-bottom: 15px;">
+                        <label style="font-size:12px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:6px;">👤 أكواد الطلاب (كود واحد في كل سطر):</label>
+                        <textarea id="quizCodes" placeholder="K1EDUR9&#10;K2EDUR9&#10;K3EDUR9" style="font-size:12px; width:100%; padding:12px; border:1px solid rgba(128,128,128,0.15); background:var(--card-bg); color:var(--text-main); border-radius:10px; box-sizing:border-box; min-height:120px; resize:vertical; font-family:monospace; direction:ltr; text-align:left;"></textarea>
+                    </div>
+
+                    <div style="border-top: 1px solid rgba(128,128,128,0.1); padding-top: 15px; margin-bottom: 15px;">
+                        <label style="font-size:12px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:6px;">📊 درجات الكويز (درجة واحدة في كل سطر — بنفس ترتيب الأكواد):</label>
+                        <textarea id="quizGrades" placeholder="20&#10;25&#10;18" style="font-size:12px; width:100%; padding:12px; border:1px solid rgba(128,128,128,0.15); background:var(--card-bg); color:var(--text-main); border-radius:10px; box-sizing:border-box; min-height:120px; resize:vertical; font-family:monospace; direction:ltr; text-align:left;"></textarea>
+                    </div>
+
+                    <button id="quizSubmitBtn" onclick="processQuizImport()" style="width:100%; padding:14px; border:none; border-radius:12px; background:linear-gradient(135deg, var(--electric-blue), #0284c7); color:#fff; font-weight:900; font-size:14px; cursor:pointer; transition:0.3s;">🚀 تسجيل درجات الكويزات</button>
+                </div>
+
+                <div id="quizResults" style="display:none;">
+                    <div style="background: var(--card-bg); border-radius: 16px; padding: 20px; border: 1px solid rgba(128,128,128,0.15);">
+                        <h4 style="color:var(--accent); margin:0 0 15px 0; font-size:16px;">📝 نتيجة التسجيل</h4>
+                        <div id="quizStats" style="display:flex; gap:15px; margin-bottom:15px; flex-wrap:wrap;">
+                            <span id="quizFoundCount" style="background:rgba(0,210,255,0.1); color:var(--electric-blue); padding:8px 14px; border-radius:8px; font-size:13px; font-weight:bold;"></span>
+                            <span id="quizSuccessCount" style="background:rgba(16,185,129,0.1); color:#10b981; padding:8px 14px; border-radius:8px; font-size:13px; font-weight:bold;"></span>
+                            <span id="quizCrossedCount" style="background:rgba(239,68,68,0.15); color:#ef4444; padding:8px 14px; border-radius:8px; font-size:13px; font-weight:bold; display:none;"></span>
+                            <span id="quizFailCount" style="background:rgba(239,68,68,0.1); color:#ef4444; padding:8px 14px; border-radius:8px; font-size:13px; font-weight:bold;"></span>
+                        </div>
+                        <div style="max-height:200px; overflow-y:auto; background:var(--card-bg); border-radius:8px; padding:10px; border:1px solid rgba(128,128,128,0.08);">
+                            <pre id="quizLog" style="font-size:11px; color:var(--text-muted); margin:0; white-space:pre-wrap; direction:ltr; text-align:left;"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+    </div>
         <div style="margin: 10px 15px; border-radius: 12px; border: 1px solid rgba(0, 210, 255, 0.3); box-shadow: 0 0 15px rgba(0, 210, 255, 0.05); overflow: hidden;">
             <div style="background: rgba(0, 210, 255, 0.1); padding: 8px 15px; font-weight: 900; color: #00d2ff; font-size: 12px; letter-spacing: 1px; border-bottom: 1px solid rgba(0, 210, 255, 0.1);">📷 قسم الحضور</div>
             <div style="padding: 5px 0;">
@@ -60,6 +101,7 @@
                 <a href="Quizes.html" style="display:flex;"><span>📝</span> <span>Quizes</span></a>
                 <a href="feedback.html" style="display:flex;"><span>💬</span> <span>Feedback شامل</span></a>
                 <a href="TasksForAll.html" style="display:flex;"><span>📋</span> <span>Tasks للكل</span></a>
+                <a href="BonusForAll.html" style="display:flex;"><span>🎁</span> <span>بونص للكل</span></a>
             </div>
         </div>
         <a href="#" onclick="logout()" style="color: #ef4444; margin: 15px; background: rgba(239, 68, 68, 0.1); border-radius: 12px; text-align: center; justify-content: center;"><span>🚪</span> <span>تسجيل الخروج</span></a>
@@ -336,6 +378,7 @@
 
         // Init on load
         window.onload = function () {
+            if (typeof renderSidebar === 'function') renderSidebar();
             if (localStorage.getItem('isLoggedIn') !== 'true') { window.location.href = 'index.html'; return; }
             if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Eduneers | Tasks</title>
+    <title>Eduneers | Bonus</title>
     <link rel="stylesheet" href="grades.css?v=1.0.5">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
@@ -43,41 +43,41 @@
     <div class="container">
         <div id="toast"></div>
 
-        <div id="view-taskImport" class="view-section active" style="display:block !important;">
+        <div id="view-bonusImport" class="view-section active" style="display:block !important;">
             <div style="max-width: 600px; margin: auto;">
-                <h3 style="color:var(--electric-blue); text-align:center; font-size:22px; font-weight:900; margin-bottom:5px;">📋 تسجيل درجات التاسكات</h3>
-                <p style="text-align:center; font-size:12px; opacity:0.7; margin-bottom:20px; color:var(--text-muted);">أدخل أكواد الطلاب ودرجات التاسك لكل محاضرة</p>
+                <h3 style="color:var(--electric-blue); text-align:center; font-size:22px; font-weight:900; margin-bottom:5px;">🎁 تسجيل بونص للكل</h3>
+                <p style="text-align:center; font-size:12px; opacity:0.7; margin-bottom:20px; color:var(--text-muted);">أضف بونص لطلاب المجموعة — قيمة واحدة للجميع أو قيم فردية</p>
 
                 <div style="background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(128,128,128,0.15);">
                     <div style="margin-bottom: 15px;">
                         <label style="font-size:12px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:6px;">رقم المحاضرة (Lecture):</label>
-                        <input type="number" id="tskImportLec" value="1" min="1" max="50" style="font-size:14px; width:100%; padding:12px; border:1px solid rgba(0,210,255,0.2); background:var(--card-bg); color:var(--text-main); border-radius:10px; box-sizing:border-box; text-align:center;">
+                        <input type="number" id="bonusImportLec" value="1" min="1" max="50" style="font-size:14px; width:100%; padding:12px; border:1px solid rgba(0,210,255,0.2); background:var(--card-bg); color:var(--text-main); border-radius:10px; box-sizing:border-box; text-align:center;">
                     </div>
 
                     <div style="border-top: 1px solid rgba(128,128,128,0.1); padding-top: 15px; margin-bottom: 15px;">
                         <label style="font-size:12px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:6px;">👤 أكواد الطلاب (كود واحد في كل سطر):</label>
-                        <textarea id="tskCodes" placeholder="K1EDUR9&#10;K2EDUR9&#10;K3EDUR9" style="font-size:12px; width:100%; padding:12px; border:1px solid rgba(128,128,128,0.15); background:var(--card-bg); color:var(--text-main); border-radius:10px; box-sizing:border-box; min-height:120px; resize:vertical; font-family:monospace; direction:ltr; text-align:left;"></textarea>
+                        <textarea id="bonusCodes" placeholder="K1EDUR9&#10;K2EDUR9&#10;K3EDUR9" style="font-size:12px; width:100%; padding:12px; border:1px solid rgba(128,128,128,0.15); background:var(--card-bg); color:var(--text-main); border-radius:10px; box-sizing:border-box; min-height:120px; resize:vertical; font-family:monospace; direction:ltr; text-align:left;"></textarea>
                     </div>
 
                     <div style="border-top: 1px solid rgba(128,128,128,0.1); padding-top: 15px; margin-bottom: 15px;">
-                        <label style="font-size:12px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:6px;">📊 درجات التاسك (درجة واحدة في كل سطر — بنفس ترتيب الأكواد):</label>
-                        <textarea id="tskGrades" placeholder="50&#10;65&#10;70" style="font-size:12px; width:100%; padding:12px; border:1px solid rgba(128,128,128,0.15); background:var(--card-bg); color:var(--text-main); border-radius:10px; box-sizing:border-box; min-height:120px; resize:vertical; font-family:monospace; direction:ltr; text-align:left;"></textarea>
+                        <label style="font-size:12px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:6px;">🎁 قيمة البونص <span style="color:var(--electric-blue); font-size:11px;">(قيمة واحدة للجميع، أو قيم فردية — واحد في كل سطر بنفس ترتيب الأكواد):</span></label>
+                        <textarea id="bonusValues" placeholder="3&#10; (قيمة واحدة للجميع) أو:&#10;3&#10;5&#10;2" style="font-size:12px; width:100%; padding:12px; border:1px solid rgba(128,128,128,0.15); background:var(--card-bg); color:var(--text-main); border-radius:10px; box-sizing:border-box; min-height:80px; resize:vertical; font-family:monospace; direction:ltr; text-align:left;"></textarea>
                     </div>
 
-                    <button id="tskSubmitBtn" onclick="processTaskImport()" style="width:100%; padding:14px; border:none; border-radius:12px; background:linear-gradient(135deg, var(--electric-blue), #0284c7); color:#fff; font-weight:900; font-size:14px; cursor:pointer; transition:0.3s;">🚀 تسجيل درجات التاسكات</button>
+                    <button id="bonusSubmitBtn" onclick="processBonusImport()" style="width:100%; padding:14px; border:none; border-radius:12px; background:linear-gradient(135deg, var(--electric-blue), #0284c7); color:#fff; font-weight:900; font-size:14px; cursor:pointer; transition:0.3s;">🚀 تسجيل البونص</button>
                 </div>
 
-                <div id="tskResults" style="display:none;">
+                <div id="bonusResults" style="display:none;">
                     <div style="background: var(--card-bg); border-radius: 16px; padding: 20px; border: 1px solid rgba(128,128,128,0.15);">
-                        <h4 style="color:var(--accent); margin:0 0 15px 0; font-size:16px;">📋 نتيجة التسجيل</h4>
-                        <div id="tskStats" style="display:flex; gap:15px; margin-bottom:15px; flex-wrap:wrap;">
-                            <span id="tskFoundCount" style="background:rgba(0,210,255,0.1); color:var(--electric-blue); padding:8px 14px; border-radius:8px; font-size:13px; font-weight:bold;"></span>
-                            <span id="tskSuccessCount" style="background:rgba(16,185,129,0.1); color:#10b981; padding:8px 14px; border-radius:8px; font-size:13px; font-weight:bold;"></span>
-                            <span id="tskCrossedCount" style="background:rgba(239,68,68,0.15); color:#ef4444; padding:8px 14px; border-radius:8px; font-size:13px; font-weight:bold; display:none;"></span>
-                            <span id="tskFailCount" style="background:rgba(239,68,68,0.1); color:#ef4444; padding:8px 14px; border-radius:8px; font-size:13px; font-weight:bold;"></span>
+                        <h4 style="color:var(--accent); margin:0 0 15px 0; font-size:16px;">🎁 نتيجة التسجيل</h4>
+                        <div id="bonusStats" style="display:flex; gap:15px; margin-bottom:15px; flex-wrap:wrap;">
+                            <span id="bonusFoundCount" style="background:rgba(0,210,255,0.1); color:var(--electric-blue); padding:8px 14px; border-radius:8px; font-size:13px; font-weight:bold;"></span>
+                            <span id="bonusSuccessCount" style="background:rgba(16,185,129,0.1); color:#10b981; padding:8px 14px; border-radius:8px; font-size:13px; font-weight:bold;"></span>
+                            <span id="bonusCrossedCount" style="background:rgba(239,68,68,0.15); color:#ef4444; padding:8px 14px; border-radius:8px; font-size:13px; font-weight:bold; display:none;"></span>
+                            <span id="bonusFailCount" style="background:rgba(239,68,68,0.1); color:#ef4444; padding:8px 14px; border-radius:8px; font-size:13px; font-weight:bold;"></span>
                         </div>
                         <div style="max-height:200px; overflow-y:auto; background:var(--card-bg); border-radius:8px; padding:10px; border:1px solid rgba(128,128,128,0.08);">
-                            <pre id="tskLog" style="font-size:11px; color:var(--text-muted); margin:0; white-space:pre-wrap; direction:ltr; text-align:left;"></pre>
+                            <pre id="bonusLog" style="font-size:11px; color:var(--text-muted); margin:0; white-space:pre-wrap; direction:ltr; text-align:left;"></pre>
                         </div>
                     </div>
                 </div>
@@ -190,52 +190,53 @@
             return null;
         }
 
-        window.processTaskImport = async function () {
-            var lec = convertNumerals(document.getElementById('tskImportLec').value.trim());
+        window.processBonusImport = async function () {
+            var lec = convertNumerals(document.getElementById('bonusImportLec').value.trim());
             if (!lec) return showToast('❌ أدخل رقم المحاضرة', 'error');
 
-            var codesRaw = document.getElementById('tskCodes').value.trim();
-            var gradesRaw = document.getElementById('tskGrades').value.trim();
-            var btn = document.getElementById('tskSubmitBtn');
+            var codesRaw = document.getElementById('bonusCodes').value.trim();
+            var valuesRaw = document.getElementById('bonusValues').value.trim();
+            var btn = document.getElementById('bonusSubmitBtn');
 
             if (!codesRaw) return showToast('❌ أدخل أكواد الطلاب', 'error');
-            if (!gradesRaw) return showToast('❌ أدخل درجات التاسك', 'error');
+            if (!valuesRaw) return showToast('❌ أدخل قيمة البونص', 'error');
 
             var codeLines = codesRaw.split('\n').filter(function(l) { return l.trim(); });
-            var gradeLines = gradesRaw.split('\n').filter(function(l) { return l.trim(); });
+            var valueLines = valuesRaw.split('\n').filter(function(l) { return l.trim(); });
+            var singleValue = (valueLines.length === 1);
 
-            if (codeLines.length !== gradeLines.length) {
-                return showToast('❌ عدد الأكواد (' + codeLines.length + ') لا يساوي عدد الدرجات (' + gradeLines.length + ')', 'error');
+            if (!singleValue && codeLines.length !== valueLines.length) {
+                return showToast('❌ عدد الأكواد (' + codeLines.length + ') لا يساوي عدد القيم (' + valueLines.length + ') — أو استخدم قيمة واحدة للجميع', 'error');
             }
-            if (!confirm('هل أنت متأكد من تسجيل درجات التاسكات للمحاضرة رقم ' + lec + '؟')) return;
+            if (!confirm('هل أنت متأكد من تسجيل بونص للمحاضرة رقم ' + lec + '؟')) return;
 
             btn.disabled = true;
             btn.innerText = 'جاري التسجيل⏳';
-            showToast('⏳ جاري تسجيل الدرجات...', 'info');
+            showToast('⏳ جاري تسجيل البونص...', 'info');
 
             try {
                 var codes = [];
-                var grades = [];
+                var bonuses = [];
                 for (var i = 0; i < codeLines.length; i++) {
                     var code = normalizeCode(codeLines[i]);
                     if (!code) {
                         showToast('❌ كود غير صالح: ' + codeLines[i], 'error');
                         btn.disabled = false;
-                        btn.innerText = '🚀 تسجيل درجات التاسكات';
+                        btn.innerText = '🚀 تسجيل البونص';
                         return;
                     }
-                    var grade = parseFloat(convertNumerals(gradeLines[i]));
-                    if (isNaN(grade)) {
-                        showToast('❌ درجة غير صالحة: ' + gradeLines[i], 'error');
+                    var bonus = parseFloat(convertNumerals(singleValue ? valueLines[0] : valueLines[i]));
+                    if (isNaN(bonus)) {
+                        showToast('❌ قيمة بونص غير صالحة: ' + (singleValue ? valueLines[0] : valueLines[i]), 'error');
                         btn.disabled = false;
-                        btn.innerText = '🚀 تسجيل درجات التاسكات';
+                        btn.innerText = '🚀 تسجيل البونص';
                         return;
                     }
                     codes.push(code);
-                    grades.push(grade);
+                    bonuses.push(bonus);
                 }
 
-                showToast('✅ جاري تسجيل ' + codes.length + ' طالب...', 'success');
+                showToast('✅ جاري تسجيل بونص لـ ' + codes.length + ' طالب...', 'success');
 
                 var userGroup = localStorage.getItem('userGroup') || 'Group A';
                 var groupLetter = userGroup.replace('Group ', '').trim();
@@ -246,9 +247,11 @@
                 var results = { success: 0, fail: 0, crossed: 0 };
                 var logLines = [];
 
+
+
                 for (var c = 0; c < codes.length; c++) {
                     var code = codes[c];
-                    var grade = grades[c];
+                    var bonus = bonuses[c];
 
                     if (code.charAt(0) !== groupLetter) {
                         results.crossed++;
@@ -257,15 +260,15 @@
                     }
 
                     try {
-                        var res = await fetch(centralApi + '?action=saveGrade&qrCode=' + encodeURIComponent(code) + '&taskNum=' + lec + '&val=' + grade + auth).then(function (r) { return r.json(); });
+                        var res = await fetch(centralApi + '?action=saveExtra&qrCode=' + encodeURIComponent(code) + '&lectureNum=' + lec + '&bonus=' + bonus + auth).then(function (r) { return r.json(); });
                         if (res.status === 'success') {
                             // Sync to personal sheet
                             var personalApi = getPersonalApi(code);
                             if (personalApi) {
-                                await fetch(personalApi + '?action=update&qrCode=' + encodeURIComponent(code) + '&taskName=' + encodeURIComponent('TASK ' + lec) + '&category=' + encodeURIComponent('Main task. 70') + '&val=' + grade).then(function (r) { return r.json(); }).catch(function () {});
+                                await fetch(personalApi + '?action=update&qrCode=' + encodeURIComponent(code) + '&taskName=' + encodeURIComponent('TASK ' + lec) + '&category=' + encodeURIComponent('bonus') + '&val=' + bonus).then(function (r) { return r.json(); }).catch(function () {});
                             }
                             results.success++;
-                            logLines.push('✅ [' + groupName + '] ' + code + ' = ' + grade + ' - تم');
+                            logLines.push('✅ [' + groupName + '] ' + code + ' بونص +' + bonus + ' - تم');
                         } else {
                             results.fail++;
                             logLines.push('❌ [' + groupName + '] ' + code + ' - ' + (res.message || 'خطأ'));
@@ -276,12 +279,12 @@
                     }
                 }
 
-                var container = document.getElementById('tskResults');
-                var foundEl = document.getElementById('tskFoundCount');
-                var successEl = document.getElementById('tskSuccessCount');
-                var crossedEl = document.getElementById('tskCrossedCount');
-                var failEl = document.getElementById('tskFailCount');
-                var logEl = document.getElementById('tskLog');
+                var container = document.getElementById('bonusResults');
+                var foundEl = document.getElementById('bonusFoundCount');
+                var successEl = document.getElementById('bonusSuccessCount');
+                var crossedEl = document.getElementById('bonusCrossedCount');
+                var failEl = document.getElementById('bonusFailCount');
+                var logEl = document.getElementById('bonusLog');
 
                 if (container) container.style.display = 'block';
                 var total = results.success + results.fail + results.crossed;
@@ -299,14 +302,14 @@
                 if (logEl) logEl.innerText = logLines.join('\n');
 
                 playBeep('success');
-                showToast('✅ تم تسجيل ' + results.success + ' طالب بنجاح' + (results.fail ? '، فشل ' + results.fail : ''), 'success');
+                showToast('✅ تم تسجيل بونص لـ ' + results.success + ' طالب بنجاح' + (results.fail ? '، فشل ' + results.fail : ''), 'success');
             } catch (e) {
-                console.error('Task import error:', e);
+                console.error('Bonus import error:', e);
                 showToast('❌ حدث خطأ: ' + e.message, 'error');
             }
 
             btn.disabled = false;
-            btn.innerText = '🚀 تسجيل درجات التاسكات';
+            btn.innerText = '🚀 تسجيل البونص';
         };
 
         window.onload = function () {
