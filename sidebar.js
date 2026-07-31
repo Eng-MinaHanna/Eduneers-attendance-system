@@ -35,7 +35,6 @@ function renderSidebar(extraLinks) {
       title: '🎯 قسم الدرجات والتقييم',
       titleColor: '#c084fc',
       links: [
-        ['#', '📝', 'رصد الدرجات', '', "gotoView('grades.html','grading');return false;"],
         ['#', '📊', 'لوحة درجات الطلاب', '', "gotoView('grades.html','studentDashboard');return false;"],
         ['#', '🔍', 'استعلام عن طالب', '', "gotoView('grades.html','searchView');return false;"],
         ['#', '🏆', 'لوحة الشرف Top 5', '', "gotoView('grades.html','topView');return false;"],

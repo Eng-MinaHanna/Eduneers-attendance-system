@@ -41,202 +41,7 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
     function convertNumerals(str) {
       if (!str) return "";
       const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-      return str.toString().replace(/\/\d+$/, '').replace(/[٠-٩]/g, w => arabicNumbers.indexOf(w));
-    }
-
-    let loaderInterval;
-    function showProgress(message = "جاري العمل...") {
-      const l = document.getElementById('electricLoader');
-      document.getElementById('loaderMessage').innerText = message;
-      l.style.display = 'flex';
-      let p = 0; document.getElementById('loaderPercent').innerText = p + '%'; document.getElementById('progressBarFill').style.width = p + '%';
-      clearInterval(loaderInterval);
-      loaderInterval = setInterval(() => { p += Math.floor(Math.random() * 10) + 1; if (p > 90) p = 90; document.getElementById('progressBarFill').style.width = p + '%'; document.getElementById('loaderPercent').innerText = p + '%'; }, 100);
-    }
-
-    function completeProgress() {
-      clearInterval(loaderInterval);
-      document.getElementById('progressBarFill').style.width = '100%'; document.getElementById('loaderPercent').innerText = '100%';
-      setTimeout(() => { document.getElementById('electricLoader').style.display = 'none'; document.getElementById('progressBarFill').style.width = '0%'; }, 300);
-    }
-
-    function showCustomAlert(message, title = "تنبيه النظام", iconType = "info") {
-      return new Promise((resolve) => {
-        const existing = document.querySelector('.custom-modal-overlay');
-        if (existing) existing.remove();
-
-        const overlay = document.createElement('div');
-        overlay.className = 'custom-modal-overlay';
-        
-        const icon = iconType === "warning" ? "⚠️" : "⚡";
-        const iconClass = iconType === "warning" ? "warning" : "";
-
-        overlay.innerHTML = `
-          <div class="custom-modal-card">
-            <div class="custom-modal-icon-container ${iconClass}">${icon}</div>
-            <h3 class="custom-modal-title">${title}</h3>
-            <p class="custom-modal-message">${message}</p>
-            <div class="custom-modal-actions">
-              <button class="custom-modal-btn custom-modal-btn-confirm" id="custom-modal-ok">حسناً 👍</button>
-            </div>
-          </div>
-        `;
-
-        document.body.appendChild(overlay);
-        overlay.offsetHeight;
-        overlay.classList.add('active');
-
-        const okBtn = overlay.querySelector('#custom-modal-ok');
-        if (okBtn) okBtn.focus();
-
-        let resolved = false;
-
-        function closeAlert() {
-          if (resolved) return;
-          resolved = true;
-          
-          overlay.style.pointerEvents = 'none';
-          resolve(true);
-
-          overlay.classList.remove('active');
-          document.removeEventListener('keydown', handleKeyDown);
-
-          setTimeout(() => {
-            overlay.remove();
-          }, 200);
-        }
-
-        function handleKeyDown(e) {
-          if (e.key === 'Enter' || e.key === 'Escape') {
-            e.preventDefault();
-            closeAlert();
-          }
-        }
-
-        if (okBtn) okBtn.addEventListener('click', closeAlert);
-        document.addEventListener('keydown', handleKeyDown);
-      });
-    }
-
-    function showCustomConfirm(message, title = "تأكيد الإجراء", iconType = "warning") {
-      return new Promise((resolve) => {
-        const existing = document.querySelector('.custom-modal-overlay');
-        if (existing) existing.remove();
-
-        const overlay = document.createElement('div');
-        overlay.className = 'custom-modal-overlay';
-
-        const icon = iconType === "warning" ? "⚠️" : "⚡";
-        const iconClass = iconType === "warning" ? "warning" : "";
-
-        overlay.innerHTML = `
-          <div class="custom-modal-card">
-            <div class="custom-modal-icon-container ${iconClass}">${icon}</div>
-            <h3 class="custom-modal-title">${title}</h3>
-            <p class="custom-modal-message">${message}</p>
-            <div class="custom-modal-actions">
-              <button class="custom-modal-btn custom-modal-btn-cancel" id="custom-modal-cancel">إلغاء ✖️</button>
-              <button class="custom-modal-btn custom-modal-btn-confirm" id="custom-modal-confirm">تأكيد 📥</button>
-            </div>
-          </div>
-        `;
-
-        document.body.appendChild(overlay);
-        overlay.offsetHeight;
-        overlay.classList.add('active');
-
-        const confirmBtn = overlay.querySelector('#custom-modal-confirm');
-        const cancelBtn = overlay.querySelector('#custom-modal-cancel');
-        if (confirmBtn) confirmBtn.focus();
-
-        let resolved = false;
-
-        function handleDecision(decision) {
-          if (resolved) return;
-          resolved = true;
-
-          overlay.style.pointerEvents = 'none';
-          resolve(decision);
-
-          overlay.classList.remove('active');
-          document.removeEventListener('keydown', handleKeyDown);
-
-          setTimeout(() => {
-            overlay.remove();
-          }, 200);
-        }
-
-        function handleKeyDown(e) {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            handleDecision(true);
-          } else if (e.key === 'Escape') {
-            e.preventDefault();
-            handleDecision(false);
-          }
-        }
-
-        if (confirmBtn) confirmBtn.addEventListener('click', () => handleDecision(true));
-        if (cancelBtn) cancelBtn.addEventListener('click', () => handleDecision(false));
-        document.addEventListener('keydown', handleKeyDown);
-      });
-    }
-
-    function showToast(text, type = "success") {
-      const t = document.getElementById('toast'); t.innerText = text;
-      t.style.background = type === "success" ? "linear-gradient(135deg, #10b981, #059669)" : "linear-gradient(135deg, #ef4444, #dc2626)";
-      t.style.display = 'block'; setTimeout(() => { t.style.display = 'none'; }, 4000);
-    }
-
-    function playBeep(type) {
-      if (navigator.vibrate) { if (type === 'success') navigator.vibrate(150); else navigator.vibrate([100, 50, 100, 50, 200]); }
-      const ctx = new (window.AudioContext || window.webkitAudioContext)(); const osc = ctx.createOscillator(); const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
-      if (type === 'success') { osc.type = 'sine'; osc.frequency.value = 800; gain.gain.value = 0.1; osc.start(); osc.stop(ctx.currentTime + 0.15); }
-      else { osc.type = 'sawtooth'; osc.frequency.value = 300; gain.gain.value = 0.1; osc.start(); osc.stop(ctx.currentTime + 0.3); }
-    }
-
-    function getAuthParams() {
-      return `&email=${encodeURIComponent(localStorage.getItem('userEmail'))}&token=${encodeURIComponent(localStorage.getItem('sessionToken'))}`;
-    }
-
-    function fillGroupSelects() {
-      let options = ''; const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-      for (let i = 0; i < letters.length; i++) { let g = 'Group ' + letters[i]; options += `<option value="${g}">${g}</option>`; }
-      const newUg = document.getElementById('newUserGroup'); const ggs = document.getElementById('globalGroupSelect');
-      if (newUg) newUg.innerHTML = options;
-      if (ggs) { ggs.innerHTML = options; ggs.value = localStorage.getItem('userGroup') || 'Group A'; }
-    }
-
-    function toggleDarkMode() {
-      document.body.classList.toggle('dark-mode'); const isDark = document.body.classList.contains('dark-mode');
-      localStorage.setItem('darkMode', isDark);
-      document.getElementById('themeToggle').innerText = isDark ? '🌙' : '☀️';
-      if (currentView === 'analytics' && attendanceChartInstance) { loadAnalytics('group'); }
-    }
-
-    function togglePerformanceMode() {
-      const isPerf = document.body.classList.toggle('performance-mode');
-      localStorage.setItem('performanceMode', isPerf);
-      document.getElementById('perfToggle').innerText = isPerf ? '💤' : '⚡';
-    }
-
-    function updateOfflineBadge() {
-      const badge = document.getElementById('offlineBadge'); const countSpan = document.getElementById('offlineCount');
-      if (offlineQueue.length > 0) {
-        badge.style.display = 'block'; countSpan.innerText = offlineQueue.length;
-        if (navigator.onLine) badge.style.backgroundColor = '#f39c12';
-        else badge.style.backgroundColor = '#ef4444';
-      } else { badge.style.display = 'none'; }
-    }
-
-    async function syncOfflineData() {
-      if (!navigator.onLine) return showCustomAlert("الإنترنت ما زال مقطوعاً. تأكد من الاتصال أولاً.", "انقطاع الاتصال", "warning");
-      if (offlineQueue.length === 0) return;
-
-      showProgress("جاري رفع البيانات المتأخرة للسيرفر...");
-      let successCount = 0;
-      return str.toString().replace(/\/\d+$/, '').replace(/[٠-٩]/g, w => arabicNumbers.indexOf(w));
+      return str.toString().replace(/[٠-٩]/g, w => arabicNumbers.indexOf(w));
     }
 
     let loaderInterval;
@@ -440,13 +245,14 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
           .then(res => res.json()).then(data => {
             if (data.status === "success" || data.status === "already") {
               successCount++;
-              // Auto-save attitude (5) on attendance sync (feedback & bonus preserved on backend)
-              fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(record.code)}&lectureNum=${encodeURIComponent(record.lecture)}&attitude=5&group=${encodeURIComponent(record.group)}${getAuthParams()}`).catch(e => {});
+              // Auto-save attitude (5) on attendance sync — preserve existing feedback
+// removed existingF
+              fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(record.code)}&lectureNum=${encodeURIComponent(record.lecture)}&feedback=${existingF ? 1 : 0}&attitude=5&bonus=0&group=${encodeURIComponent(record.group)}${getAuthParams()}`).catch(e => {});
               // Track attitude locally for dashboard fallback
               localStorage.setItem(`att_${record.code}_${record.lecture}`, '1');
               // Sync سلوك (5) to personal sheet during offline replay
               let linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
-              let personalApi = linksMap[record.code] || linksMap[record.code + 'EDUR9'];
+              let personalApi = linksMap[record.code];
               if (personalApi) {
                 let taskName = "TASK " + record.lecture;
                 fetch(`${personalApi}?action=update&qrCode=${encodeURIComponent(record.code)}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('attitude .10')}&val=5`).catch(e => {});
@@ -470,9 +276,9 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
       });
     }
 
-    window.onload = function () {
+    document.addEventListener('DOMContentLoaded', function () {
+      if (typeof renderSidebar === 'function') renderSidebar();
       try {
-        if (typeof renderSidebar === 'function') renderSidebar();
         if (localStorage.getItem('darkMode') === 'true') { document.body.classList.add('dark-mode'); document.getElementById('themeToggle').innerText = '🌙'; }
         if (localStorage.getItem('performanceMode') === 'true') { document.body.classList.add('performance-mode'); document.getElementById('perfToggle').innerText = '💤'; }
         updateOfflineBadge(); 
@@ -488,14 +294,7 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
         fetch(`${CENTRAL_LINKS_API}?action=getAllLinks`).then(r => r.json()).then(data => {
           if (data.status === "success") {
             for (let g in data.groups) localStorage.setItem(`GROUP_API_${g}`, data.groups[g]);
-            // Normalize codes to include EDUR9
-            let individuals = data.individuals || {};
-            let normalized = {};
-            for (let c in individuals) {
-              let key = c.includes('EDUR9') ? c : c + 'EDUR9';
-              normalized[key] = individuals[c];
-            }
-            localStorage.setItem('PERSONAL_LINKS_MAP', JSON.stringify(normalized));
+            localStorage.setItem('PERSONAL_LINKS_MAP', JSON.stringify(data.individuals));
           }
         }).catch(e => console.log("Central link grab error", e));
 
@@ -560,7 +359,7 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
         const loginView = document.getElementById('view-login'); if (loginView) loginView.classList.add('active');
         showToast("❌ حدث خطأ أثناء تهيئة النظام.", "error");
       }
-    };
+    });
     
     // Global error handler for uncaught errors
     window.onerror = function(msg, url, lineNo, columnNo, error) {
@@ -689,10 +488,6 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
       document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
       document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
       document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-
-      if (viewId === 'users' && !document.body.classList.contains('role-admin') && !document.body.classList.contains('role-co-founder') && !document.body.classList.contains('role-owner')) {
-        viewId = 'scanner';
-      }
 
       let targetView = document.getElementById(`view-${viewId}`);
       if (!targetView) { viewId = 'scanner'; targetView = document.getElementById(`view-${viewId}`); }
@@ -828,13 +623,7 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
       playBeep('success');
       showToast(`⚡ جاري إرسال حضور (${studentCode})...`, "success");
 
-      const scanTime = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-      // Store timestamp locally as fallback
-      let attTimes = JSON.parse(localStorage.getItem('ATTEND_TIMES') || '{}');
-      attTimes[studentCode + '_' + lec] = scanTime;
-      localStorage.setItem('ATTEND_TIMES', JSON.stringify(attTimes));
-
-      fetch(`${getEffectiveApi(ATTENDANCE_API_URL)}?action=scan&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}&time=${encodeURIComponent(scanTime)}${getAuthParams()}`)
+      fetch(`${getEffectiveApi(ATTENDANCE_API_URL)}?action=scan&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}${getAuthParams()}`)
         .then(res => res.json()).then(data => {
           if (data.status === "success") {
             let studentName = data.name || data.studentName || data.student_name;
@@ -855,14 +644,15 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
           showToast("⚠️ تم الحفظ محلياً لضعف الشبكة.", "warning");
         });
 
-      // Auto-save attitude (5) on attendance — feedback and bonus are preserved on backend
-      fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&attitude=5&group=${encodeURIComponent(group)}${getAuthParams()}`).catch(e => {});
+      // Auto-save attitude (5) on attendance — preserve existing feedback
+// removed existingF
+      fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&feedback=${existingF ? 1 : 0}&attitude=5&bonus=0&group=${encodeURIComponent(group)}${getAuthParams()}`).catch(e => {});
       // Track attitude locally for dashboard fallback
       localStorage.setItem(`att_${studentCode}_${lec}`, '1');
 
       // 2️⃣ إرسال 15 درجة حضور + سلوك إلى شيت الطالب الفردي ⚡
       let linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
-      let personalApi = linksMap[studentCode] || linksMap[studentCode + 'EDUR9'];
+      let personalApi = linksMap[studentCode];
 
       if (personalApi) {
         let taskName = "TASK " + lec;
@@ -896,18 +686,10 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
       const lec = document.getElementById('lecture').value; const group = localStorage.getItem('userGroup') || "Group A";
       const tbody = document.getElementById('attendeesList'); tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 30px;">⏳ المزامنة...</td></tr>`;
       showProgress("سحب بيانات الحضور...");
-      const attTimes = JSON.parse(localStorage.getItem('ATTEND_TIMES') || '{}');
       fetch(`${getEffectiveApi(ATTENDANCE_API_URL)}?action=getDashboard&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(group)}${getAuthParams()}`)
         .then(res => res.json()).then(data => {
           completeProgress(); document.getElementById('dashCount').innerText = data.count || 0;
-          if (data.status === "success" && data.attendees.length > 0) {
-            allAttendees = data.attendees.map((d, i) => {
-              const localTime = attTimes[d.id + '_' + lec];
-              if (localTime && (!d.time || d.time.includes('مسجل') || d.time.includes('✅'))) d.time = localTime;
-              return { ...d, _originalIdx: i };
-            });
-            renderTable(allAttendees);
-          }
+          if (data.status === "success" && data.attendees.length > 0) { allAttendees = data.attendees.map((d, i) => ({ ...d, _originalIdx: i })); renderTable(allAttendees); }
           else { allAttendees = []; tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 30px; color:var(--text-muted);">لا توجد سجلات حالياً</td></tr>`; }
         }).catch(err => { completeProgress(); tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#ef4444; padding: 30px;">❌ خطأ</td></tr>`; });
     }
@@ -984,7 +766,7 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
 
             // ⚡ مزامنة الحذف مع شيت الطالب الفردي
             let linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
-            let personalApi = linksMap[studentCode] || linksMap[studentCode + 'EDUR9'];
+            let personalApi = linksMap[studentCode];
             if (personalApi) {
               let taskName = "TASK " + lec;
               console.log("Syncing deletion to personal sheet:", personalApi);
@@ -999,6 +781,15 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
         }).catch(err => {
           showToast("❌ فشل الاتصال بالسيرفر، تراجعت عن الإلغاء", "error"); loadDashboard();
         });
+    }
+
+    async function exportToExcel() {
+      if (allAttendees.length === 0) return showCustomAlert("لا توجد بيانات حضور لتصديرها.", "تصدير فارغ", "warning");
+      const lec = document.getElementById('lecture').value; const group = localStorage.getItem('userGroup') || "Group A";
+      let csvContent = "\uFEFFكود الطالب,الاسم بالكامل,وقت التوثيق\n";
+      allAttendees.forEach(student => { let safeName = student.name.replace(/,/g, " "); csvContent += `${student.id},${safeName},${student.time}\n`; });
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob); link.download = `Report_${group}_Lec_${lec}.csv`; link.click(); showToast("✅ تم التصدير", "success");
     }
 
     async function fetchAnalyticsData(type = 'group') {
@@ -1031,6 +822,7 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
           document.getElementById('analyticsDesc').innerText = `📈 تتبع كفاءة الحضور لـ ${currentGroup} حتى المحاضرة ${currentLec}`;
           chartTitle = 'كثافة الحضور';
 
+          // Fetch from lec 1 to currentLec
           for (let i = 1; i <= currentLec; i++) {
             labels.push(`م ${i}`);
             const url = `${getEffectiveApi(ATTENDANCE_API_URL)}?action=getDashboard&lectureNum=${i}&group=${encodeURIComponent(currentGroup)}${getAuthParams()}`;
@@ -1046,6 +838,7 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
         completeProgress();
         document.getElementById('analyticsDesc').style.display = 'block';
 
+        // التحقق من وجود بيانات
         const hasData = dataPoints.some(val => val > 0);
         if (hasData) {
           renderAnalyticsChart(labels, dataPoints, chartTitle);
@@ -1294,12 +1087,13 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
       if (!subject || !body) return showToast("⚠️ يرجى تعبئة عنوان ومحتوى الرسالة!", "warning");
 
       const fileInput = document.getElementById('mailAttachment');
-      var file = fileInput ? fileInput.files[0] : null;
+      let fileData = null;
+      var file = fileInput.files[0];
 
       if (file && file.size > 5 * 1024 * 1024) return showToast("❌ حجم الملف يجب أن لا يتخطى 5MB!", "error");
 
       const processRequest = (base64File, mimeType, fileName) => {
-        showProgress("جاري الإرسال للخوادم المركزية 🚀...");
+        showProgress("جاري الإرسال للخوادم المركزية 🚀 (تأكد من استقرار الإنترنت)...");
 
         const payload = {
           action: "sendBroadcast",
@@ -1335,12 +1129,13 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
               showToast(data.message || "حدث خطأ أثناء المعالجة.", "error");
             }
           } catch (e) {
-            console.error("Server API Error:", text);
-            showToast("❌ خطأ بسيرفر جوجل!", "error");
+            console.error("Server API Error. Returned HTML/Text instead of JSON:", text);
+            showToast("❌ خطأ بسيرفر جوجل! راجع كود doPost للمنصة.", "error");
           }
         }).catch(e => {
           completeProgress();
-          showToast("❌ خطأ اتصال أو CORS!", "error");
+          console.error("Network/CORS Error:", e);
+          showToast("❌ خطأ اتصال أو CORS! تأكد من نشر السكربت كـ (Anyone)", "error");
         });
       };
 
@@ -1354,286 +1149,74 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
       }
     }
 
-    // ==================== PWA & SERVICE WORKER ====================
+// ==================== SECTION ====================
+// ==================== PWA & SERVICE WORKER ====================
     let deferredPrompt;
+    
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').then((registration) => {
-          setInterval(() => { registration.update(); }, 3600000);
-        }).catch((err) => { console.log('[PWA] Service Worker failed:', err); });
+        navigator.serviceWorker.register('sw.js')
+          .then((registration) => {
+            console.log('[PWA] Service Worker registered');
+            
+            // Check for updates periodically
+            setInterval(() => {
+              registration.update();
+            }, 3600000); // Check every hour
+          })
+          .catch((err) => {
+            console.log('[PWA] Service Worker registration failed:', err);
+          });
       });
-      window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
+      
+      // Listen for install prompt
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        // You can show a custom install button here
+      });
     }
-
+    
+    // Function to trigger install prompt
     function installPWA() {
       if (deferredPrompt) {
         deferredPrompt.prompt();
         deferredPrompt.userChoice.then((choiceResult) => {
-          if (choiceResult.outcome === 'accepted') showToast('✅ تم تثبيت التطبيق!', 'success');
+          if (choiceResult.outcome === 'accepted') {
+            showToast('✅ تم تثبيت التطبيق!', 'success');
+          }
           deferredPrompt = null;
         });
       }
     }
 
-    // --- SMOOTH BACKGROUND PARTICLES ---
+    // --- SMOOTH BACKGROUND PARTICLES (CSS-only, no JS overhead) ---
     document.addEventListener('DOMContentLoaded', () => {
       const container = document.getElementById('particles-container');
       if (!container) return;
+      
+      // Reduced count for performance
       const particleCount = 12;
+      
       for (let i = 0; i < particleCount; i++) {
         const particle = document.createElement('div');
         particle.classList.add('particle');
+        
+        // Random properties
         const size = Math.random() * 2 + 1.5;
         const left = Math.random() * 100;
         const delay = Math.random() * 20;
         const duration = Math.random() * 15 + 15;
-        particle.style.cssText = `width: ${size}px; height: ${size}px; left: ${left}%; animation-delay: ${delay}s; animation-duration: ${duration}s;`;
+        
+        particle.style.cssText = `
+          width: ${size}px;
+          height: ${size}px;
+          left: ${left}%;
+          animation-delay: ${delay}s;
+          animation-duration: ${duration}s;
+        `;
+        
         container.appendChild(particle);
       }
     });
 
-    // ==================== BATCH ATTENDANCE & ATTITUDE SYNC ====================
-    function playBeep(type) {
-      if (navigator.vibrate) {
-        if (type === 'success') navigator.vibrate(150);
-        else navigator.vibrate([100, 50, 100, 50, 200]);
-      }
-      try {
-        var ctx = new (window.AudioContext || window.webkitAudioContext)();
-        var osc = ctx.createOscillator();
-        var gain = ctx.createGain();
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        if (type === 'success') {
-          osc.type = 'sine';
-          osc.frequency.value = 800;
-          gain.gain.value = 0.1;
-          osc.start();
-          osc.stop(ctx.currentTime + 0.15);
-        } else {
-          osc.type = 'sawtooth';
-          osc.frequency.value = 300;
-          gain.gain.value = 0.1;
-          osc.start();
-          osc.stop(ctx.currentTime + 0.3);
-        }
-      } catch (e) { console.log('Audio play error', e); }
-    }
-
-    let _xlsxLibLoadedInIndex = false;
-
-    function loadXlsxLibInIndex() {
-      return new Promise(function (resolve, reject) {
-        if (typeof XLSX !== 'undefined') { _xlsxLibLoadedInIndex = true; resolve(); return; }
-        var script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-        script.onload = function () { _xlsxLibLoadedInIndex = true; resolve(); };
-        script.onerror = function () { reject(new Error('Failed to load XLSX library')); };
-        document.head.appendChild(script);
-      });
-    }
-
-    function normalizeCode(val) {
-      if (!val) return null;
-      var trimmed = val.toString().trim().toUpperCase();
-      var arabicMap = { '٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9' };
-      trimmed = trimmed.replace(/[٠-٩]/g, function(c) { return arabicMap[c]; });
-      var match = trimmed.match(/^([A-Z]\d+)(EDUR9)?$/);
-      if (match) return match[1] + 'EDUR9';
-      var numMatch = trimmed.match(/^(\d+)$/);
-      if (numMatch) {
-        var group = localStorage.getItem('userGroup') || 'Group A';
-        var letter = group.replace('Group ', '').trim();
-        return letter + numMatch[1] + 'EDUR9';
-      }
-      return null;
-    }
-
-    function extractCodesFromSheetIndex(rows) {
-      var codes = [];
-      var codeCol = -1;
-      for (var r = 0; r < Math.min(10, rows.length); r++) {
-        var row = rows[r];
-        if (!row) continue;
-        for (var c = 0; c < row.length; c++) {
-          var cell = (row[c] || '').toString().trim();
-          if (/^codes?$/i.test(cell)) { codeCol = c; break; }
-        }
-        if (codeCol !== -1) break;
-      }
-      if (codeCol === -1) {
-        for (var r2 = 0; r2 < rows.length; r2++) {
-          var row2 = rows[r2];
-          if (!row2) continue;
-          for (var c2 = 0; c2 < row2.length; c2++) {
-            var cell2 = (row2[c2] || '').toString().trim();
-            var code = normalizeCode(cell2);
-            if (code) codes.push(code);
-          }
-        }
-      } else {
-        for (var r3 = 0; r3 < rows.length; r3++) {
-          var row3 = rows[r3];
-          if (!row3 || !row3[codeCol]) continue;
-          var cell3 = row3[codeCol].toString().trim();
-          var code = normalizeCode(cell3);
-          if (code) codes.push(code);
-        }
-      }
-      return codes.filter(function (v, i, a) { return a.indexOf(v) === i; });
-    }
-
-    function showBatchResultsIndex(results, logLines) {
-      var container = document.getElementById('batchAttResults');
-      var foundEl = document.getElementById('batchAttFoundCount');
-      var successEl = document.getElementById('batchAttSuccessCount');
-      var failEl = document.getElementById('batchAttFailCount');
-      var crossedEl = document.getElementById('batchAttCrossedCount');
-      var logEl = document.getElementById('batchAttLog');
-      if (!container) return;
-      container.style.display = 'block';
-      var total = results.success + results.fail + (results.crossed || 0);
-      if (foundEl) foundEl.innerText = '📌 الإجمالي: ' + total + ' كود';
-      if (successEl) successEl.innerText = '✅ تم بنجاح: ' + results.success;
-      if (crossedEl) {
-        if (results.crossed) {
-          crossedEl.style.display = 'inline-block';
-          crossedEl.innerText = '🚫 خارج الصلاحيات: ' + results.crossed;
-        } else {
-          crossedEl.style.display = 'none';
-        }
-      }
-      if (failEl) failEl.innerText = results.fail ? '❌ فشل: ' + results.fail : '';
-      if (logEl) logEl.innerText = logLines.join('\n');
-    }
-
-    async function processBatchAttendance() {
-      var lec = document.getElementById('batchAttLec').value.trim();
-      if (!lec) return showToast('❌ أدخل رقم المحاضرة', 'error');
-      var fileInput = document.getElementById('batchAttFileInput');
-      var sheetUrl = document.getElementById('batchAttSheetUrl').value.trim();
-      var manualCodes = document.getElementById('batchAttManualCodes').value.trim();
-      var addBehavior = document.getElementById('batchAttAddBehavior').checked;
-      var btn = document.getElementById('batchAttSubmitBtn');
-
-      if (!fileInput.files.length && !sheetUrl && !manualCodes) return showToast('❌ ارفع ملف Excel أو أدخل رابط Google Sheet أو أدخل أكواد يدوياً', 'error');
-      if (!confirm('هل أنت متأكد من تسجيل الحضور والسلوك للمحاضرة رقم ' + lec + ' للمتدربين المدخلين؟')) return;
-
-      btn.disabled = true;
-      btn.innerText = 'جاري المعالجة والرصد⏳';
-      showToast('⏳ جاري قراءة البيانات وتحديد الأكواد...', 'info');
-
-      try {
-        var codes = [];
-        if (fileInput.files.length) {
-          await loadXlsxLibInIndex();
-          var file = fileInput.files[0];
-          var data = await file.arrayBuffer();
-          var workbook = XLSX.read(data, { type: 'array' });
-          var sheet = workbook.Sheets[workbook.SheetNames[0]];
-          var json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-          codes = extractCodesFromSheetIndex(json);
-        } else if (sheetUrl) {
-          var resp = await fetch(sheetUrl);
-          if (!resp.ok) throw new Error('فشل تحميل رابط الشيت');
-          var csvText = await resp.text();
-          var rows = csvText.split('\n').map(function (r) { return r.split(','); });
-          codes = extractCodesFromSheetIndex(rows);
-        } else if (manualCodes) {
-          var lines = manualCodes.split(/[\n,;]+/);
-          for (var i = 0; i < lines.length; i++) {
-            var code = normalizeCode(lines[i]);
-            if (code) codes.push(code);
-          }
-          codes = codes.filter(function (v, idx, a) { return a.indexOf(v) === idx; });
-        }
-
-        if (codes.length === 0) {
-          btn.disabled = false;
-          btn.innerText = '🚀 تنفيذ رصد الحضور والسلوك على جميع الطلاب';
-          return showToast('❌ لم يتم العثور على أكواد طلاب في التنسيق المدخل', 'error');
-        }
-
-        showToast('✅ تم العثور على ' + codes.length + ' كود، جاري تسجيل الحضور والسلوك...', 'success');
-
-        var userGroup = localStorage.getItem('userGroup') || 'Group A';
-        var groupLetter = userGroup.replace('Group ', '').trim();
-        var groupName = 'Group ' + groupLetter;
-        var centralGradesApi = getEffectiveApi(GRADES_API_URL);
-        var centralAttApi = getEffectiveApi(ATTENDANCE_API_URL);
-        var auth = getAuthParams();
-
-                        // Fallback: decompose total to extract bonus
-                        var totalIdx = parseFloat(es.total) || 0;
-                        var hasFbIdx = localStorage.getItem('fb_' + es.id + '_' + lec);
-                        var hasAttIdx = localStorage.getItem('att_' + es.id + '_' + lec);
-                        var fbIdx = hasFbIdx ? 5 : 0;
-                        var attIdx = hasAttIdx ? 5 : 0;
-                        if (!hasFbIdx && !hasAttIdx) {
-                            if (totalIdx >= 10) { fbIdx = 5; attIdx = 5; }
-                            else if (totalIdx >= 5) { attIdx = 5; }
-                        }
-                        existingBonusMapIdx[es.id] = Math.max(0, totalIdx - fbIdx - attIdx);
-                    }
-                }
-            }
-        } catch(e) {}
-
-        for (var c = 0; c < codes.length; c++) {
-          var code = codes[c];
-          // Validate authorization group
-          if (code.charAt(0) !== groupLetter) {
-            results.crossed++;
-            logLines.push('❌ ' + code + ' - خارج الصلاحيات (المجموعة ' + code.charAt(0) + ')');
-            continue;
-          }
-
-          try {
-            var scanTime = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-            // 1. Central Attendance API
-            var attRes = await fetch(`${centralAttApi}?action=scan&qrCode=${encodeURIComponent(code)}&lectureNum=${encodeURIComponent(lec)}&group=${encodeURIComponent(groupName)}&time=${encodeURIComponent(scanTime)}${auth}`).then(function (r) { return r.json(); }).catch(function() { return { status: 'error' }; });
-
-            // 2. Central Extra API for Attitude (Behavior 5 pts)
-            var existingF = localStorage.getItem('fb_' + code + '_' + lec) ? 5 : 0;
-            if (addBehavior) {
-              var existingBonusIdx = existingBonusMapIdx[code] || 0;
-              await fetch(`${centralGradesApi}?action=saveExtra&qrCode=${encodeURIComponent(code)}&lectureNum=${encodeURIComponent(lec)}&feedback=${existingF ? 1 : 0}&attitude=5&bonus=${existingBonusIdx}&group=${encodeURIComponent(groupName)}${auth}`).catch(function() {});
-              localStorage.setItem('att_' + code + '_' + lec, '1');
-            }
-
-            // 3. Sync to Personal Sheet
-            var linksMap = JSON.parse(localStorage.getItem('PERSONAL_LINKS_MAP') || '{}');
-            var personalApi = linksMap[code] || linksMap[code + 'EDUR9'] || localStorage.getItem('PERSONAL_API') || '';
-            if (personalApi) {
-              var taskName = 'TASK ' + lec;
-              // Sync Attendance (15)
-              await fetch(`${personalApi}?action=update&qrCode=${encodeURIComponent(code)}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('attendance .15')}&val=15`).catch(function() {});
-
-              if (addBehavior) {
-                // Sync Attitude (5 or 10 if FB exists)
-                var combinedAtt = 5 + (existingF ? 5 : 0);
-                await fetch(`${personalApi}?action=update&qrCode=${encodeURIComponent(code)}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('attitude .10')}&val=${combinedAtt}`).catch(function() {});
-              }
-            }
-
-            results.success++;
-            logLines.push('✅ [' + groupName + '] ' + code + ' - تم رصد الحضور' + (addBehavior ? ' والسلوك' : ''));
-          } catch (e) {
-            results.fail++;
-            logLines.push('❌ [' + groupName + '] ' + code + ' - فشل الاتصال');
-          }
-        }
-
-        showBatchResultsIndex(results, logLines);
-        playBeep('success');
-        showToast('✅ تم رصد الحضور والسلوك لـ ' + results.success + ' طالب بنجاح' + (results.fail ? '، فشل ' + results.fail : ''), 'success');
-      } catch (e) {
-        console.error('Batch attendance error:', e);
-        showToast('❌ حدث خطأ: ' + e.message, 'error');
-      }
-
-      btn.disabled = false;
-      btn.innerText = '🚀 تنفيذ رصد الحضور والسلوك على جميع الطلاب';
-    }
-
-    
