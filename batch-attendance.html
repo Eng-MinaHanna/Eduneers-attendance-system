@@ -43,74 +43,6 @@
     <div class="container">
         <div id="toast"></div>
 
-        <div id="view-batchImport" class="view-section active" style="display:block !important;">
-            <div style="max-width: 600px; margin: auto;">
-                <h3 style="color:var(--electric-blue); text-align:center; font-size:22px; font-weight:900; margin-bottom:5px;">📋 تسجيل غياب/حضور شامل</h3>
-                <p style="text-align:center; font-size:12px; opacity:0.7; margin-bottom:20px; color:var(--text-muted);">تسجيل غياب أو حضور لعدة طلاب دفعة واحدة مع توثيق السلوك</p>
-
-                <div style="background: var(--card-bg); border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(128,128,128,0.15);">
-                    <div style="margin-bottom: 15px;">
-                        <label style="font-size:12px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:6px;">رقم المحاضرة (Lecture):</label>
-                        <input type="number" id="batchImportLec" value="1" min="1" max="50" style="font-size:14px; width:100%; padding:12px; border:1px solid rgba(0,210,255,0.2); background:var(--card-bg); color:var(--text-main); border-radius:10px; box-sizing:border-box; text-align:center;">
-                    </div>
-
-                    <div style="border-top: 1px solid rgba(128,128,128,0.1); padding-top: 15px; margin-bottom: 15px;">
-                        <label style="font-size:12px; font-weight:bold; color:var(--text-muted); display:block; margin-bottom:6px;">👤 أكواد الطلاب (كود واحد في كل سطر):</label>
-                        <textarea id="batchCodes" placeholder="K1EDUR9&#10;K2EDUR9&#10;K3EDUR9" style="font-size:12px; width:100%; padding:12px; border:1px solid rgba(128,128,128,0.15); background:var(--card-bg); color:var(--text-main); border-radius:10px; box-sizing:border-box; min-height:120px; resize:vertical; font-family:monospace; direction:ltr; text-align:left;"></textarea>
-                    </div>
-
-                    <div style="border-top: 1px solid rgba(128,128,128,0.1); padding-top: 15px; margin-bottom: 15px; display:flex; align-items:center; gap:10px;">
-                        <label style="font-size:13px; font-weight:bold; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
-                            <input type="checkbox" id="batchAddBehavior" checked style="accent-color:var(--electric-blue); width:18px; height:18px;"> تسجيل السلوك (5 درجات)
-                        </label>
-                    </div>
-
-                    <button id="batchSubmitBtn" onclick="processBatchImport()" style="width:100%; padding:14px; border:none; border-radius:12px; background:linear-gradient(135deg, var(--electric-blue), #0284c7); color:#fff; font-weight:900; font-size:14px; cursor:pointer; transition:0.3s;">🚀 تسجيل الحضور والسلوك</button>
-                </div>
-
-                <div id="batchResults" style="display:none;">
-                    <div style="background: var(--card-bg); border-radius: 16px; padding: 20px; border: 1px solid rgba(128,128,128,0.15);">
-                        <h4 style="color:var(--accent); margin:0 0 15px 0; font-size:16px;">📋 نتيجة التسجيل</h4>
-                        <div id="batchStats" style="display:flex; gap:15px; margin-bottom:15px; flex-wrap:wrap;">
-                            <span id="batchFoundCount" style="background:rgba(0,210,255,0.1); color:var(--electric-blue); padding:8px 14px; border-radius:8px; font-size:13px; font-weight:bold;"></span>
-                            <span id="batchSuccessCount" style="background:rgba(16,185,129,0.1); color:#10b981; padding:8px 14px; border-radius:8px; font-size:13px; font-weight:bold;"></span>
-                            <span id="batchCrossedCount" style="background:rgba(239,68,68,0.15); color:#ef4444; padding:8px 14px; border-radius:8px; font-size:13px; font-weight:bold; display:none;"></span>
-                            <span id="batchFailCount" style="background:rgba(239,68,68,0.1); color:#ef4444; padding:8px 14px; border-radius:8px; font-size:13px; font-weight:bold;"></span>
-                        </div>
-                        <div style="max-height:200px; overflow-y:auto; background:var(--card-bg); border-radius:8px; padding:10px; border:1px solid rgba(128,128,128,0.08);">
-                            <pre id="batchLog" style="font-size:11px; color:var(--text-muted); margin:0; white-space:pre-wrap; direction:ltr; text-align:left;"></pre>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-        <div style="margin: 10px 15px; border-radius: 12px; border: 1px solid rgba(0, 210, 255, 0.3); box-shadow: 0 0 15px rgba(0, 210, 255, 0.05); overflow: hidden;">
-            <div style="background: rgba(0, 210, 255, 0.1); padding: 8px 15px; font-weight: 900; color: #00d2ff; font-size: 12px; letter-spacing: 1px; border-bottom: 1px solid rgba(0, 210, 255, 0.1);">📷 قسم الحضور</div>
-            <div style="padding: 5px 0;">
-                <a href="#" onclick="gotoView('index.html', 'scanner')"><span>📷</span> <span>مسح الـ QR</span></a>
-                <a href="#" onclick="gotoView('index.html', 'manual')"><span>✍️</span> <span>التسجيل اليدوي السريع</span></a>
-                <a href="#" onclick="gotoView('index.html', 'dashboard')"><span>📊</span> <span>لوحة الحضور</span></a>
-                <a href="batch-attendance.html" class="active" style="display:flex;"><span>📋</span> <span>تسجيل غياب/حضور شامل</span></a>
-            </div>
-        </div>
-        <div style="margin: 15px 15px; border-radius: 12px; border: 1px solid rgba(192, 132, 252, 0.3); box-shadow: 0 0 15px rgba(192, 132, 252, 0.05); overflow: hidden;">
-            <div style="background: rgba(192, 132, 252, 0.1); padding: 8px 15px; font-weight: 900; color: #c084fc; font-size: 12px; letter-spacing: 1px; border-bottom: 1px solid rgba(192, 132, 252, 0.1);">🎯 قسم الدرجات والتقييم</div>
-            <div style="padding: 5px 0;">
-                <a href="#" onclick="gotoView('grades.html', 'studentDashboard')"><span>📊</span> <span>لوحة درجات الطلاب</span></a>
-                <a href="#" onclick="gotoView('grades.html', 'searchView')"><span>🔍</span> <span>استعلام عن طالب</span></a>
-                <a href="feedback.html" style="display:flex;"><span>💬</span> <span>Feedback شامل</span></a>
-                <a href="TasksForAll.html" style="display:flex;"><span>📋</span> <span>Tasks للكل</span></a>
-                <a href="Quizes.html" style="display:flex;"><span>📝</span> <span>Quizes</span></a>
-            </div>
-        </div>
-        <a href="#" onclick="logout()" style="color: #ef4444; margin: 15px; background: rgba(239, 68, 68, 0.1); border-radius: 12px; text-align: center; justify-content: center;"><span>🚪</span> <span>تسجيل الخروج</span></a>
-        <div style="height: 100px; flex-shrink: 0;"></div>
-    </div>
-
-    <div class="container">
-        <div id="toast"></div>
-
         <div id="view-batchAttendance" class="view-section admin-only active" style="display:block !important;">
             <div style="max-width: 650px; margin: auto;">
                 <h3 style="color:var(--electric-blue); text-align:center; font-size:24px; font-weight:900; margin-bottom:5px;">📋 تسجيل غياب وحضور شامل (دفعة)</h3>
@@ -440,7 +372,7 @@
                         // 3. Central Extra API for Attitude (Behavior 5 pts)
                         var existingF = localStorage.getItem('fb_' + code + '_' + lec) ? 5 : 0;
                         if (addBehavior) {
-                            await fetch(centralGradesApi + '?action=saveExtra&qrCode=' + encodeURIComponent(code) + '&lectureNum=' + encodeURIComponent(lec) + '&attitude=5&group=' + encodeURIComponent(groupName) + auth).catch(function() {});
+                            await fetch(centralGradesApi + '?action=saveExtra&qrCode=' + encodeURIComponent(code) + '&lectureNum=' + encodeURIComponent(lec) + '&feedback=' + (existingF ? 1 : 0) + '&attitude=5&bonus=0&group=' + encodeURIComponent(groupName) + auth).catch(function() {});
                             localStorage.setItem('att_' + code + '_' + lec, '1');
                         }
 
@@ -449,14 +381,19 @@
                         var personalApi = linksMap[code] || localStorage.getItem('PERSONAL_API') || '';
                         if (personalApi) {
                             var taskName = 'TASK ' + lec;
-                            // Sync Attendance (15)
-                            await fetch(personalApi + '?action=update&qrCode=' + encodeURIComponent(code) + '&taskName=' + encodeURIComponent(taskName) + '&category=' + encodeURIComponent('attendance .15') + '&val=15').catch(function() {});
+                            // Sync Attendance (15) (Fire and forget, match index.js)
+                            fetch(personalApi + '?action=update&qrCode=' + encodeURIComponent(code) + '&taskName=' + encodeURIComponent(taskName) + '&category=' + encodeURIComponent('attendance .15') + '&val=15', {mode: 'no-cors'}).catch(function() {});
 
                             if (addBehavior) {
                                 // Sync Attitude (5 or 10 if FB exists)
                                 var combinedAtt = 5 + (existingF ? 5 : 0);
-                                await fetch(personalApi + '?action=update&qrCode=' + encodeURIComponent(code) + '&taskName=' + encodeURIComponent(taskName) + '&category=' + encodeURIComponent('attitude .10') + '&val=' + combinedAtt).catch(function() {});
+                                // Delay the attitude request by 2 seconds to avoid concurrent write locks on the same Google Sheet
+                                setTimeout(function() {
+                                    fetch(personalApi + '?action=update&qrCode=' + encodeURIComponent(code) + '&taskName=' + encodeURIComponent(taskName) + '&category=' + encodeURIComponent('attitude .10') + '&val=' + combinedAtt, {mode: 'no-cors'}).catch(function() {});
+                                }, 2000);
                             }
+                        } else {
+                            logLines.push('⚠️ [' + groupName + '] ' + code + ' - لم يتم مزامنة الشيت الفردي (رابط غير موجود)');
                         }
 
                         results.success++;

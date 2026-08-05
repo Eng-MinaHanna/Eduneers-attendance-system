@@ -246,7 +246,7 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
             if (data.status === "success" || data.status === "already") {
               successCount++;
               // Auto-save attitude (5) on attendance sync — preserve existing feedback
-// removed existingF
+              let existingF = localStorage.getItem(`fb_${record.code}_${record.lecture}`) ? 1 : 0;
               fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(record.code)}&lectureNum=${encodeURIComponent(record.lecture)}&feedback=${existingF ? 1 : 0}&attitude=5&bonus=0&group=${encodeURIComponent(record.group)}${getAuthParams()}`).catch(e => {});
               // Track attitude locally for dashboard fallback
               localStorage.setItem(`att_${record.code}_${record.lecture}`, '1');
@@ -377,36 +377,43 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
         showToast("⚠️ خطأ في الاتصال", "warning");
       } catch(e) {}
     });
+
     async function handleManualLogin() {
       const email = document.getElementById('loginEmail').value; const pass = document.getElementById('loginPassword').value;
       if (!email || !pass) return showCustomAlert("الرجاء إدخال الإيميل وكلمة المرور.", "تنبيه", "warning");
       showProgress("جاري التحقق من الهوية وفتح قناة اتصال مشفرة 🔐...");
-      fetch(`${LOGIN_API_URL}?action=login&email=${encodeURIComponent(email)}&password=${encodeURIComponent(pass)}`)
-        .then(r => r.json()).then(d => {
+      
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 15000));
+      const fetchPromise = fetch(`${LOGIN_API_URL}?action=login&email=${encodeURIComponent(email)}&password=${encodeURIComponent(pass)}`).then(r => r.json());
+      
+      Promise.race([fetchPromise, timeoutPromise]).then(d => {
           completeProgress();
           if (d.status === 'success') {
             localStorage.setItem('isLoggedIn', 'true'); localStorage.setItem('userName', d.userName);
             localStorage.setItem('userRole', d.role); localStorage.setItem('userGroup', d.group);
             localStorage.setItem('userEmail', email); localStorage.setItem('sessionToken', d.sessionToken);
             showToast(`✅ أهلاً بك في منصة Eduneers، ${d.userName}`, "success");
-            setTimeout(() => { document.getElementById('loginEmail').value = ''; document.getElementById('loginPassword').value = ''; checkAuth(); }, 1000);
+            setTimeout(() => { document.getElementById('loginEmail').value = ''; document.getElementById('loginPassword').value = ''; checkAuth(); }, 200);
           } else showToast(d.message, "error");
-        }).catch(e => { completeProgress(); showToast("❌ خطأ في الاتصال بالسيرفر المركزي.", "error") });
+        }).catch(e => { completeProgress(); showToast(e.message === "Timeout" ? "❌ استغرق الاتصال وقتاً طويلاً. حاول مرة أخرى." : "❌ خطأ في الاتصال بالسيرفر المركزي.", "error") });
     }
 
     function parseJwt(token) { var b = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'); return JSON.parse(decodeURIComponent(atob(b).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''))); }
     function handleGoogleLogin(res) {
       const payload = parseJwt(res.credential); showProgress("جاري المصادقة السريعة مع خوادم Google ⚡...");
-      fetch(`${LOGIN_API_URL}?action=googleLogin&email=${encodeURIComponent(payload.email)}`).then(r => r.json()).then(d => {
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 15000));
+      const fetchPromise = fetch(`${LOGIN_API_URL}?action=googleLogin&email=${encodeURIComponent(payload.email)}`).then(r => r.json());
+      
+      Promise.race([fetchPromise, timeoutPromise]).then(d => {
         completeProgress();
         if (d.status === 'success') {
           localStorage.setItem('isLoggedIn', 'true'); localStorage.setItem('userName', d.userName || payload.name);
           localStorage.setItem('userRole', d.role); localStorage.setItem('userGroup', d.group);
           localStorage.setItem('userEmail', payload.email); localStorage.setItem('sessionToken', d.sessionToken);
           showToast(`✅ أهلاً بك في منصة Eduneers، ${d.userName || payload.name}`, "success");
-          setTimeout(checkAuth, 1000);
+          setTimeout(checkAuth, 200);
         } else showToast(d.message, "error");
-      }).catch(e => { completeProgress(); showToast("❌ خطأ في الاتصال.", "error") });
+      }).catch(e => { completeProgress(); showToast(e.message === "Timeout" ? "❌ استغرق الاتصال وقتاً طويلاً. حاول مرة أخرى." : "❌ خطأ في الاتصال.", "error") });
     }
 
     async function syncRole() {
@@ -645,8 +652,16 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
         });
 
       // Auto-save attitude (5) on attendance — preserve existing feedback
-// removed existingF
-      fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&feedback=${existingF ? 1 : 0}&attitude=5&bonus=0&group=${encodeURIComponent(group)}${getAuthParams()}`).catch(e => {});
+      let existingF = localStorage.getItem(`fb_${studentCode}_${lec}`) ? 1 : 0;
+      let scanExtraUrl = `${getEffectiveApi(GRADES_API_URL)}?action=getTop&extraOnly=1&fromLec=${encodeURIComponent(lec)}&toLec=${encodeURIComponent(lec)}${getAuthParams()}`;
+      fetch(scanExtraUrl).then(r => r.json()).then(scanExtraData => {
+        let score = (scanExtraData.scores || []).find(s => s.id === studentCode);
+        let extraTotal = score ? parseFloat(score.total) || 0 : 0;
+        if (!existingF && extraTotal >= 5) existingF = 1;
+        fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&feedback=${existingF ? 1 : 0}&attitude=5&bonus=0&group=${encodeURIComponent(group)}${getAuthParams()}`).catch(e => {});
+      }).catch(e => {
+        fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&feedback=${existingF ? 1 : 0}&attitude=5&bonus=0&group=${encodeURIComponent(group)}${getAuthParams()}`).catch(e2 => {});
+      });
       // Track attitude locally for dashboard fallback
       localStorage.setItem(`att_${studentCode}_${lec}`, '1');
 
@@ -774,7 +789,34 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
                 .then(r => r.json())
                 .then(res => console.log("Personal Sheet Deletion Synced:", res))
                 .catch(e => console.error("Personal Sheet Deletion Sync Error:", e));
+              // حذف السلوك أيضاً من الشيت الفردي
+              fetch(`${personalApi}?action=update&qrCode=${encodeURIComponent(studentCode)}&taskName=${encodeURIComponent(taskName)}&category=${encodeURIComponent('attitude .10')}&val=0`)
+                .then(r => r.json())
+                .then(res => console.log("Personal Sheet Attitude Deletion Synced:", res))
+                .catch(e => console.error("Personal Sheet Attitude Deletion Sync Error:", e));
             }
+
+            // ⚡ حذف السلوك من الشيت المركزي مع الحفاظ على الفيدباك والبونص
+            localStorage.removeItem(`att_${studentCode}_${lec}`);
+            let extraUrl = `${getEffectiveApi(GRADES_API_URL)}?action=getTop&extraOnly=1&fromLec=${encodeURIComponent(lec)}&toLec=${encodeURIComponent(lec)}${getAuthParams()}`;
+            fetch(extraUrl).then(r => r.json()).then(extraData => {
+              let score = (extraData.scores || []).find(s => s.id === studentCode);
+              let existingFeedback = 0;
+              let existingBonus = 0;
+              if (score) {
+                if (score.feedback !== undefined) existingFeedback = parseFloat(score.feedback) > 0 ? 1 : 0;
+                if (score.bonus !== undefined) existingBonus = parseFloat(score.bonus) || 0;
+                if (score.feedback === undefined) {
+                  let total = parseFloat(score.total) || 0;
+                  let att = parseFloat(score.attitude) || 0;
+                  if (att >= 5 && total >= 10) existingFeedback = 1;
+                  if (score.bonus === undefined) existingBonus = Math.max(0, total - existingFeedback * 5 - (att >= 5 ? 5 : 0));
+                }
+              }
+              fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&feedback=${existingFeedback ? 1 : 0}&attitude=0&bonus=${existingBonus}&group=${encodeURIComponent(group)}${getAuthParams()}`).catch(e => {});
+            }).catch(e => {
+              fetch(`${getEffectiveApi(GRADES_API_URL)}?action=saveExtra&qrCode=${encodeURIComponent(studentCode)}&lectureNum=${encodeURIComponent(lec)}&feedback=0&attitude=0&bonus=0&group=${encodeURIComponent(group)}${getAuthParams()}`).catch(e2 => {});
+            });
           } else {
             showToast(data.message, "error"); loadDashboard();
           }
