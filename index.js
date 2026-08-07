@@ -326,11 +326,14 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
           }).catch(err => console.log("Cam warning:", err));
         }
 
-        if (typeof google !== 'undefined' && google.accounts) {
+        function initGoogleSignIn() {
+          if (typeof google === 'undefined' || !google.accounts || !google.accounts.id) return false;
+          const wrapper = document.getElementById("googleBtnWrapper");
+          if (!wrapper || wrapper.hasChildNodes()) return true;
           // Dynamic Client ID selection based on hostname
           const oldClientId = "199540075185-0s74k90bdpodvtnao1ce7euec2o0vr31.apps.googleusercontent.com";
           const newClientId = "199540075185-0s74k90bdpodvtnao1ce7euec2o0vr31.apps.googleusercontent.com";
-          
+
           const isLocalhost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
           const activeClientId = isLocalhost ? oldClientId : newClientId;
 
@@ -343,10 +346,16 @@ const CENTRAL_LINKS_API = "https://script.google.com/macros/s/AKfycbxFT_0yMGQMp2
             use_fedcm: true
           });
           google.accounts.id.renderButton(
-            document.getElementById("googleBtnWrapper"),
+            wrapper,
             { theme: "filled_black", size: "large", shape: "pill", text: "signin_with" }
           );
+          return true;
         }
+        // Retry until the GSI library finishes loading (async/defer) so the button always appears
+        function tryInitGoogleSignIn() {
+          if (!initGoogleSignIn()) { setTimeout(tryInitGoogleSignIn, 300); }
+        }
+        tryInitGoogleSignIn();
 
         // ⌨️ Enter key support
         document.getElementById('loginPassword')?.addEventListener('keydown', e => { if (e.key === 'Enter') handleManualLogin(); });
